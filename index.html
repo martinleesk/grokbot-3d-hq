@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#111a2a" />
+<title>Martin Lee · GrokBot 3D 總部</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body class="mode-2d">
+  <div id="stage">
+    <div id="canvas-wrap" aria-hidden="true"></div>
+    <div id="fallback" aria-label="平面總部地圖">
+      <div class="fb-office" id="fbOffice">
+        <div class="fb-windows" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="fb-aisle" aria-hidden="true"></div>
+        <!-- zones injected by app.js; static placeholder so never blank before JS -->
+        <div class="fb-grid" id="fbGridPlaceholder">
+          <div class="fb-zone" style="border-color:#ff6b8a"><div class="fb-zone-head"><h3 style="color:#ff6b8a">指揮中心</h3><span class="tag">L6</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ff6b8a">B</div></div></div><div class="fb-plant" style="right:10px;top:40px"></div></div>
+          <div class="fb-zone" style="border-color:#4ea1ff"><div class="fb-zone-head"><h3 style="color:#4ea1ff">投資樓層</h3><span class="tag">L5</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">投</div></div><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">Q</div></div></div></div>
+          <div class="fb-zone" style="border-color:#3dffa8"><div class="fb-zone-head"><h3 style="color:#1a8f5c">生活樓層</h3><span class="tag">L4</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#3dffa8">生</div></div></div></div>
+          <div class="fb-zone" style="border-color:#c4a1ff"><div class="fb-zone-head"><h3 style="color:#8a5fd6">旅遊樓層</h3><span class="tag">L3</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#c4a1ff">旅</div></div></div></div>
+          <div class="fb-zone" style="border-color:#ffd166"><div class="fb-zone-head"><h3 style="color:#c9991a">內容樓層</h3><span class="tag">L2</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ffd166">新</div></div></div></div>
+          <div class="fb-zone" style="border-color:#9aa4b2"><div class="fb-zone-head"><h3 style="color:#5c6675">系統樓層</h3><span class="tag">L1</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#9aa4b2">S</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">ML</div>
+        <div>
+          <div class="title">GrokBot 3D 總部</div>
+          <div class="sub">Martin Lee · Hong Kong · 職能實時運作</div>
+        </div>
+      </div>
+      <div class="live"><span class="dot"></span><span id="liveText">實時運作中</span></div>
+    </header>
+
+    <aside class="panel left-panel" id="leftPanel">
+      <div class="panel-label">職能區域</div>
+      <nav class="zone-nav" id="zoneNav"></nav>
+      <div class="panel-label mt">任務狀態</div>
+      <div class="status-list">
+        <button type="button" class="status-row"><span>等待我處理</span><b id="cntWait">3</b></button>
+        <button type="button" class="status-row"><span>已完成</span><b id="cntDone">18</b></button>
+        <button type="button" class="status-row"><span>例行工作</span><b id="cntRoutine">7</b></button>
+      </div>
+    </aside>
+
+    <aside class="panel detail-panel open" id="detailPanel">
+      <div class="detail-head">
+        <div class="bot-chip" id="detailAvatar">B</div>
+        <div>
+          <div class="eyebrow" id="detailZone">指揮中心</div>
+          <h2 id="detailName">Boss Bot</h2>
+        </div>
+        <span class="badge ok" id="detailBadge">運作中</span>
+      </div>
+      <p class="detail-desc" id="detailDesc">總管 · 全域調度與決策</p>
+      <div class="metrics" id="detailMetrics"></div>
+      <div class="roster-label">同層團隊</div>
+      <div class="roster" id="roster"></div>
+    </aside>
+
+    <section class="panel feed-panel" id="feedPanel">
+      <div class="panel-label">活動紀錄 · LIVE</div>
+      <ul class="feed" id="feed"></ul>
+    </section>
+
+    <div class="hint" id="hint">點區域／機器人查看團隊</div>
+  </div>
+
+  <button type="button" class="mode-toggle" id="btnTry3d">試 3D（進階）</button>
+
+  <div class="boot-error" id="bootError" hidden>
+    <h2>無法啟動 3D</h2>
+    <p id="bootMsg">已保留平面總部地圖，可繼續使用。</p>
+    <button type="button" id="btn2d">返回平面模式</button>
+  </div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

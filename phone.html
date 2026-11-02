@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#111a2a" />
+<title>Martin Lee · GrokBot 總部（手機版）</title>
+<style>
+:root {
+  --office: #d9e0eb;
+  --office-deep: #c5cedc;
+  --panel: #111a2a;
+  --panel-soft: #162235;
+  --border: rgba(255,255,255,0.14);
+  --text: #f2f5fb;
+  --muted: #9aabbc;
+  --accent: #5aa8ff;
+  --ok: #3dffa8;
+  --warn: #ffb86b;
+  --ink: #1a2436;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --tap: 48px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  background: var(--office);
+  color: var(--text);
+  font-family: "Noto Sans TC", "PingFang TC", "Hiragino Sans CNS", "Microsoft JhengHei", sans-serif;
+  touch-action: manipulation;
+}
+#stage {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, #eef3f9 0%, #d5dde8 55%, #c8d1df 100%);
+}
+#canvas-wrap {
+  position: absolute; inset: 0;
+  background: #d8dee8;
+  display: none; /* only shown in mode-3d */
+}
+#canvas-wrap canvas {
+  display: block; width: 100%; height: 100%;
+  touch-action: none;
+  background: #d8dee8;
+}
+
+/* ---- RICH 2D office (default visible) ---- */
+#fallback {
+  display: block;
+  position: absolute; inset: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(70px + var(--safe-t)) 10px calc(210px + var(--safe-b));
+  background: linear-gradient(180deg, #eef3f9 0%, #d5dde8 55%, #c8d1df 100%);
+  z-index: 1;
+}
+.fb-office {
+  position: relative;
+  margin: 0 auto;
+  width: min(960px, 100%);
+  min-height: min(70vh, 560px);
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, #f7f9fc 0%, #e8eef6 40%, #dfe6f0 100%);
+  border: 2px solid #fff;
+  box-shadow:
+    0 24px 60px rgba(50,70,110,0.22),
+    inset 0 0 0 1px rgba(255,255,255,0.8);
+  overflow: hidden;
+  padding: 14px;
+}
+.fb-office::before {
+  /* window strip */
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; height: 54px;
+  background: linear-gradient(180deg, #edf2f8, #d9e2ef);
+  border-bottom: 3px solid #fff;
+  pointer-events: none;
+}
+.fb-windows {
+  position: absolute; top: 10px; left: 14px; right: 14px; height: 34px;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; z-index: 2;
+  pointer-events: none;
+}
+.fb-windows span {
+  display: block; height: 100%; border-radius: 6px;
+  background: linear-gradient(180deg, #f4f7fb, #cfd9e8);
+  border: 2px solid #fff;
+  box-shadow: inset 0 0 12px rgba(140,170,210,0.35);
+}
+.fb-grid {
+  position: relative;
+  margin-top: 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, minmax(150px, 1fr));
+  gap: 10px;
+  min-height: 320px;
+  z-index: 1;
+}
+.fb-zone {
+  position: relative;
+  border-radius: 16px;
+  padding: 10px 10px 12px;
+  background: #ffffff;
+  border: 2px solid #e3e9f2;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 10px 22px rgba(40,60,90,0.1);
+  transform: perspective(600px) rotateX(8deg);
+  transform-origin: center top;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  min-height: 150px;
+}
+.fb-zone.active {
+  border-color: var(--accent);
+  box-shadow: 0 14px 28px rgba(40,60,90,0.18), 0 0 0 2px rgba(90,168,255,0.25);
+  transform: perspective(600px) rotateX(4deg) translateY(-2px);
+}
+.fb-zone-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  margin-bottom: 8px;
+}
+.fb-zone h3 {
+  font-size: 13px; font-weight: 750; color: var(--ink); margin: 0;
+}
+.fb-zone .tag {
+  font-size: 10px; padding: 3px 7px; border-radius: 999px;
+  background: #eef3fa; color: #5a6d86; font-weight: 650;
+}
+.fb-desks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 8px;
+}
+.fb-desk {
+  height: 42px; border-radius: 9px;
+  background: linear-gradient(#fff, #eef2f8);
+  border: 1px solid #d5dbe6;
+  position: relative;
+  box-shadow: 0 3px 0 #d0d7e3;
+}
+.fb-desk::before {
+  content: ""; position: absolute; left: 7px; right: 7px; top: 7px; height: 9px;
+  border-radius: 3px; background: #222831;
+}
+.fb-desk::after {
+  /* stool */
+  content: ""; position: absolute; left: 50%; bottom: -5px; width: 14px; height: 6px;
+  margin-left: -7px; border-radius: 50%; background: #fff;
+  border: 1px solid #d5dbe6;
+}
+.fb-bot {
+  width: 24px; height: 24px; border-radius: 8px; position: absolute;
+  right: 4px; bottom: 5px; display: grid; place-items: center;
+  font-size: 10px; font-weight: 800; color: #0b1220;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.12);
+  animation: botBob 2.4s ease-in-out infinite;
+}
+.fb-bot::after {
+  content: ""; position: absolute; width: 8px; height: 3px; border-radius: 2px; background: #fff;
+  top: 8px; left: 5px; box-shadow: 8px 0 0 #fff;
+}
+@keyframes botBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.fb-plant {
+  position: absolute; width: 18px; height: 18px; border-radius: 50%;
+  background: #5ad67d;
+  box-shadow: 7px -2px 0 #3dbf66, -6px -1px 0 #74e094, 0 -7px 0 #4fcf74;
+  opacity: 0.95; z-index: 2;
+}
+.fb-aisle {
+  position: absolute; left: 50%; top: 48px; bottom: 14px; width: 10px;
+  margin-left: -5px; border-radius: 8px;
+  background: repeating-linear-gradient(180deg, #eef2f8, #eef2f8 10px, #e2e8f1 10px, #e2e8f1 20px);
+  opacity: 0.55; pointer-events: none; z-index: 0;
+}
+
+.hud { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
+.hud > * { pointer-events: auto; }
+
+.topbar {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: calc(10px + var(--safe-t)) 12px 10px;
+  background: linear-gradient(180deg, rgba(17,26,42,0.92), rgba(17,26,42,0.55), transparent);
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.logo {
+  width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
+  display: grid; place-items: center; font-weight: 800; color: #0b1220;
+  background: linear-gradient(135deg, #7eb6ff, #5dffc2);
+  box-shadow: 0 8px 24px rgba(90,168,255,0.35);
+}
+.title { font-size: 15px; font-weight: 700; color: #fff; }
+.sub { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 1px; }
+.live {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 12px; border-radius: 999px;
+  background: #111a2a; border: 1px solid rgba(61,255,168,0.35);
+  color: var(--ok); font-size: 11px;
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+  box-shadow: 0 0 10px var(--ok); animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: 0.4; transform: scale(0.85); } }
+
+.panel {
+  /* solid — WebView-safe, no reliance on backdrop-filter */
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(8,12,24,0.35);
+  color: var(--text);
+}
+.panel-label {
+  font-size: 11px; letter-spacing: 0.08em; color: var(--muted);
+  margin-bottom: 10px; font-weight: 600;
+}
+.panel-label.mt { margin-top: 14px; }
+
+.left-panel {
+  position: absolute;
+  top: calc(62px + var(--safe-t));
+  left: 12px;
+  width: min(210px, 42vw);
+  max-height: calc(100vh - 220px - var(--safe-t) - var(--safe-b));
+  overflow: auto; -webkit-overflow-scrolling: touch;
+  padding: 14px;
+}
+.zone-nav { display: flex; flex-direction: column; gap: 6px; }
+.zone-btn {
+  display: flex; align-items: center; gap: 10px;
+  min-height: var(--tap); width: 100%;
+  padding: 10px; border-radius: 12px;
+  border: 1px solid transparent; background: #162235;
+  color: var(--text); font: inherit; cursor: pointer; text-align: left;
+}
+.zone-btn.active {
+  background: #1c3358;
+  border-color: rgba(90,168,255,0.45);
+}
+.swatch { width: 10px; height: 28px; border-radius: 6px; flex-shrink: 0; }
+.zone-btn .name { font-size: 13px; font-weight: 650; }
+.zone-btn .meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.status-list { display: flex; flex-direction: column; gap: 6px; }
+.status-row {
+  display: flex; justify-content: space-between; align-items: center;
+  min-height: 40px; padding: 8px 10px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06); background: #162235;
+  color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
+}
+.status-row b { color: var(--text); font-size: 13px; }
+
+.detail-panel {
+  position: absolute;
+  top: calc(62px + var(--safe-t));
+  right: 12px;
+  width: min(280px, 48vw);
+  max-height: calc(100vh - 220px - var(--safe-t) - var(--safe-b));
+  overflow: auto; -webkit-overflow-scrolling: touch;
+  padding: 14px;
+  opacity: 1; /* always visible on mobile 2d */
+  pointer-events: auto;
+}
+.detail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bot-chip {
+  width: 42px; height: 42px; border-radius: 14px;
+  display: grid; place-items: center; font-weight: 800; color: #0b1220;
+  flex-shrink: 0; position: relative;
+  background: #ff6b8a;
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,0.12);
+}
+.bot-chip::after {
+  content: ""; position: absolute; width: 14px; height: 6px; border-radius: 4px;
+  background: #fff; top: 14px; left: 14px; box-shadow: 10px 0 0 #fff;
+}
+.eyebrow { font-size: 10px; color: var(--muted); letter-spacing: 0.06em; }
+.detail-head h2 { font-size: 16px; font-weight: 750; color: #fff; }
+.badge {
+  margin-left: auto; font-size: 10px; padding: 5px 8px; border-radius: 999px;
+  border: 1px solid rgba(61,255,168,0.35); color: var(--ok); background: rgba(61,255,168,0.1);
+  white-space: nowrap;
+}
+.badge.warn { color: var(--warn); border-color: rgba(255,184,107,0.4); background: rgba(255,184,107,0.1); }
+.detail-desc { font-size: 12px; color: var(--muted); line-height: 1.45; margin-bottom: 12px; }
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.metric {
+  padding: 10px; border-radius: 12px;
+  background: #162235; border: 1px solid rgba(255,255,255,0.06);
+}
+.metric .k { font-size: 10px; color: var(--muted); }
+.metric .v { font-size: 15px; font-weight: 700; margin-top: 3px; color: var(--accent); }
+.roster-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.roster { display: flex; flex-direction: column; gap: 6px; }
+.roster-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px; border-radius: 10px; cursor: pointer;
+  background: #162235; border: 1px solid transparent;
+  color: inherit; font: inherit; text-align: left; width: 100%; min-height: 44px;
+}
+.roster-item.active { border-color: rgba(90,168,255,0.35); background: #1c3358; }
+.mini-bot {
+  width: 28px; height: 28px; border-radius: 9px; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #0b1220;
+  position: relative;
+}
+.mini-bot::after {
+  content:""; position:absolute; width:8px; height:4px; border-radius:3px; background:#fff;
+  top:10px; left:7px; box-shadow: 8px 0 0 #fff;
+}
+.roster-item .rn { font-size: 12px; font-weight: 650; color: #fff; }
+.roster-item .rr { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+.feed-panel {
+  position: absolute;
+  left: 12px; bottom: calc(12px + var(--safe-b));
+  width: min(320px, calc(100vw - 24px));
+  max-height: 140px; overflow: hidden;
+  padding: 12px 12px 8px;
+}
+.feed { list-style: none; display: flex; flex-direction: column; gap: 6px; max-height: 100px; overflow: auto; }
+.feed li {
+  font-size: 11px; color: #d5deea; line-height: 1.35;
+  padding: 6px 8px; border-radius: 8px; background: #162235;
+  border-left: 3px solid var(--accent);
+}
+.feed li.zone-invest { border-left-color: #4ea1ff; }
+.feed li.zone-life { border-left-color: #3dffa8; }
+.feed li.zone-travel { border-left-color: #c4a1ff; }
+.feed li.zone-content { border-left-color: #ffd166; }
+.feed li.zone-cmd { border-left-color: #ff6b8a; }
+.feed li.zone-sys { border-left-color: #9aa4b2; }
+.feed .t { color: var(--muted); margin-right: 6px; font-variant-numeric: tabular-nums; }
+
+.hint {
+  position: absolute; left: 50%; bottom: calc(12px + var(--safe-b));
+  transform: translateX(-50%);
+  padding: 7px 12px; border-radius: 999px;
+  background: #111a2a; border: 1px solid rgba(255,255,255,0.1);
+  font-size: 11px; color: rgba(255,255,255,0.75); white-space: nowrap;
+  max-width: calc(100vw - 360px); overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.mode-toggle {
+  position: absolute;
+  right: 12px;
+  bottom: calc(12px + var(--safe-b));
+  z-index: 25;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(90,168,255,0.45);
+  background: #1c3358;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+}
+.mode-toggle.hidden { display: none; }
+
+.boot-error {
+  position: absolute; z-index: 40; left: 50%; top: 40%; transform: translate(-50%,-50%);
+  width: min(360px, calc(100vw - 28px));
+  padding: 18px; border-radius: 16px; text-align: center;
+  background: #111a2a; border: 1px solid rgba(255,107,138,0.35);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.boot-error h2 { font-size: 16px; color: #ff8fa8; margin-bottom: 8px; }
+.boot-error p { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
+.boot-error button {
+  min-height: var(--tap); padding: 0 16px; border-radius: 12px; cursor: pointer;
+  border: 1px solid rgba(90,168,255,0.45); background: #1c3358;
+  color: var(--text); font: inherit; font-weight: 650;
+}
+
+/* Mode switching */
+body.mode-2d #canvas-wrap { display: none !important; }
+body.mode-2d #fallback { display: block !important; }
+body.mode-2d .hint { display: none; }
+body.mode-3d #fallback { display: none !important; }
+body.mode-3d #canvas-wrap { display: block !important; }
+
+/* Mobile / narrow: keep 2D office readable under compact HUD */
+@media (max-width: 820px) {
+  #fallback { padding: calc(64px + var(--safe-t)) 8px calc(250px + var(--safe-b)); }
+  .fb-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, minmax(130px, auto));
+    min-height: 0;
+  }
+  .fb-zone { transform: none; min-height: 130px; }
+  .fb-zone.active { transform: translateY(-2px); }
+  .fb-aisle { display: none; }
+  .left-panel {
+    top: auto; bottom: calc(150px + var(--safe-b));
+    left: 8px; width: calc(46vw - 10px); max-height: 32vh; padding: 10px;
+  }
+  .detail-panel {
+    top: auto; bottom: calc(150px + var(--safe-b));
+    right: 8px; width: calc(54vw - 10px); max-height: 32vh; padding: 10px;
+  }
+  .feed-panel {
+    left: 8px; right: 8px; width: auto;
+    bottom: calc(56px + var(--safe-b)); max-height: 88px;
+  }
+  .mode-toggle {
+    left: 8px; right: auto; bottom: calc(8px + var(--safe-b));
+  }
+  .hint { display: none; }
+  .zone-btn { min-height: 46px; }
+  .detail-head h2 { font-size: 14px; }
+  .sub { display: none; }
+  .metrics { grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) {
+  .fb-zone h3 { font-size: 12px; }
+  .fb-desks { grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); }
+}
+
+/* CSS-only default: prefer 2D on narrow screens even before JS */
+@media (max-width: 900px) {
+  #canvas-wrap { display: none !important; }
+  #fallback { display: block !important; }
+}
+body.mode-3d #canvas-wrap { display: block !important; }
+body.mode-3d #fallback { display: none !important; }
+
+
+/* phone.html: always 2D, never depend on WebGL */
+#canvas-wrap, .mode-toggle, .boot-error, .hint { display: none !important; }
+#fallback { display: block !important; }
+@media (max-width: 820px) {
+  .mode-toggle { display: none !important; }
+}
+
+</style>
+</head>
+<body class="mode-2d">
+  <div id="stage">
+    <div id="canvas-wrap" hidden></div>
+    <div id="fallback">
+      <div class="fb-office" id="fbOffice">
+        <div class="fb-windows" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="fb-aisle" aria-hidden="true"></div>
+        <div class="fb-grid" id="fbGridPlaceholder">
+          <div class="fb-zone" style="border-color:#ff6b8a"><div class="fb-zone-head"><h3 style="color:#ff6b8a">指揮中心</h3><span class="tag">L6</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ff6b8a">B</div></div></div></div>
+          <div class="fb-zone" style="border-color:#4ea1ff"><div class="fb-zone-head"><h3 style="color:#4ea1ff">投資樓層</h3><span class="tag">L5</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">投</div></div><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">Q</div></div></div></div>
+          <div class="fb-zone" style="border-color:#3dffa8"><div class="fb-zone-head"><h3 style="color:#1a8f5c">生活樓層</h3><span class="tag">L4</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#3dffa8">生</div></div></div></div>
+          <div class="fb-zone" style="border-color:#c4a1ff"><div class="fb-zone-head"><h3 style="color:#8a5fd6">旅遊樓層</h3><span class="tag">L3</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#c4a1ff">旅</div></div></div></div>
+          <div class="fb-zone" style="border-color:#ffd166"><div class="fb-zone-head"><h3 style="color:#c9991a">內容樓層</h3><span class="tag">L2</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ffd166">新</div></div></div></div>
+          <div class="fb-zone" style="border-color:#9aa4b2"><div class="fb-zone-head"><h3 style="color:#5c6675">系統樓層</h3><span class="tag">L1</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#9aa4b2">S</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">ML</div>
+        <div>
+          <div class="title">GrokBot 總部 · 手機版</div>
+          <div class="sub">Martin Lee · Hong Kong · 平面實時總覽</div>
+        </div>
+      </div>
+      <div class="live"><span class="dot"></span><span>LIVE</span></div>
+    </header>
+    <aside class="panel left-panel">
+      <div class="panel-label">職能區域</div>
+      <nav class="zone-nav" id="zoneNav"></nav>
+      <div class="panel-label mt">任務狀態</div>
+      <div class="status-list">
+        <button type="button" class="status-row"><span>等待我處理</span><b id="cntWait">3</b></button>
+        <button type="button" class="status-row"><span>已完成</span><b id="cntDone">18</b></button>
+        <button type="button" class="status-row"><span>例行工作</span><b id="cntRoutine">7</b></button>
+      </div>
+    </aside>
+    <aside class="panel detail-panel" id="detailPanel">
+      <div class="detail-head">
+        <div class="bot-chip" id="detailAvatar">B</div>
+        <div>
+          <div class="eyebrow" id="detailZone">指揮中心</div>
+          <h2 id="detailName">Boss Bot</h2>
+        </div>
+        <span class="badge ok" id="detailBadge">運作中</span>
+      </div>
+      <p class="detail-desc" id="detailDesc">總管 · 全域調度與決策</p>
+      <div class="metrics" id="detailMetrics"></div>
+      <div class="roster-label">同層團隊</div>
+      <div class="roster" id="roster"></div>
+    </aside>
+    <section class="panel feed-panel">
+      <div class="panel-label">活動紀錄 · LIVE</div>
+      <ul class="feed" id="feed"></ul>
+    </section>
+  </div>
+
+<script>
+/* Shared HQ roster — Traditional Chinese labels */
+window.HQ_DATA = {
+  zones: [
+    {
+      id: 'cmd', name: '指揮中心', en: 'Command', color: '#ff6b8a', shape: 'cube',
+      desc: '總部最高決策層，Boss Bot 統籌跨區協作與優先級。',
+      staff: [
+        { id: 'boss', name: 'Boss Bot', role: '總管 · 全域調度與決策', status: '指揮中' }
+      ]
+    },
+    {
+      id: 'invest', name: '投資樓層', en: 'Invest', color: '#4ea1ff', shape: 'cylinder',
+      desc: '投資顧問與資產追蹤：股票、ETF、基金與人生財務大計。',
+      staff: [
+        { id: 'advisor', name: '投資顧問', role: '組合分析與配置建議', status: '監察中' },
+        { id: 'byd', name: '比亞迪', role: '個股追蹤 · BYD', status: '更新中' },
+        { id: '2800', name: '盈富', role: '港股 ETF · 2800', status: '監察中' },
+        { id: 'qqq', name: 'QQQ', role: '納斯達克 100 ETF', status: '監察中' },
+        { id: 'voo', name: 'VOO', role: '標普 500 ETF', status: '監察中' },
+        { id: 'orcl', name: 'ORCL', role: 'Oracle 個股追蹤', status: '更新中' },
+        { id: 'sdiv', name: 'SDIV', role: '全球高息 ETF', status: '監察中' },
+        { id: 'rsss', name: 'RSSS', role: '持倉／策略追蹤', status: '待機' },
+        { id: 'spacex', name: 'SpaceX', role: '另類／私募關注', status: '研究中' },
+        { id: 'dcf', name: '大成中國基金', role: '中國主題基金', status: '監察中' },
+        { id: 'passive', name: '被動收入', role: '現金流與股息規劃', status: '規劃中' },
+        { id: 'retire', name: '退休大計', role: '長期退休目標', status: '規劃中' },
+        { id: 'home', name: '買樓大計', role: '置業資金與時程', status: '規劃中' }
+      ]
+    },
+    {
+      id: 'life', name: '生活樓層', en: 'Life', color: '#3dffa8', shape: 'rounded',
+      desc: '日常生活、財務、健康與工作支援自動化。',
+      staff: [
+        { id: 'life', name: '生活管家', role: '日常安排與提醒', status: '運作中' },
+        { id: 'finance', name: '財務管家', role: '收支、預算與帳單', status: '運作中' },
+        { id: 'health', name: '健康教練', role: '運動、作息與健康提示', status: '待命' },
+        { id: 'mind', name: '心理命理', role: '情緒與命理洞察', status: '待命' },
+        { id: 'learn', name: '學習夥伴', role: '學習計劃與複習', status: '學習中' },
+        { id: 'sec', name: '工作秘書', role: '日程與待辦管理', status: '運作中' },
+        { id: 'meet', name: '會議紀錄', role: '會議摘要與跟進', status: '待機' }
+      ]
+    },
+    {
+      id: 'travel', name: '旅遊樓層', en: 'Travel', color: '#c4a1ff', shape: 'cone',
+      desc: '行程、機票、住宿與活動規劃。',
+      staff: [
+        { id: 'travel', name: '旅遊規劃師', role: '行程設計與預訂建議', status: '規劃中' }
+      ]
+    },
+    {
+      id: 'content', name: '內容樓層', en: 'Content', color: '#ffd166', shape: 'pyramid',
+      desc: '新聞、社交、摘要、翻譯與研究資訊流。',
+      staff: [
+        { id: 'news', name: '新聞小編', role: '頭條篩選與整理', status: '掃描中' },
+        { id: 'social', name: '社交媒體小編', role: '貼文草稿與排程', status: '創作中' },
+        { id: 'sum', name: '摘要專員', role: '長文濃縮與要點', status: '摘要中' },
+        { id: 'tr', name: '翻譯專員', role: '中英及其他語種', status: '待命' },
+        { id: 'research', name: '研究專員', role: '深度資料蒐集', status: '研究中' },
+        { id: 'scout', name: '新資訊探索員', role: '趨勢與新知發現', status: '探索中' }
+      ]
+    },
+    {
+      id: 'sys', name: '系統樓層', en: 'Systems', color: '#9aa4b2', shape: 'cross',
+      desc: '基礎設施稽核、安全與穩定性監控。',
+      staff: [
+        { id: 'auditor', name: 'System Auditor', role: '系統稽核與健康檢查', status: '稽核中' }
+      ]
+    }
+  ],
+  feedTemplates: [
+    { zone: 'cmd', text: 'Boss Bot 重新排程跨區優先任務' },
+    { zone: 'invest', text: '投資顧問更新組合風險儀表板' },
+    { zone: 'invest', text: 'QQQ／VOO 價差監察完成一輪' },
+    { zone: 'invest', text: '被動收入模組重算股息預測' },
+    { zone: 'life', text: '工作秘書整理明日行程卡片' },
+    { zone: 'life', text: '財務管家標記本週帳單到期' },
+    { zone: 'travel', text: '旅遊規劃師比對機票價格帶' },
+    { zone: 'content', text: '新聞小編推送港股晨間摘要' },
+    { zone: 'content', text: '社交媒體小編草稿排程中' },
+    { zone: 'content', text: '研究專員完成競品速覽' },
+    { zone: 'sys', text: 'System Auditor 通過健康檢查' },
+    { zone: 'sys', text: '例行備份驗證完成' }
+  ]
+};
+
+
+(function () {
+  'use strict';
+  var ZONES = window.HQ_DATA.zones;
+  var FEEDS = window.HQ_DATA.feedTemplates;
+  var selectedZone = 'cmd';
+  var selectedStaffId = null;
+  function $(id) { return document.getElementById(id); }
+  function findZone(id) {
+    for (var i = 0; i < ZONES.length; i++) if (ZONES[i].id === id) return ZONES[i];
+    return ZONES[0];
+  }
+  function findStaff(zone, staffId) {
+    for (var i = 0; i < zone.staff.length; i++) if (zone.staff[i].id === staffId) return zone.staff[i];
+    return zone.staff[0];
+  }
+  function buildNav() {
+    var nav = $('zoneNav'); nav.innerHTML = '';
+    ZONES.forEach(function (z) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'zone-btn' + (z.id === selectedZone ? ' active' : '');
+      btn.dataset.id = z.id;
+      btn.innerHTML = '<span class="swatch" style="background:' + z.color + '"></span><span><div class="name">' + z.name + '</div><div class="meta">' + z.staff.length + ' 代理人 · ' + z.en + '</div></span>';
+      btn.addEventListener('click', function () { selectZone(z.id); });
+      nav.appendChild(btn);
+    });
+  }
+  function selectZone(zoneId, staffId) {
+    var zone = findZone(zoneId);
+    var staff = findStaff(zone, staffId || (zone.staff[0] && zone.staff[0].id));
+    selectedZone = zone.id; selectedStaffId = staff.id;
+    document.querySelectorAll('.zone-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.id === zone.id); });
+    document.querySelectorAll('.fb-zone').forEach(function (el) { el.classList.toggle('active', el.dataset.id === zone.id); });
+    $('detailZone').textContent = zone.name + ' · ' + zone.en;
+    $('detailName').textContent = staff.name;
+    $('detailDesc').textContent = staff.role + ' — ' + zone.desc;
+    $('detailBadge').textContent = staff.status;
+    $('detailBadge').className = 'badge ' + (/待機|待命/.test(staff.status) ? 'warn' : 'ok');
+    var av = $('detailAvatar');
+    av.style.background = 'linear-gradient(160deg,' + zone.color + ',#fff6)';
+    av.textContent = staff.name.slice(0, 1);
+    var load = 28 + Math.floor(Math.random() * 60);
+    $('detailMetrics').innerHTML =
+      '<div class="metric"><div class="k">負載</div><div class="v">' + load + '%</div></div>' +
+      '<div class="metric"><div class="k">今日任務</div><div class="v">' + (2 + Math.floor(Math.random() * 9)) + '</div></div>' +
+      '<div class="metric"><div class="k">團隊人數</div><div class="v">' + zone.staff.length + '</div></div>' +
+      '<div class="metric"><div class="k">延遲</div><div class="v">' + (40 + Math.floor(Math.random() * 180)) + 'ms</div></div>';
+    var roster = $('roster'); roster.innerHTML = '';
+    zone.staff.forEach(function (s) {
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'roster-item' + (s.id === staff.id ? ' active' : '');
+      row.innerHTML = '<span class="mini-bot" style="background:' + zone.color + '">' + s.name.slice(0, 1) + '</span><span><div class="rn">' + s.name + '</div><div class="rr">' + s.role + '</div></span>';
+      row.addEventListener('click', function () { selectZone(zone.id, s.id); });
+      roster.appendChild(row);
+    });
+  }
+  function build2D() {
+    var root = $('fbOffice');
+    var ph = $('fbGridPlaceholder');
+    if (ph) ph.remove();
+    var old = root.querySelector('.fb-grid'); if (old) old.remove();
+    var grid = document.createElement('div'); grid.className = 'fb-grid';
+    var levelMap = { cmd:'L6', invest:'L5', life:'L4', travel:'L3', content:'L2', sys:'L1' };
+    ZONES.forEach(function (z, zi) {
+      var cell = document.createElement('div');
+      cell.className = 'fb-zone' + (z.id === selectedZone ? ' active' : '');
+      cell.dataset.id = z.id; cell.style.borderColor = z.color;
+      cell.innerHTML = '<div class="fb-zone-head"><h3 style="color:' + z.color + '">' + z.name + '</h3><span class="tag">' + (levelMap[z.id]||'') + '</span></div>';
+      var desks = document.createElement('div'); desks.className = 'fb-desks';
+      var n = Math.min(z.staff.length, 9);
+      for (var i = 0; i < n; i++) {
+        var d = document.createElement('div'); d.className = 'fb-desk'; d.title = z.staff[i].name;
+        var b = document.createElement('div'); b.className = 'fb-bot'; b.style.background = z.color;
+        b.style.animationDelay = (i*0.12+zi*0.05)+'s'; b.textContent = z.staff[i].name.slice(0,1);
+        b.addEventListener('click', (function(zid,sid){return function(ev){ev.stopPropagation();selectZone(zid,sid);};})(z.id,z.staff[i].id));
+        d.appendChild(b); desks.appendChild(d);
+      }
+      cell.appendChild(desks);
+      var plant = document.createElement('div'); plant.className='fb-plant'; plant.style.right='10px'; plant.style.top='42px';
+      cell.appendChild(plant);
+      cell.addEventListener('click', function(){ selectZone(z.id); });
+      grid.appendChild(cell);
+    });
+    root.appendChild(grid);
+  }
+  function pushFeed(item) {
+    var feed = $('feed');
+    var li = document.createElement('li'); li.className = 'zone-' + item.zone;
+    var now = new Date();
+    function p(n){ n=String(n); return n.length<2 ? '0'+n : n; }
+    li.innerHTML = '<span class="t">' + p(now.getHours()) + ':' + p(now.getMinutes()) + ':' + p(now.getSeconds()) + '</span>' + item.text;
+    feed.insertBefore(li, feed.firstChild);
+    while (feed.children.length > 8) feed.removeChild(feed.lastChild);
+  }
+  function startFeed() {
+    FEEDS.forEach(function(f,i){ setTimeout(function(){ pushFeed(f); }, 150+i*160); });
+    setInterval(function(){
+      pushFeed(FEEDS[Math.floor(Math.random()*FEEDS.length)]);
+      $('cntWait').textContent = String(1+Math.floor(Math.random()*5));
+      $('cntDone').textContent = String(12+Math.floor(Math.random()*20));
+      $('cntRoutine').textContent = String(4+Math.floor(Math.random()*8));
+    }, 2800);
+  }
+  document.body.classList.add('mode-2d');
+  buildNav(); build2D(); selectZone('cmd'); startFeed();
+})();
+
+</script>
+</body>
+</html>
