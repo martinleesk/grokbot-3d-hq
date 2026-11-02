@@ -39,8 +39,9 @@
         </div>
       </div>
       <div class="topbar-actions">
+        <button type="button" class="top-btn" id="btnReports" title="報告表">報告</button>
         <button type="button" class="top-btn" id="btnDirectory" title="總目錄">總目錄</button>
-        <div class="live"><span class="dot"></span><span id="liveText">實時運作中</span></div>
+        <div class="live"><span class="dot"></span><span class="live-copy"><span id="liveText">實時運作中</span><span class="live-updated" id="liveUpdated"></span></span></div>
       </div>
     </header>
 
@@ -147,6 +148,30 @@
         </table>
       </div>
       <div class="dir-routines" id="dirRoutines"></div>
+    </div>
+  </div>
+
+
+  <div class="dir-backdrop reports-backdrop" id="reportsBackdrop" hidden>
+    <div class="dir-panel panel reports-panel" role="dialog" aria-modal="true" aria-labelledby="reportsTitle">
+      <div class="dir-head">
+        <div>
+          <div class="panel-label" style="margin:0">報告表 · Worksheets</div>
+          <h2 id="reportsTitle">報告表</h2>
+          <div class="reports-updated" id="reportsUpdated"></div>
+        </div>
+        <button type="button" class="modal-x" id="reportsClose" aria-label="關閉報告">×</button>
+      </div>
+      <div class="dir-tools">
+        <input type="search" id="reportsSearch" placeholder="搜尋列內容…" autocomplete="off" />
+      </div>
+      <div class="reports-tabs" id="reportsTabs" role="tablist"></div>
+      <div class="dir-table-wrap" id="reportsTableWrap">
+        <table class="dir-table reports-table" id="reportsTable">
+          <thead id="reportsThead"></thead>
+          <tbody id="reportsBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 

@@ -12,6 +12,12 @@
   var particles = null;
   var mode = '3d';
   var directory = null;
+  var reportsData = null;
+  var reportsActiveId = null;
+  var liveUpdatedStamp = null;
+  var livePollTimer = null;
+  var feedFakeTimer = null;
+  var feedUsingLive = false;
   var doneFollow = loadDoneFollow();
 
   /* 3D runtime handles for dispose */
@@ -295,30 +301,136 @@
     $('modalBackdrop').hidden = true;
   }
 
-  function pushFeed(item) {
+  function pushFeed(item, opts) {
     var feed = $('feed');
+    if (!feed) return;
     var li = document.createElement('li');
-    li.className = 'zone-' + item.zone;
-    var now = new Date();
-    var hh = String(now.getHours()).padStart(2, '0');
-    var mm = String(now.getMinutes()).padStart(2, '0');
-    var ss = String(now.getSeconds()).padStart(2, '0');
-    li.innerHTML = '<span class="t">' + hh + ':' + mm + ':' + ss + '</span>' + item.text;
-    feed.insertBefore(li, feed.firstChild);
+    li.className = 'zone-' + (item.zone || 'sys');
+    var t = item.at;
+    if (!t) {
+      var now = new Date();
+      var hh = String(now.getHours()).padStart(2, '0');
+      var mm = String(now.getMinutes()).padStart(2, '0');
+      var ss = String(now.getSeconds()).padStart(2, '0');
+      t = hh + ':' + mm + ':' + ss;
+    }
+    li.innerHTML = '<span class="t">' + t + '</span>' + (item.text || '');
+    if (opts && opts.append) feed.appendChild(li);
+    else feed.insertBefore(li, feed.firstChild);
     while (feed.children.length > 8) feed.removeChild(feed.lastChild);
   }
 
+  function clearFeed() {
+    var feed = $('feed');
+    if (feed) feed.innerHTML = '';
+  }
+
+  function stopFakeFeed() {
+    if (feedFakeTimer) {
+      clearInterval(feedFakeTimer);
+      feedFakeTimer = null;
+    }
+  }
+
   function startFeed() {
+    if (feedUsingLive) return;
+    stopFakeFeed();
+    clearFeed();
     FEEDS.forEach(function (f, i) {
-      setTimeout(function () { pushFeed(f); }, 200 + i * 180);
+      setTimeout(function () {
+        if (feedUsingLive) return;
+        pushFeed(f);
+      }, 200 + i * 180);
     });
-    setInterval(function () {
+    feedFakeTimer = setInterval(function () {
+      if (feedUsingLive) return;
       var f = FEEDS[Math.floor(Math.random() * FEEDS.length)];
       pushFeed(f);
-      $('cntWait').textContent = String(1 + Math.floor(Math.random() * 5));
-      $('cntDone').textContent = String(12 + Math.floor(Math.random() * 20));
-      $('cntRoutine').textContent = String(4 + Math.floor(Math.random() * 8));
+      if ($('cntWait')) $('cntWait').textContent = String(1 + Math.floor(Math.random() * 5));
+      if ($('cntDone')) $('cntDone').textContent = String(12 + Math.floor(Math.random() * 20));
+      if ($('cntRoutine')) $('cntRoutine').textContent = String(4 + Math.floor(Math.random() * 8));
     }, 2800);
+  }
+
+  function renderLiveEvents(events) {
+    clearFeed();
+    var list = (events || []).slice();
+    // newest first: assume array may already be newest-first; sort by at desc when comparable
+    list.sort(function (a, b) {
+      var ta = (a && a.at) || '';
+      var tb = (b && b.at) || '';
+      if (ta === tb) return 0;
+      return ta < tb ? 1 : -1;
+    });
+    list.slice(0, 8).forEach(function (ev) {
+      pushFeed(ev, { append: true });
+    });
+  }
+
+  function applyLivePayload(data, opts) {
+    if (!data) return false;
+    var events = data.events || [];
+    var hasEvents = events.length > 0;
+    if (data.status && $('liveText')) {
+      var label = data.status;
+      if (isTouch && label === '實時運作中') label = 'LIVE';
+      $('liveText').textContent = label;
+      if (data.updated) {
+        $('liveText').title = '更新於 ' + data.updated;
+        if ($('liveUpdated')) $('liveUpdated').textContent = data.updated;
+      }
+    }
+    if (data.counts) {
+      if (data.counts.wait != null && $('cntWait')) $('cntWait').textContent = String(data.counts.wait);
+      if (data.counts.done != null && $('cntDone')) $('cntDone').textContent = String(data.counts.done);
+      if (data.counts.routine != null && $('cntRoutine')) $('cntRoutine').textContent = String(data.counts.routine);
+    }
+    if (hasEvents) {
+      feedUsingLive = true;
+      stopFakeFeed();
+      renderLiveEvents(events);
+      return true;
+    }
+    return false;
+  }
+
+  function loadLive(opts) {
+    opts = opts || {};
+    return fetch('live.json', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('live ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        var prev = liveUpdatedStamp;
+        var next = data && data.updated ? String(data.updated) : null;
+        var used = applyLivePayload(data, opts);
+        if (!used) {
+          // empty events → keep / start fake fallback
+          if (!feedUsingLive && !feedFakeTimer) startFeed();
+        } else if (opts.notify && prev && next && prev !== next) {
+          toast('LIVE 已更新');
+        }
+        if (next) liveUpdatedStamp = next;
+        return used;
+      })
+      .catch(function (err) {
+        console.warn('live.json load failed', err);
+        // 404 / missing → fake templates fallback
+        feedUsingLive = false;
+        if (!feedFakeTimer) startFeed();
+        return false;
+      });
+  }
+
+  function startLivePolling() {
+    loadLive({ notify: false }).then(function (used) {
+      if (!used && !feedFakeTimer) startFeed();
+    });
+    if (livePollTimer) clearInterval(livePollTimer);
+    livePollTimer = setInterval(function () {
+      loadLive({ notify: true });
+    }, 45000);
   }
 
   /* ---------- Collapse panels ---------- */
@@ -410,6 +522,129 @@
         console.warn('directory.json load failed', err);
         directory = { baseUrl: 'https://cursor.com/canvas/store-cfbe74cb-3f1b-4f2f-b2de-5dd12c81d557/', pages: [], routines: [] };
       });
+  }
+
+  /* ---------- Reports worksheets ---------- */
+  function openReports() {
+    if (!reportsData) {
+      loadReports().then(function () {
+        showReportsPanel();
+      });
+    } else {
+      showReportsPanel();
+    }
+  }
+  function showReportsPanel() {
+    renderReportsUI();
+    if ($('reportsBackdrop')) $('reportsBackdrop').hidden = false;
+    toast('已開啟報告表');
+    var search = $('reportsSearch');
+    if (search) setTimeout(function () { search.focus(); }, 50);
+  }
+  function closeReports() {
+    if ($('reportsBackdrop')) $('reportsBackdrop').hidden = true;
+  }
+
+  function loadReports() {
+    return fetch('reports.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('reports ' + r.status); return r.json(); })
+      .then(function (data) {
+        reportsData = data;
+        if (!reportsActiveId && data.tables && data.tables.length) {
+          reportsActiveId = data.tables[0].id;
+        }
+        return data;
+      })
+      .catch(function (err) {
+        console.warn('reports.json load failed', err);
+        reportsData = { updated: '', tables: [] };
+        toast('報告表載入失敗');
+        return reportsData;
+      });
+  }
+
+  function findReportTable(id) {
+    var tables = (reportsData && reportsData.tables) || [];
+    for (var i = 0; i < tables.length; i++) if (tables[i].id === id) return tables[i];
+    return tables[0] || null;
+  }
+
+  function renderReportsUI() {
+    var tabs = $('reportsTabs');
+    var thead = $('reportsThead');
+    var body = $('reportsBody');
+    var updated = $('reportsUpdated');
+    if (!tabs || !thead || !body) return;
+    var tables = (reportsData && reportsData.tables) || [];
+    if (updated) {
+      updated.textContent = (reportsData && reportsData.updated)
+        ? ('更新於 ' + reportsData.updated + ' HKT')
+        : '';
+    }
+    if (!tables.length) {
+      tabs.innerHTML = '';
+      thead.innerHTML = '';
+      body.innerHTML = '<tr><td style="color:var(--muted);padding:16px">暫無報告資料</td></tr>';
+      return;
+    }
+    if (!reportsActiveId || !findReportTable(reportsActiveId)) {
+      reportsActiveId = tables[0].id;
+    }
+    tabs.innerHTML = '';
+    tables.forEach(function (t) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'reports-tab' + (t.id === reportsActiveId ? ' active' : '');
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', t.id === reportsActiveId ? 'true' : 'false');
+      btn.dataset.id = t.id;
+      btn.textContent = t.title || t.id;
+      btn.addEventListener('click', function () {
+        reportsActiveId = t.id;
+        renderReportsUI();
+      });
+      tabs.appendChild(btn);
+    });
+    renderReportsTable();
+  }
+
+  function renderReportsTable() {
+    var thead = $('reportsThead');
+    var body = $('reportsBody');
+    if (!thead || !body) return;
+    var table = findReportTable(reportsActiveId);
+    if (!table) {
+      thead.innerHTML = '';
+      body.innerHTML = '<tr><td style="color:var(--muted);padding:16px">暫無報告資料</td></tr>';
+      return;
+    }
+    var cols = table.columns || [];
+    var q = (($('reportsSearch') && $('reportsSearch').value) || '').trim().toLowerCase();
+    thead.innerHTML = '<tr>' + cols.map(function (c) {
+      return '<th>' + c + '</th>';
+    }).join('') + '</tr>';
+    body.innerHTML = '';
+    var rows = table.rows || [];
+    var shown = 0;
+    rows.forEach(function (row) {
+      var cells = row || [];
+      var hay = cells.join(' ').toLowerCase();
+      if (q && hay.indexOf(q) < 0) return;
+      var tr = document.createElement('tr');
+      tr.innerHTML = cells.map(function (cell, idx) {
+        var cls = idx === 0 ? ' class="reports-key"' : '';
+        return '<td' + cls + '>' + (cell == null || cell === '' ? '—' : cell) + '</td>';
+      }).join('');
+      // pad if short
+      for (var i = cells.length; i < cols.length; i++) {
+        tr.innerHTML += '<td>—</td>';
+      }
+      body.appendChild(tr);
+      shown++;
+    });
+    if (!shown) {
+      body.innerHTML = '<tr><td colspan="' + Math.max(cols.length, 1) + '" style="color:var(--muted);padding:16px">沒有符合的項目</td></tr>';
+    }
   }
 
   /* ---------- 2D office map ---------- */
@@ -1444,8 +1679,9 @@
 
   /* ---------- boot ---------- */
   buildNav();
-  startFeed();
+  startLivePolling();
   initCollapse();
+  loadReports();
 
   if ($('btnOpenModal')) {
     $('btnOpenModal').addEventListener('click', function () {
@@ -1468,9 +1704,19 @@
   if ($('dirSearch')) $('dirSearch').addEventListener('input', renderDirectoryTable);
   if ($('dirCat')) $('dirCat').addEventListener('change', renderDirectoryTable);
 
+  if ($('btnReports')) $('btnReports').addEventListener('click', openReports);
+  if ($('reportsClose')) $('reportsClose').addEventListener('click', closeReports);
+  if ($('reportsBackdrop')) {
+    $('reportsBackdrop').addEventListener('click', function (e) {
+      if (e.target === $('reportsBackdrop')) closeReports();
+    });
+  }
+  if ($('reportsSearch')) $('reportsSearch').addEventListener('input', renderReportsTable);
+
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       if ($('modalBackdrop') && !$('modalBackdrop').hidden) closeModal();
+      else if ($('reportsBackdrop') && !$('reportsBackdrop').hidden) closeReports();
       else if ($('dirBackdrop') && !$('dirBackdrop').hidden) closeDirectory();
     }
   });

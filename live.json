@@ -1,0 +1,15 @@
+{
+  "updated": "2026-11-02 22:40 HKT",
+  "status": "實時運作中",
+  "counts": { "wait": 5, "done": 18, "routine": 7 },
+  "events": [
+    { "zone": "travel", "text": "成都票務：熊貓／都江堰開賣時段再核對", "at": "22:38" },
+    { "zone": "cmd", "text": "Boss Bot 標記轉倉與成都付款為優先跟進", "at": "22:35" },
+    { "zone": "invest", "text": "HSBC→富途轉倉狀態覆核（01211／02800）", "at": "22:28" },
+    { "zone": "content", "text": "新聞晚摘要已推送（港股＋美股收市）", "at": "22:20" },
+    { "zone": "content", "text": "IG 11 月旅遊攻略排程草稿已更新", "at": "22:15" },
+    { "zone": "invest", "text": "VOO／SDIV 週報儀表板刷新完成", "at": "22:10" },
+    { "zone": "life", "text": "財務管家提醒 Mox 關戶文件待確認", "at": "21:55" },
+    { "zone": "sys", "text": "System Auditor 通過晚間健康檢查", "at": "21:40" }
+  ]
+}
