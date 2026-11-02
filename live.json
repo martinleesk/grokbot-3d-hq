@@ -1,7 +1,69 @@
 {
-  "updated": "2026-11-02 22:40 HKT",
+  "updated": "2026-11-02 22:55 HKT",
   "status": "實時運作中",
+  "auditor": { "ok": true, "note": "健康檢查通過" },
   "counts": { "wait": 5, "done": 18, "routine": 7 },
+  "focus": [
+    {
+      "id": "f1",
+      "title": "熊貓基地開賣提醒",
+      "detail": "11/17 上午場約今日開賣，旅遊規劃師核對時段與付款流程",
+      "sev": "red",
+      "due": "2026-11-03",
+      "staffId": "travel",
+      "zone": "travel"
+    },
+    {
+      "id": "f2",
+      "title": "都江堰＋武侯祠開賣",
+      "detail": "約 11/04 開賣；鎖定 11/18 行程位",
+      "sev": "yellow",
+      "due": "2026-11-04",
+      "staffId": "travel",
+      "zone": "travel"
+    },
+    {
+      "id": "f3",
+      "title": "HSBC→富途轉倉",
+      "detail": "01211／02800 轉倉狀態覆核；例行截止前完成",
+      "sev": "yellow",
+      "due": "2026-11-15",
+      "staffId": "boss",
+      "zone": "cmd"
+    },
+    {
+      "id": "f4",
+      "title": "Mox 關戶",
+      "detail": "財務管家確認文件與餘額清結",
+      "sev": "yellow",
+      "due": "2026-11-15",
+      "staffId": "finance",
+      "zone": "life"
+    },
+    {
+      "id": "f5",
+      "title": "成都付款前問 Martin",
+      "detail": "票務／活動付款前必須再確認；出發前完成",
+      "sev": "yellow",
+      "due": "2026-11-14",
+      "staffId": "boss",
+      "zone": "cmd"
+    },
+    {
+      "id": "f6",
+      "title": "HKICW Phlebotomy Pre Meeting",
+      "detail": "明日 12:00 工作會議；秘書整理議程卡",
+      "sev": "red",
+      "due": "2026-11-03",
+      "staffId": "sec",
+      "zone": "life"
+    }
+  ],
+  "calendar": [
+    { "when": "11/03 12:00", "title": "Pre Meeting HKICW Phlebotomy", "where": "工作" },
+    { "when": "11/06 08:30", "title": "HKIC DOM Meeting", "where": "工作" },
+    { "when": "11/15", "title": "成都出發", "where": "旅遊" }
+  ],
   "events": [
     { "zone": "travel", "text": "成都票務：熊貓／都江堰開賣時段再核對", "at": "22:38" },
     { "zone": "cmd", "text": "Boss Bot 標記轉倉與成都付款為優先跟進", "at": "22:35" },
@@ -11,5 +73,6 @@
     { "zone": "invest", "text": "VOO／SDIV 週報儀表板刷新完成", "at": "22:10" },
     { "zone": "life", "text": "財務管家提醒 Mox 關戶文件待確認", "at": "21:55" },
     { "zone": "sys", "text": "System Auditor 通過晚間健康檢查", "at": "21:40" }
-  ]
+  ],
+  "decisions": []
 }

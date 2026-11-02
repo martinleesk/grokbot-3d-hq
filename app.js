@@ -14,10 +14,13 @@
   var directory = null;
   var reportsData = null;
   var reportsActiveId = null;
+  var liveData = null;
   var liveUpdatedStamp = null;
   var livePollTimer = null;
+  var liveRelativeTimer = null;
   var feedFakeTimer = null;
   var feedUsingLive = false;
+  var changelogData = null;
   var doneFollow = loadDoneFollow();
 
   /* 3D runtime handles for dispose */
@@ -226,12 +229,19 @@
     av.textContent = staff.name.slice(0, 1);
 
     var metrics = $('detailMetrics');
-    var load = 28 + Math.floor(Math.random() * 60);
+    var focusForStaff = 0;
+    if (liveData && liveData.focus) {
+      liveData.focus.forEach(function (f) {
+        if (f && (f.staffId === staff.id || f.zone === zone.id)) focusForStaff++;
+      });
+    }
+    var waitN = (liveData && liveData.counts && liveData.counts.wait != null) ? liveData.counts.wait : '—';
+    var doneN = (liveData && liveData.counts && liveData.counts.done != null) ? liveData.counts.done : '—';
     metrics.innerHTML =
-      '<div class="metric"><div class="k">負載</div><div class="v">' + load + '%</div></div>' +
-      '<div class="metric"><div class="k">今日任務</div><div class="v">' + (2 + Math.floor(Math.random() * 9)) + '</div></div>' +
-      '<div class="metric"><div class="k">團隊人數</div><div class="v">' + zone.staff.length + '</div></div>' +
-      '<div class="metric"><div class="k">延遲</div><div class="v">' + (40 + Math.floor(Math.random() * 180)) + 'ms</div></div>';
+      '<div class="metric"><div class="k">全域等待</div><div class="v">' + waitN + '</div></div>' +
+      '<div class="metric"><div class="k">全域完成</div><div class="v">' + doneN + '</div></div>' +
+      '<div class="metric"><div class="k">相關焦點</div><div class="v">' + focusForStaff + '</div></div>' +
+      '<div class="metric"><div class="k">團隊人數</div><div class="v">' + zone.staff.length + '</div></div>';
 
     renderDetailFollow(staff.id);
 
@@ -346,9 +356,7 @@
       if (feedUsingLive) return;
       var f = FEEDS[Math.floor(Math.random() * FEEDS.length)];
       pushFeed(f);
-      if ($('cntWait')) $('cntWait').textContent = String(1 + Math.floor(Math.random() * 5));
-      if ($('cntDone')) $('cntDone').textContent = String(12 + Math.floor(Math.random() * 20));
-      if ($('cntRoutine')) $('cntRoutine').textContent = String(4 + Math.floor(Math.random() * 8));
+      // counts stay from live.json when available; do not invent KPI
     }, 2800);
   }
 
@@ -367,8 +375,274 @@
     });
   }
 
+  /* ---------- Phase 3: time / sev / trust / focus / deadlines ---------- */
+  function parseHktDateTime(str) {
+    if (!str) return null;
+    var m = String(str).match(/(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2}))?/);
+    if (!m) return null;
+    var hh = m[4] != null ? +m[4] : 12;
+    var mm = m[5] != null ? +m[5] : 0;
+    // Interpret as Asia/Hong_Kong (UTC+8)
+    return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], hh - 8, mm, 0));
+  }
+
+  function nowHktParts() {
+    try {
+      var fmt = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Hong_Kong',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      });
+      var parts = fmt.formatToParts(new Date());
+      var map = {};
+      parts.forEach(function (p) { map[p.type] = p.value; });
+      return {
+        y: +map.year, mo: +map.month, d: +map.day,
+        h: +(map.hour === '24' ? '0' : map.hour), mi: +map.minute
+      };
+    } catch (e) {
+      var n = new Date();
+      // fallback: box already HKT
+      return { y: n.getFullYear(), mo: n.getMonth() + 1, d: n.getDate(), h: n.getHours(), mi: n.getMinutes() };
+    }
+  }
+
+  function hktTodayStartMs() {
+    var p = nowHktParts();
+    return Date.UTC(p.y, p.mo - 1, p.d, 0, 0, 0); // as "HKT calendar day" key via UTC numbers
+  }
+
+  function dueDayMs(dueStr) {
+    var m = String(dueStr || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    return Date.UTC(+m[1], +m[2] - 1, +m[3], 0, 0, 0);
+  }
+
+  function daysUntilDue(dueStr) {
+    var due = dueDayMs(dueStr);
+    if (due == null) return null;
+    var today = hktTodayStartMs();
+    return Math.round((due - today) / 86400000);
+  }
+
+  function dueCountdownLabel(dueStr) {
+    var n = daysUntilDue(dueStr);
+    if (n == null) return '—';
+    if (n < 0) return '過期 ' + Math.abs(n) + ' 日';
+    if (n === 0) return '今日';
+    if (n === 1) return '明日';
+    return '剩 ' + n + ' 日';
+  }
+
+  function inferSev(dueStr, explicit) {
+    if (explicit === 'red' || explicit === 'yellow' || explicit === 'green') return explicit;
+    var n = daysUntilDue(dueStr);
+    if (n == null) return 'green';
+    if (n <= 1) return 'red';
+    if (n <= 7) return 'yellow';
+    return 'green';
+  }
+
+  function formatRelativeHkt(updatedStr) {
+    var t = parseHktDateTime(updatedStr);
+    if (!t) return updatedStr ? ('更新於 ' + updatedStr) : '更新於 —';
+    var ageMs = Date.now() - t.getTime();
+    if (ageMs < 0) ageMs = 0;
+    var mins = Math.floor(ageMs / 60000);
+    var rel;
+    if (mins < 1) rel = '剛剛';
+    else if (mins < 60) rel = mins + ' 分鐘前';
+    else {
+      var hrs = Math.floor(mins / 60);
+      if (hrs < 48) rel = hrs + ' 小時前';
+      else rel = Math.floor(hrs / 24) + ' 日前';
+    }
+    return '更新於 ' + updatedStr.replace(/\s*HKT\s*$/, '') + '（' + rel + '）';
+  }
+
+  function ageClassForUpdated(updatedStr) {
+    var t = parseHktDateTime(updatedStr);
+    if (!t) return '';
+    var ageMs = Date.now() - t.getTime();
+    if (ageMs > 6 * 3600000) return 'age-stale';
+    if (ageMs > 2 * 3600000) return 'age-warn';
+    return '';
+  }
+
+  function updateTrustStrip() {
+    var strip = $('trustStrip');
+    var updatedEl = $('trustUpdated');
+    var pill = $('auditorPill');
+    var stamp = (liveData && liveData.updated) || liveUpdatedStamp || '';
+    if (updatedEl) updatedEl.textContent = formatRelativeHkt(stamp);
+    if (strip) {
+      strip.classList.remove('age-warn', 'age-stale');
+      var cls = ageClassForUpdated(stamp);
+      if (cls) strip.classList.add(cls);
+    }
+    if (pill) {
+      var aud = liveData && liveData.auditor;
+      var ok = !aud || aud.ok !== false;
+      pill.className = 'auditor-pill ' + (ok ? 'ok' : 'fail');
+      pill.textContent = ok ? 'Auditor · 健康' : 'Auditor · 異常';
+      pill.title = (aud && aud.note) ? ('System Auditor：' + aud.note) : 'System Auditor';
+    }
+    if ($('liveUpdated') && stamp) {
+      $('liveUpdated').textContent = stamp.replace(/\s*HKT\s*$/, '');
+    }
+  }
+
+  function renderCalendarStrip(items) {
+    var el = $('calendarStrip');
+    if (!el) return;
+    var list = (items || []).slice(0, 3);
+    if (!list.length) { el.innerHTML = ''; return; }
+    el.innerHTML = list.map(function (c) {
+      return '<div class="cal-chip"><span class="when">' + (c.when || '') + '</span>' +
+        '<span class="title">' + (c.title || '') + '</span>' +
+        '<span class="where">' + (c.where || '') + '</span></div>';
+    }).join('');
+  }
+
+  function renderFocusBoard(items) {
+    var board = $('focusBoard');
+    if (!board) return;
+    var list = (items || []).slice();
+    list.sort(function (a, b) {
+      var sa = inferSev(a.due, a.sev);
+      var sb = inferSev(b.due, b.sev);
+      var rank = { red: 0, yellow: 1, green: 2 };
+      var ra = rank[sa] != null ? rank[sa] : 3;
+      var rb = rank[sb] != null ? rank[sb] : 3;
+      if (ra !== rb) return ra - rb;
+      return String(a.due || '').localeCompare(String(b.due || ''));
+    });
+    if (!list.length) {
+      board.innerHTML = '<div class="focus-empty">暫無今日焦點</div>';
+      return;
+    }
+    board.innerHTML = '';
+    list.forEach(function (f) {
+      var sev = inferSev(f.due, f.sev);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'focus-card sev-' + sev;
+      btn.innerHTML =
+        '<div class="fc-title">' + (f.title || '') + '</div>' +
+        (f.detail ? '<div class="fc-detail">' + f.detail + '</div>' : '') +
+        '<div class="fc-meta"><span class="fc-due">' + dueCountdownLabel(f.due) +
+        (f.due ? ' · ' + f.due : '') + '</span></div>';
+      btn.addEventListener('click', function () {
+        if (f.staffId || f.zone) {
+          selectZone(f.zone || selectedZone, f.staffId || null, { toast: true, openModal: !!f.staffId });
+        }
+      });
+      board.appendChild(btn);
+    });
+  }
+
+  function deadlinesFromReports() {
+    if (reportsData && reportsData.deadlines && reportsData.deadlines.length) {
+      return reportsData.deadlines.slice();
+    }
+    var out = [];
+    var tables = (reportsData && reportsData.tables) || [];
+    var fu = null;
+    for (var i = 0; i < tables.length; i++) {
+      if (tables[i].id === 'followups') { fu = tables[i]; break; }
+    }
+    if (!fu) return out;
+    var cols = fu.columns || [];
+    var dueIdx = cols.indexOf('死線');
+    var ownerIdx = cols.indexOf('負責');
+    var textIdx = cols.indexOf('項目');
+    if (textIdx < 0) textIdx = 0;
+    (fu.rows || []).forEach(function (row, idx) {
+      var due = dueIdx >= 0 ? row[dueIdx] : '';
+      var owner = ownerIdx >= 0 ? row[ownerIdx] : '';
+      var text = row[textIdx] || '';
+      out.push({
+        id: 'fu-' + idx,
+        text: text,
+        owner: owner,
+        due: due,
+        sev: inferSev(due),
+        staffId: null
+      });
+    });
+    return out;
+  }
+
+  function renderDeadlineList() {
+    var el = $('deadlineList');
+    if (!el) return;
+    var list = deadlinesFromReports();
+    // prefer live.focus as supplement if reports empty
+    if (!list.length && liveData && liveData.focus) {
+      list = liveData.focus.map(function (f) {
+        return {
+          id: f.id, text: f.title, owner: f.staffId || '', due: f.due,
+          sev: f.sev, staffId: f.staffId, zone: f.zone
+        };
+      });
+    }
+    list.sort(function (a, b) {
+      var da = dueDayMs(a.due); var db = dueDayMs(b.due);
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      return da - db;
+    });
+    if (!list.length) {
+      el.innerHTML = '<div class="focus-empty">暫無死線</div>';
+      return;
+    }
+    el.innerHTML = '';
+    list.forEach(function (d) {
+      var sev = inferSev(d.due, d.sev);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'deadline-row sev-' + sev;
+      btn.innerHTML =
+        '<span class="dl-sev" aria-hidden="true"></span>' +
+        '<span class="dl-text">' + (d.text || '') + '</span>' +
+        '<span class="dl-count">' + dueCountdownLabel(d.due) + '</span>';
+      btn.title = (d.owner ? d.owner + ' · ' : '') + (d.due || '');
+      btn.addEventListener('click', function () {
+        if (d.staffId || d.zone) {
+          selectZone(d.zone || selectedZone, d.staffId || null, { toast: true });
+        } else if (d.staffId) {
+          var hit = findStaffAnywhere(d.staffId);
+          if (hit) selectZone(hit.zone.id, d.staffId, { toast: true });
+        }
+      });
+      el.appendChild(btn);
+    });
+  }
+
+  function refreshDetailMetrics() {
+    var metrics = $('detailMetrics');
+    if (!metrics || !selectedZone) return;
+    var zone = findZone(selectedZone);
+    var staff = findStaff(zone, selectedStaffId || (zone.staff[0] && zone.staff[0].id));
+    var focusForStaff = 0;
+    if (liveData && liveData.focus) {
+      liveData.focus.forEach(function (f) {
+        if (f && (f.staffId === staff.id || f.zone === zone.id)) focusForStaff++;
+      });
+    }
+    var waitN = (liveData && liveData.counts && liveData.counts.wait != null) ? liveData.counts.wait : '—';
+    var doneN = (liveData && liveData.counts && liveData.counts.done != null) ? liveData.counts.done : '—';
+    metrics.innerHTML =
+      '<div class="metric"><div class="k">全域等待</div><div class="v">' + waitN + '</div></div>' +
+      '<div class="metric"><div class="k">全域完成</div><div class="v">' + doneN + '</div></div>' +
+      '<div class="metric"><div class="k">相關焦點</div><div class="v">' + focusForStaff + '</div></div>' +
+      '<div class="metric"><div class="k">團隊人數</div><div class="v">' + zone.staff.length + '</div></div>';
+  }
+
   function applyLivePayload(data, opts) {
     if (!data) return false;
+    liveData = data;
     var events = data.events || [];
     var hasEvents = events.length > 0;
     if (data.status && $('liveText')) {
@@ -377,7 +651,6 @@
       $('liveText').textContent = label;
       if (data.updated) {
         $('liveText').title = '更新於 ' + data.updated;
-        if ($('liveUpdated')) $('liveUpdated').textContent = data.updated;
       }
     }
     if (data.counts) {
@@ -385,6 +658,11 @@
       if (data.counts.done != null && $('cntDone')) $('cntDone').textContent = String(data.counts.done);
       if (data.counts.routine != null && $('cntRoutine')) $('cntRoutine').textContent = String(data.counts.routine);
     }
+    updateTrustStrip();
+    renderFocusBoard(data.focus || []);
+    renderCalendarStrip(data.calendar || []);
+    renderDeadlineList();
+    refreshDetailMetrics();
     if (hasEvents) {
       feedUsingLive = true;
       stopFakeFeed();
@@ -412,6 +690,7 @@
           toast('LIVE 已更新');
         }
         if (next) liveUpdatedStamp = next;
+        updateTrustStrip();
         return used;
       })
       .catch(function (err) {
@@ -419,6 +698,7 @@
         // 404 / missing → fake templates fallback
         feedUsingLive = false;
         if (!feedFakeTimer) startFeed();
+        updateTrustStrip();
         return false;
       });
   }
@@ -431,6 +711,47 @@
     livePollTimer = setInterval(function () {
       loadLive({ notify: true });
     }, 45000);
+    if (liveRelativeTimer) clearInterval(liveRelativeTimer);
+    liveRelativeTimer = setInterval(function () {
+      updateTrustStrip();
+      // refresh countdown labels occasionally
+      if (liveData) {
+        renderFocusBoard(liveData.focus || []);
+        renderDeadlineList();
+      }
+    }, 60000);
+  }
+
+  /* ---------- Changelog ---------- */
+  function loadChangelog() {
+    return fetch('changelog.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('changelog ' + r.status); return r.json(); })
+      .then(function (data) { changelogData = data; return data; })
+      .catch(function (err) {
+        console.warn('changelog.json load failed', err);
+        changelogData = { items: [] };
+        return changelogData;
+      });
+  }
+
+  function openChangelog() {
+    var list = $('changelogList');
+    var items = (changelogData && changelogData.items) || [];
+    if (list) {
+      if (!items.length) {
+        list.innerHTML = '<li><span class="cl-text">暫無變更紀錄</span></li>';
+      } else {
+        list.innerHTML = items.map(function (it) {
+          return '<li><span class="cl-at">' + (it.at || '') + ' HKT</span>' +
+            '<span class="cl-text">' + (it.text || '') + '</span></li>';
+        }).join('');
+      }
+    }
+    if ($('changelogBackdrop')) $('changelogBackdrop').hidden = false;
+    toast('已開啟變更紀錄');
+  }
+  function closeChangelog() {
+    if ($('changelogBackdrop')) $('changelogBackdrop').hidden = true;
   }
 
   /* ---------- Collapse panels ---------- */
@@ -441,7 +762,7 @@
     savePanelState(panelId, open);
   }
   function initCollapse() {
-    ['leftPanel', 'detailPanel', 'feedPanel'].forEach(function (id) {
+    ['leftPanel', 'detailPanel', 'feedPanel', 'focusPanel'].forEach(function (id) {
       var open = loadPanelState(id, true);
       applyCollapse(id, open);
     });
@@ -553,6 +874,7 @@
         if (!reportsActiveId && data.tables && data.tables.length) {
           reportsActiveId = data.tables[0].id;
         }
+        renderDeadlineList();
         return data;
       })
       .catch(function (err) {
@@ -1682,6 +2004,7 @@
   startLivePolling();
   initCollapse();
   loadReports();
+  loadChangelog();
 
   if ($('btnOpenModal')) {
     $('btnOpenModal').addEventListener('click', function () {
@@ -1713,9 +2036,22 @@
   }
   if ($('reportsSearch')) $('reportsSearch').addEventListener('input', renderReportsTable);
 
+  if ($('btnChangelog')) $('btnChangelog').addEventListener('click', function () {
+    if (!changelogData) {
+      loadChangelog().then(openChangelog);
+    } else openChangelog();
+  });
+  if ($('changelogClose')) $('changelogClose').addEventListener('click', closeChangelog);
+  if ($('changelogBackdrop')) {
+    $('changelogBackdrop').addEventListener('click', function (e) {
+      if (e.target === $('changelogBackdrop')) closeChangelog();
+    });
+  }
+
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       if ($('modalBackdrop') && !$('modalBackdrop').hidden) closeModal();
+      else if ($('changelogBackdrop') && !$('changelogBackdrop').hidden) closeChangelog();
       else if ($('reportsBackdrop') && !$('reportsBackdrop').hidden) closeReports();
       else if ($('dirBackdrop') && !$('dirBackdrop').hidden) closeDirectory();
     }

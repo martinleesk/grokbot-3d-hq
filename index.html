@@ -45,6 +45,25 @@
       </div>
     </header>
 
+    <div class="trust-strip" id="trustStrip" aria-label="系統健康與更新">
+      <span class="auditor-pill ok" id="auditorPill" title="System Auditor">Auditor · 健康</span>
+      <span class="trust-updated" id="trustUpdated">更新於 —</span>
+      <button type="button" class="top-btn changelog-btn" id="btnChangelog" title="變更紀錄">變更紀錄</button>
+    </div>
+
+    <aside class="panel focus-panel open" id="focusPanel">
+      <div class="panel-toolbar">
+        <div class="panel-label" style="margin:0">今日焦點</div>
+        <button type="button" class="collapse-btn" data-panel="focusPanel" aria-label="收合今日焦點">▾</button>
+      </div>
+      <div class="panel-body" id="focusPanelBody">
+        <div class="calendar-strip" id="calendarStrip" aria-label="近期行程"></div>
+        <div class="focus-board" id="focusBoard"></div>
+        <div class="panel-label mt">死線看板</div>
+        <div class="deadline-list" id="deadlineList"></div>
+      </div>
+    </aside>
+
     <aside class="panel left-panel" id="leftPanel">
       <div class="panel-toolbar">
         <div class="panel-label">職能區域</div>
@@ -172,6 +191,19 @@
           <tbody id="reportsBody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <div class="dir-backdrop changelog-backdrop" id="changelogBackdrop" hidden>
+    <div class="dir-panel panel changelog-panel" role="dialog" aria-modal="true" aria-labelledby="changelogTitle">
+      <div class="dir-head">
+        <div>
+          <div class="panel-label" style="margin:0">變更紀錄</div>
+          <h2 id="changelogTitle">HQ Changelog</h2>
+        </div>
+        <button type="button" class="modal-x" id="changelogClose" aria-label="關閉變更紀錄">×</button>
+      </div>
+      <ul class="changelog-list" id="changelogList"></ul>
     </div>
   </div>
 
