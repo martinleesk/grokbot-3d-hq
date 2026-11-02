@@ -67,6 +67,34 @@ window.HQ_DATA = {
       ]
     }
   ],
+  followUps: {
+    boss: [
+      { id: 'boss-hsbc', text: 'HSBC → 富途轉倉確認' },
+      { id: 'boss-chengdu-pay', text: '成都票務付款前再問 Martin' }
+    ],
+    travel: [
+      { id: 'travel-panda', text: '熊貓基地 11/17 上午場開賣提醒（約 11/03）' },
+      { id: 'travel-djy', text: '都江堰＋武侯祠開賣跟進（約 11/04）' }
+    ],
+    finance: [
+      { id: 'finance-mox', text: 'Mox 關戶確認' }
+    ],
+    byd: [
+      { id: 'byd-xfer', text: '比亞迪轉倉狀態跟進' }
+    ],
+    '2800': [
+      { id: '2800-xfer', text: '盈富 2800 轉倉狀態跟進' }
+    ],
+    advisor: [
+      { id: 'advisor-brief', text: '本週組合風險儀表板更新' }
+    ],
+    social: [
+      { id: 'social-cal', text: '11 月旅遊攻略內容日曆排程確認' }
+    ],
+    learn: [
+      { id: 'learn-py', text: 'Python 數據分析學習計劃進度覆核' }
+    ]
+  },
   feedTemplates: [
     { zone: 'cmd', text: 'Boss Bot 重新排程跨區優先任務' },
     { zone: 'invest', text: '投資顧問更新組合風險儀表板' },

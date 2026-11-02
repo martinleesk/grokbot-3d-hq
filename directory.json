@@ -1,0 +1,117 @@
+{
+  "baseUrl": "https://cursor.com/canvas/store-cfbe74cb-3f1b-4f2f-b2de-5dd12c81d557/",
+  "updated": "2026-11-02 21:35",
+  "pages": [
+    {
+      "category": "管理",
+      "title": "總管早報",
+      "canvas_id": "2bc7d8b7-81fd-47f1-b94f-f4f4b70da981",
+      "updated": "2026-11-02 08:10",
+      "staffIds": ["boss"],
+      "zoneIds": ["cmd"]
+    },
+    {
+      "category": "管理",
+      "title": "臨時員工會議紀錄 2026-10-27",
+      "canvas_id": "57d2fa0f-1428-40f7-8ec5-06552b31fe05",
+      "updated": "2026-10-27",
+      "staffIds": ["boss", "meet"],
+      "zoneIds": ["cmd", "life"]
+    },
+    {
+      "category": "管理",
+      "title": "總管與員工分工方案",
+      "canvas_id": "b2e92360-fcd3-4e24-855f-3309880506de",
+      "updated": "2026-10-27",
+      "staffIds": ["boss"],
+      "zoneIds": ["cmd"]
+    },
+    {
+      "category": "財務",
+      "title": "每月理財大會 2026-11",
+      "canvas_id": "5e0f76a6-4ce0-41da-9df3-ffd4af3c1817",
+      "updated": "2026-11-01",
+      "staffIds": ["finance", "advisor"],
+      "zoneIds": ["life", "invest"]
+    },
+    {
+      "category": "財務",
+      "title": "被動／半被動收入比較報告",
+      "canvas_id": "9a448225-4d1d-421b-9261-4ba8f01b459f",
+      "updated": "2026-10-28",
+      "staffIds": ["passive"],
+      "zoneIds": ["invest"]
+    },
+    {
+      "category": "財務",
+      "title": "投資與市場資訊研究報告",
+      "canvas_id": "ab6da0be-6a29-4212-92ed-287dda8cf223",
+      "updated": "2026-10-30",
+      "staffIds": ["advisor", "research"],
+      "zoneIds": ["invest", "content"]
+    },
+    {
+      "category": "財務",
+      "title": "清債・儲蓄・退休路線圖",
+      "canvas_id": "85820ef4-dc69-466c-b444-0100776fb692",
+      "updated": "2026-10-26",
+      "staffIds": ["retire", "finance"],
+      "zoneIds": ["invest", "life"]
+    },
+    {
+      "category": "旅遊",
+      "title": "澳洲之旅回顧",
+      "canvas_id": "8321c0c1-9b0a-466c-9d78-60a932a4ff08",
+      "updated": "2026-10-29",
+      "staffIds": ["travel"],
+      "zoneIds": ["travel"]
+    },
+    {
+      "category": "旅遊",
+      "title": "成都 4晚5日食玩行程",
+      "canvas_id": "e5bb905f-2b08-4e13-a8f8-fa26fa52c404",
+      "updated": "2026-11-02",
+      "staffIds": ["travel"],
+      "zoneIds": ["travel"]
+    },
+    {
+      "category": "旅遊",
+      "title": "上海行程 11/26–29",
+      "canvas_id": "7b677944-7e99-4fea-99fd-83cb65bef139",
+      "updated": "2026-10-31",
+      "staffIds": ["travel"],
+      "zoneIds": ["travel"],
+      "url": "https://11-26-29-ljh5.pages.grok.bot/"
+    },
+    {
+      "category": "社交媒體",
+      "title": "11 月旅遊攻略內容日曆",
+      "canvas_id": "0fe2227a-62a9-42a1-805d-a9e49af977ac",
+      "updated": "2026-11-01",
+      "staffIds": ["social"],
+      "zoneIds": ["content"]
+    },
+    {
+      "category": "社交媒體",
+      "title": "IG 表現追蹤",
+      "canvas_id": "fdd5f0f5-6763-451b-9216-025757504008",
+      "updated": "2026-10-28",
+      "staffIds": ["social"],
+      "zoneIds": ["content"]
+    },
+    {
+      "category": "學習",
+      "title": "Python 數據分析同 AI 學習計劃",
+      "canvas_id": "d048dbe4-53a4-424a-a993-5f36f602b80b",
+      "updated": "2026-10-25",
+      "staffIds": ["learn"],
+      "zoneIds": ["life"]
+    }
+  ],
+  "routines": [
+    { "id": "morning-brief", "title": "總管早報", "when": "每日 08:00 HKT", "owner": "boss" },
+    { "id": "ig-track", "title": "IG 表現追蹤更新", "when": "每週一", "owner": "social" },
+    { "id": "finance-month", "title": "每月理財大會準備", "when": "每月初", "owner": "finance" },
+    { "id": "ticket-watch", "title": "成都票務開賣提醒", "when": "活動前數日", "owner": "travel" }
+  ]
+}

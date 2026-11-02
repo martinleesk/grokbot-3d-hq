@@ -38,41 +38,116 @@
           <div class="sub">Martin Lee · Hong Kong · 模範總部 · 職能實時運作</div>
         </div>
       </div>
-      <div class="live"><span class="dot"></span><span id="liveText">實時運作中</span></div>
+      <div class="topbar-actions">
+        <button type="button" class="top-btn" id="btnDirectory" title="總目錄">總目錄</button>
+        <div class="live"><span class="dot"></span><span id="liveText">實時運作中</span></div>
+      </div>
     </header>
 
     <aside class="panel left-panel" id="leftPanel">
-      <div class="panel-label">職能區域</div>
-      <nav class="zone-nav" id="zoneNav"></nav>
-      <div class="panel-label mt">任務狀態</div>
-      <div class="status-list">
-        <button type="button" class="status-row"><span>等待我處理</span><b id="cntWait">3</b></button>
-        <button type="button" class="status-row"><span>已完成</span><b id="cntDone">18</b></button>
-        <button type="button" class="status-row"><span>例行工作</span><b id="cntRoutine">7</b></button>
+      <div class="panel-toolbar">
+        <div class="panel-label">職能區域</div>
+        <button type="button" class="collapse-btn" data-panel="leftPanel" aria-label="收合左欄">▾</button>
+      </div>
+      <div class="panel-body" id="leftPanelBody">
+        <nav class="zone-nav" id="zoneNav"></nav>
+        <div class="panel-label mt">任務狀態</div>
+        <div class="status-list">
+          <button type="button" class="status-row"><span>等待我處理</span><b id="cntWait">3</b></button>
+          <button type="button" class="status-row"><span>已完成</span><b id="cntDone">18</b></button>
+          <button type="button" class="status-row"><span>例行工作</span><b id="cntRoutine">7</b></button>
+        </div>
       </div>
     </aside>
 
     <aside class="panel detail-panel open" id="detailPanel">
-      <div class="detail-head">
-        <div class="bot-chip" id="detailAvatar">B</div>
-        <div>
-          <div class="eyebrow" id="detailZone">指揮中心</div>
-          <h2 id="detailName">Boss Bot</h2>
-        </div>
-        <span class="badge ok" id="detailBadge">運作中</span>
+      <div class="panel-toolbar">
+        <div class="panel-label" style="margin:0">詳情</div>
+        <button type="button" class="collapse-btn" data-panel="detailPanel" aria-label="收合詳情">▾</button>
       </div>
-      <p class="detail-desc" id="detailDesc">總管 · 全域調度與決策</p>
-      <div class="metrics" id="detailMetrics"></div>
-      <div class="roster-label">同層團隊</div>
-      <div class="roster" id="roster"></div>
+      <div class="panel-body" id="detailPanelBody">
+        <div class="detail-head">
+          <div class="bot-chip" id="detailAvatar">B</div>
+          <div>
+            <div class="eyebrow" id="detailZone">指揮中心</div>
+            <h2 id="detailName">Boss Bot</h2>
+          </div>
+          <span class="badge ok" id="detailBadge">運作中</span>
+        </div>
+        <p class="detail-desc" id="detailDesc">總管 · 全域調度與決策</p>
+        <div class="metrics" id="detailMetrics"></div>
+        <div class="follow-block" id="detailFollow"></div>
+        <button type="button" class="link-btn" id="btnOpenModal">開啟完整資料</button>
+        <div class="roster-label">同層團隊</div>
+        <div class="roster" id="roster"></div>
+      </div>
     </aside>
 
     <section class="panel feed-panel" id="feedPanel">
-      <div class="panel-label">活動紀錄 · LIVE</div>
-      <ul class="feed" id="feed"></ul>
+      <div class="panel-toolbar">
+        <div class="panel-label" style="margin:0">活動紀錄 · LIVE</div>
+        <button type="button" class="collapse-btn" data-panel="feedPanel" aria-label="收合動態">▾</button>
+      </div>
+      <div class="panel-body" id="feedPanelBody">
+        <ul class="feed" id="feed"></ul>
+      </div>
     </section>
 
     <div class="hint" id="hint">拖曳環視 · 點區域／機器人查看團隊</div>
+  </div>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" id="staffModal" role="dialog" aria-modal="true" aria-labelledby="modalName">
+      <button type="button" class="modal-x" id="modalClose" aria-label="關閉">×</button>
+      <div class="modal-head">
+        <div class="bot-chip lg" id="modalAvatar">B</div>
+        <div>
+          <div class="eyebrow" id="modalZone">指揮中心</div>
+          <h2 id="modalName">Boss Bot</h2>
+          <p class="modal-role" id="modalRole">總管 · 全域調度與決策</p>
+        </div>
+        <span class="badge ok" id="modalBadge">運作中</span>
+      </div>
+      <div class="modal-grid">
+        <section>
+          <h3>跟進事項</h3>
+          <ul class="checklist" id="modalFollow"></ul>
+        </section>
+        <section>
+          <h3>相關 Pages</h3>
+          <ul class="page-links" id="modalPages"></ul>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="dir-backdrop" id="dirBackdrop" hidden>
+    <div class="dir-panel panel" role="dialog" aria-modal="true" aria-labelledby="dirTitle">
+      <div class="dir-head">
+        <div>
+          <div class="panel-label" style="margin:0">Boss Bot 總目錄</div>
+          <h2 id="dirTitle">Pages 總覽</h2>
+        </div>
+        <button type="button" class="modal-x" id="dirClose" aria-label="關閉總目錄">×</button>
+      </div>
+      <div class="dir-tools">
+        <input type="search" id="dirSearch" placeholder="搜尋標題／分類／員工…" autocomplete="off" />
+        <select id="dirCat">
+          <option value="">全部分類</option>
+        </select>
+      </div>
+      <div class="dir-table-wrap">
+        <table class="dir-table" id="dirTable">
+          <thead>
+            <tr><th>分類</th><th>標題</th><th>更新（HKT）</th></tr>
+          </thead>
+          <tbody id="dirBody"></tbody>
+        </table>
+      </div>
+      <div class="dir-routines" id="dirRoutines"></div>
+    </div>
   </div>
 
   <button type="button" class="mode-toggle" id="btnTry3d">試 3D（進階）</button>
