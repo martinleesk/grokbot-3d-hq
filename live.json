@@ -1,78 +1,87 @@
 {
-  "updated": "2026-11-02 22:55 HKT",
+  "updated": "2026-11-03 08:10 HKT",
   "status": "實時運作中",
-  "auditor": { "ok": true, "note": "健康檢查通過" },
-  "counts": { "wait": 5, "done": 18, "routine": 7 },
+  "auditor": { "ok": true, "note": "早報已寫；LIVE 同步中" },
+  "counts": { "wait": 6, "done": 19, "routine": 5 },
   "focus": [
     {
       "id": "f1",
-      "title": "熊貓基地開賣提醒",
-      "detail": "11/17 上午場約今日開賣，旅遊規劃師核對時段與付款流程",
+      "title": "Pre Meeting HKICW Phlebotomy",
+      "detail": "今日 12:00–13:00 工作會議",
+      "sev": "red",
+      "due": "2026-11-03",
+      "staffId": "sec",
+      "zone": "life"
+    },
+    {
+      "id": "f2",
+      "title": "MTR 積分到期",
+      "detail": "今日可換一程免費車；入 MTR Mobile",
+      "sev": "red",
+      "due": "2026-11-03",
+      "staffId": "boss",
+      "zone": "life"
+    },
+    {
+      "id": "f3",
+      "title": "熊貓基地開賣",
+      "detail": "11/17 上午場約今日開賣；付款前問 Martin",
       "sev": "red",
       "due": "2026-11-03",
       "staffId": "travel",
       "zone": "travel"
     },
     {
-      "id": "f2",
-      "title": "都江堰＋武侯祠開賣",
-      "detail": "約 11/04 開賣；鎖定 11/18 行程位",
+      "id": "f4",
+      "title": "HSBC→富途轉倉",
+      "detail": "01211×10／02800×312 仍欠 HSBC 轉出指示",
+      "sev": "yellow",
+      "due": "2026-11-15",
+      "staffId": "boss",
+      "zone": "cmd"
+    },
+    {
+      "id": "f5",
+      "title": "都江堰門票約開賣",
+      "detail": "約 11/04；鎖定 11/18 半日（唔去武侯祠）",
       "sev": "yellow",
       "due": "2026-11-04",
       "staffId": "travel",
       "zone": "travel"
     },
     {
-      "id": "f3",
-      "title": "HSBC→富途轉倉",
-      "detail": "01211／02800 轉倉狀態覆核；例行截止前完成",
-      "sev": "yellow",
-      "due": "2026-11-15",
-      "staffId": "boss",
-      "zone": "cmd"
-    },
-    {
-      "id": "f4",
+      "id": "f6",
       "title": "Mox 關戶",
-      "detail": "財務管家確認文件與餘額清結",
+      "detail": "錢已轉 ZA；仍未關戶",
       "sev": "yellow",
       "due": "2026-11-15",
       "staffId": "finance",
       "zone": "life"
     },
     {
-      "id": "f5",
-      "title": "成都付款前問 Martin",
-      "detail": "票務／活動付款前必須再確認；出發前完成",
+      "id": "f7",
+      "title": "HKIC DOM Meeting",
+      "detail": "11/6 11:30–13:00（日曆校正）；另 Elder-Friendly 16:00",
       "sev": "yellow",
-      "due": "2026-11-14",
-      "staffId": "boss",
-      "zone": "cmd"
-    },
-    {
-      "id": "f6",
-      "title": "HKICW Phlebotomy Pre Meeting",
-      "detail": "明日 12:00 工作會議；秘書整理議程卡",
-      "sev": "red",
-      "due": "2026-11-03",
+      "due": "2026-11-06",
       "staffId": "sec",
       "zone": "life"
     }
   ],
   "calendar": [
     { "when": "11/03 12:00", "title": "Pre Meeting HKICW Phlebotomy", "where": "工作" },
-    { "when": "11/06 08:30", "title": "HKIC DOM Meeting", "where": "工作" },
+    { "when": "11/06 11:30", "title": "HKIC DOM Meeting", "where": "工作" },
     { "when": "11/15", "title": "成都出發", "where": "旅遊" }
   ],
   "events": [
-    { "zone": "travel", "text": "成都票務：熊貓／都江堰開賣時段再核對", "at": "22:38" },
-    { "zone": "cmd", "text": "Boss Bot 標記轉倉與成都付款為優先跟進", "at": "22:35" },
-    { "zone": "invest", "text": "HSBC→富途轉倉狀態覆核（01211／02800）", "at": "22:28" },
-    { "zone": "content", "text": "新聞晚摘要已推送（港股＋美股收市）", "at": "22:20" },
-    { "zone": "content", "text": "IG 11 月旅遊攻略排程草稿已更新", "at": "22:15" },
-    { "zone": "invest", "text": "VOO／SDIV 週報儀表板刷新完成", "at": "22:10" },
-    { "zone": "life", "text": "財務管家提醒 Mox 關戶文件待確認", "at": "21:55" },
-    { "zone": "sys", "text": "System Auditor 通過晚間健康檢查", "at": "21:40" }
+    { "zone": "cmd", "text": "總管早報 11/3 已寫入 Page 並同步 LIVE", "at": "08:10" },
+    { "zone": "invest", "text": "追蹤表更新：富途 1061 入表；總淨值約 HK$15,721", "at": "08:05" },
+    { "zone": "invest", "text": "財務管家確認 1061≠8035；SDIV 只喺 8035", "at": "08:00" },
+    { "zone": "travel", "text": "熊貓開賣跟進（11/17 上午）；都江堰約 11/4", "at": "07:55" },
+    { "zone": "life", "text": "今日 12:00 Pre Meeting；MTR 積分今日到期", "at": "07:50" },
+    { "zone": "content", "text": "新資訊探索員 5 條更正版已併入早報", "at": "07:45" },
+    { "zone": "content", "text": "IG 今晚 8 點悉尼 5 日帖已排程", "at": "07:40" },
+    { "zone": "sys", "text": "System Auditor：早報流程健康", "at": "07:35" }
   ],
   "decisions": []
 }
