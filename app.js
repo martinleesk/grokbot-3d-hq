@@ -469,6 +469,184 @@
     return '';
   }
 
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function asFiniteNum(v) {
+    if (typeof v === 'number' && isFinite(v)) return v;
+    if (typeof v === 'string' && String(v).trim() !== '' && isFinite(+v)) return +v;
+    return null;
+  }
+
+  function formatPct(n) {
+    var x = Math.round(n * 10) / 10;
+    if (Math.abs(x - Math.round(x)) < 1e-6) return String(Math.round(x));
+    return x.toFixed(1);
+  }
+
+  function usageSev(pct) {
+    if (pct == null) return '';
+    if (pct >= 90) return 'sev-alert';
+    if (pct >= 70) return 'sev-warn';
+    return 'sev-ok';
+  }
+
+  function usageShiftsColumns() {
+    return !(window.matchMedia && window.matchMedia('(max-width: 820px)').matches);
+  }
+
+  function syncUsageOffset() {
+    var trust = $('trustStrip');
+    var strip = $('usageStrip');
+    if (!strip || strip.hidden || !trust) {
+      document.documentElement.style.setProperty('--usage-h', '0px');
+      return;
+    }
+    // Narrow layout anchors focus/detail to the bottom, so only the map padding tracks the strip.
+    if (!usageShiftsColumns()) {
+      var mh = strip.offsetHeight || 0;
+      document.documentElement.style.setProperty('--usage-h', (mh > 0 ? mh + 8 : 0) + 'px');
+      return;
+    }
+    var focus = $('focusPanel');
+    if (!focus) return;
+    var currentH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--usage-h')) || 0;
+    var gap = 8;
+    var delta = (trust.getBoundingClientRect().bottom + gap) - focus.getBoundingClientRect().top;
+    var next = Math.max(0, Math.round(currentH + delta));
+    document.documentElement.style.setProperty('--usage-h', next + 'px');
+  }
+
+  var usageLayoutBound = false;
+  function bindUsageLayout() {
+    if (usageLayoutBound) return;
+    usageLayoutBound = true;
+    window.addEventListener('resize', syncUsageOffset);
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+      document.fonts.ready.then(function () {
+        if (document.body.classList.contains('has-usage')) syncUsageOffset();
+      });
+    }
+  }
+
+  function hideUsageStrip() {
+    var strip = $('usageStrip');
+    if (strip) strip.hidden = true;
+    document.body.classList.remove('has-usage');
+    syncUsageOffset();
+  }
+
+  function renderUsage(usage) {
+    var strip = $('usageStrip');
+    if (!strip) return;
+    bindUsageLayout();
+    try {
+      var ok = !!(usage && typeof usage === 'object' && !Array.isArray(usage));
+      var pct = ok ? asFiniteNum(usage.pctUsed) : null;
+      var grok = ok ? asFiniteNum(usage.grokBotPctOfLimit) : null;
+      var plan = ok && usage.plan ? String(usage.plan) : '';
+      var reset = '';
+      if (ok && usage.resetLabel) reset = String(usage.resetLabel);
+      else if (ok && usage.resetAt) reset = String(usage.resetAt);
+      var note = ok && usage.note ? String(usage.note) : '';
+      var shared = ok && usage.sharedWithOtherApps === true;
+      var updated = ok && usage.updated ? String(usage.updated) : '';
+      var tops = [];
+      if (ok && Array.isArray(usage.top)) {
+        usage.top.forEach(function (t) {
+          if (!t || !t.name) return;
+          tops.push({ name: String(t.name), share: asFiniteNum(t.share) });
+        });
+      }
+      tops = tops.slice(0, 4);
+      var hasAny = pct != null || grok != null || !!plan || !!reset || !!note || shared || tops.length > 0;
+      if (!hasAny) {
+        hideUsageStrip();
+        return;
+      }
+      strip.className = 'usage-strip' + (usageSev(pct) ? (' ' + usageSev(pct)) : '');
+      var pctEl = $('usagePct');
+      if (pctEl) {
+        pctEl.textContent = pct != null ? (formatPct(pct) + '%') : '';
+        pctEl.hidden = pct == null;
+      }
+      var planEl = $('usagePlan');
+      if (planEl) {
+        planEl.textContent = plan;
+        planEl.hidden = !plan;
+      }
+      var bar = $('usageBar');
+      var fill = $('usageFill');
+      if (bar) {
+        if (pct != null) {
+          var clamped = Math.max(0, Math.min(100, pct));
+          bar.hidden = false;
+          bar.setAttribute('aria-valuenow', String(Math.round(clamped)));
+          bar.setAttribute('aria-valuetext', formatPct(pct) + '%');
+          if (fill) fill.style.width = clamped + '%';
+        } else {
+          bar.hidden = true;
+        }
+      }
+      var grokEl = $('usageGrok');
+      if (grokEl) {
+        grokEl.textContent = grok != null ? ('Grok Bot 佔限額 ' + formatPct(grok) + '%') : '';
+        grokEl.hidden = grok == null;
+      }
+      var resetEl = $('usageReset');
+      if (resetEl) {
+        resetEl.textContent = reset ? ('重置 ' + reset) : '';
+        resetEl.hidden = !reset;
+      }
+      var sharedEl = $('usageShared');
+      if (sharedEl) sharedEl.hidden = !shared;
+      var noteEl = $('usageNote');
+      if (noteEl) {
+        noteEl.textContent = note;
+        noteEl.hidden = !note;
+        noteEl.title = note;
+      }
+      var updatedEl = $('usageUpdated');
+      if (updatedEl) {
+        updatedEl.textContent = updated;
+        updatedEl.hidden = !updated;
+      }
+      var sharesEl = $('usageShares');
+      if (sharesEl) {
+        if (!tops.length) {
+          sharesEl.innerHTML = '';
+          sharesEl.hidden = true;
+        } else {
+          sharesEl.hidden = false;
+          sharesEl.innerHTML = '<span class="usage-shares-k">使用情況</span>' + tops.map(function (t) {
+            var share = t.share != null ? (' ' + formatPct(t.share) + '%') : '';
+            return '<span class="usage-chip">' + escHtml(t.name) + escHtml(share) + '</span>';
+          }).join('');
+        }
+      }
+      var titleBits = [];
+      if (pct != null) titleBits.push('週用量 ' + formatPct(pct) + '%');
+      if (grok != null) titleBits.push('Grok Bot 佔限額 ' + formatPct(grok) + '%');
+      if (plan) titleBits.push(plan);
+      if (reset) titleBits.push('重置 ' + reset);
+      if (shared) titleBits.push('週限額與計劃上其他 App 共用');
+      if (note) titleBits.push(note);
+      if (updated) titleBits.push(updated);
+      strip.title = titleBits.join(' · ');
+      strip.hidden = false;
+      document.body.classList.add('has-usage');
+      syncUsageOffset();
+    } catch (err) {
+      console.warn('usage panel failed', err);
+      hideUsageStrip();
+    }
+  }
+
   function updateTrustStrip() {
     var strip = $('trustStrip');
     var updatedEl = $('trustUpdated');
@@ -659,6 +837,7 @@
       if (data.counts.routine != null && $('cntRoutine')) $('cntRoutine').textContent = String(data.counts.routine);
     }
     updateTrustStrip();
+    renderUsage(data.usage);
     renderFocusBoard(data.focus || []);
     renderCalendarStrip(data.calendar || []);
     renderDeadlineList();
