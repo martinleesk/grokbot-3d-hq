@@ -49,6 +49,22 @@
       <span class="auditor-pill ok" id="auditorPill" title="System Auditor">Auditor · 健康</span>
       <span class="trust-updated" id="trustUpdated">更新於 —</span>
       <button type="button" class="top-btn changelog-btn" id="btnChangelog" title="變更紀錄">變更紀錄</button>
+      <div class="usage-strip" id="usageStrip" hidden aria-label="週用量">
+        <div class="usage-main">
+          <span class="usage-kicker">週用量</span>
+          <span class="usage-pct" id="usagePct">—</span>
+          <span class="usage-bar" id="usageBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="已用百分比"><span class="usage-fill" id="usageFill"></span></span>
+          <span class="usage-plan" id="usagePlan" hidden></span>
+          <span class="usage-grok" id="usageGrok" hidden></span>
+          <span class="usage-reset" id="usageReset" hidden></span>
+        </div>
+        <div class="usage-subline">
+          <span class="usage-shared" id="usageShared" hidden>週限額與其他 App 共用</span>
+          <span class="usage-note" id="usageNote" hidden></span>
+          <span class="usage-shares" id="usageShares" hidden></span>
+          <span class="usage-updated" id="usageUpdated" hidden></span>
+        </div>
+      </div>
     </div>
 
     <aside class="panel focus-panel open" id="focusPanel">

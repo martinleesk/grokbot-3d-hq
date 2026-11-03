@@ -143,5 +143,20 @@
       "at": "07:35"
     }
   ],
-  "decisions": []
+  "decisions": [],
+  "usage": {
+    "pctUsed": 24.5,
+    "grokBotPctOfLimit": 24,
+    "sharedWithOtherApps": true,
+    "plan": "Super",
+    "resetAt": "2026-11-08T13:29:00+08:00",
+    "resetLabel": "周日 11/8 13:29（香港）",
+    "note": "額外用量來自 additional usage credits；詳情 Settings > Usage & Billing",
+    "top": [
+      { "name": "Boss Bot", "share": 64 },
+      { "name": "旅遊規劃師", "share": 13 },
+      { "name": "財務管家", "share": 4 }
+    ],
+    "updated": "2026-11-03 17:20 HKT"
+  }
 }
