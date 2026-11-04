@@ -74,15 +74,16 @@
     saveDoneFollow();
   }
 
+  /* Phase A drawers use a new key so old hq3d_panel_* = open does not pop the glass boxes back. */
   function loadPanelState(key, fallback) {
     try {
-      var v = localStorage.getItem('hq3d_panel_' + key);
+      var v = localStorage.getItem('hq3d_drawer_' + key);
       if (v === null || v === undefined) return fallback;
       return v === '1';
     } catch (e) { return fallback; }
   }
   function savePanelState(key, open) {
-    try { localStorage.setItem('hq3d_panel_' + key, open ? '1' : '0'); } catch (e) {}
+    try { localStorage.setItem('hq3d_drawer_' + key, open ? '1' : '0'); } catch (e) {}
   }
 
   /* ---------- Toast ---------- */
@@ -110,7 +111,7 @@
       btn.dataset.id = z.id;
       btn.innerHTML = '<span class="swatch" style="background:' + z.color + ';color:' + z.color + '"></span>' +
         '<span><div class="name">' + z.name + '</div><div class="meta">' + z.staff.length + ' 代理人 · ' + z.en + '</div></span>';
-      btn.addEventListener('click', function () { selectZone(z.id, null, { toast: true }); });
+      btn.addEventListener('click', function () { selectZone(z.id, null, { toast: true, openDrawer: true }); });
       nav.appendChild(btn);
     });
   }
@@ -266,6 +267,10 @@
     var prevZone = selectedZone;
     var prevStaff = selectedStaffId;
     renderDetail(zoneId, staffId);
+    if (opts.openDrawer) {
+      closeDrawers('detailPanel');
+      applyCollapse('detailPanel', true);
+    }
     if (opts.openModal && staffId) openModal(zoneId, staffId);
     if (opts.toast) {
       if (staffId && staffId !== prevStaff) {
@@ -328,6 +333,9 @@
     if (opts && opts.append) feed.appendChild(li);
     else feed.insertBefore(li, feed.firstChild);
     while (feed.children.length > 8) feed.removeChild(feed.lastChild);
+    var feedPanel = $('feedPanel');
+    var badge = $('feedBadge');
+    if (badge && feedPanel && feedPanel.classList.contains('collapsed')) badge.hidden = false;
   }
 
   function clearFeed() {
@@ -501,37 +509,18 @@
   }
 
   function syncUsageOffset() {
-    var trust = $('trustStrip');
-    var strip = $('usageStrip');
-    var risk = $('riskBoard');
-    var usageVisible = !!(strip && !strip.hidden && trust);
-    var riskVisible = !!(risk && !risk.hidden && trust);
-    if (!usageVisible && !riskVisible) {
-      document.documentElement.style.setProperty('--usage-h', '0px');
-      return;
-    }
-    // Narrow layout anchors focus/detail to the bottom, so only the map padding tracks the strip.
-    if (!usageShiftsColumns()) {
-      var extra = 0;
-      if (usageVisible) extra += strip.offsetHeight || 0;
-      if (riskVisible) extra += risk.offsetHeight || 0;
-      document.documentElement.style.setProperty('--usage-h', (extra > 0 ? extra + 8 : 0) + 'px');
-      return;
-    }
-    var focus = $('focusPanel');
-    if (!focus) return;
-    var currentH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--usage-h')) || 0;
-    var gap = 8;
-    var delta = (trust.getBoundingClientRect().bottom + gap) - focus.getBoundingClientRect().top;
-    var next = Math.max(0, Math.round(currentH + delta));
-    document.documentElement.style.setProperty('--usage-h', next + 'px');
+    /* Phase A: usage and risk live in drawers, so they no longer push the ribbon or focus. */
+    document.documentElement.style.setProperty('--usage-h', '0px');
   }
 
   var usageLayoutBound = false;
   function bindUsageLayout() {
     if (usageLayoutBound) return;
     usageLayoutBound = true;
-    window.addEventListener('resize', syncUsageOffset);
+    window.addEventListener('resize', function () {
+      syncUsageOffset();
+      updateTrustStrip();
+    });
     if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
       document.fonts.ready.then(function () {
         if (document.body.classList.contains('has-usage')) syncUsageOffset();
@@ -543,6 +532,9 @@
     var strip = $('usageStrip');
     if (strip) strip.hidden = true;
     document.body.classList.remove('has-usage');
+    var chip = $('btnUsage');
+    if (chip) chip.hidden = true;
+    applyCollapse('usageDrawer', false);
     syncUsageOffset();
   }
 
@@ -645,6 +637,15 @@
       strip.title = titleBits.join(' · ');
       strip.hidden = false;
       document.body.classList.add('has-usage');
+      var compact = $('usagePctCompact');
+      if (compact) compact.textContent = pct != null ? (formatPct(pct) + '%') : '—';
+      var chip = $('btnUsage');
+      if (chip) {
+        var chipOpen = chip.classList.contains('active');
+        chip.className = 'ribbon-chip' + (usageSev(pct) ? (' ' + usageSev(pct)) : '') + (chipOpen ? ' active' : '');
+        chip.hidden = false;
+        chip.title = strip.title || '週用量';
+      }
       syncUsageOffset();
     } catch (err) {
       console.warn('usage panel failed', err);
@@ -734,7 +735,12 @@
     if (panel) panel.hidden = true;
     var lightsEl = $('riskLights');
     if (lightsEl) lightsEl.innerHTML = '';
+    var dotsEl = $('riskDots');
+    if (dotsEl) dotsEl.innerHTML = '';
+    var chip = $('btnRisk');
+    if (chip) chip.hidden = true;
     document.body.classList.remove('has-risk-board');
+    applyCollapse('riskDrawer', false);
     syncUsageOffset();
   }
 
@@ -764,8 +770,14 @@
         var stamp = (typeof board.updated === 'string') ? board.updated.trim() : '';
         updatedEl.textContent = stamp;
       }
+      var reds = 0;
+      var yellows = 0;
+      var greens = 0;
       lightsEl.innerHTML = rows.map(function (light) {
         var sev = normalizeSev(light.sev);
+        if (sev === 'red') reds++;
+        else if (sev === 'yellow') yellows++;
+        else if (sev === 'green') greens++;
         var label = (light.label != null && String(light.label).trim()) ? String(light.label) : String(light.id);
         var note = light.note == null ? '' : String(light.note);
         var owner = light.owner == null ? '' : String(light.owner).trim();
@@ -782,6 +794,19 @@
             (note ? '<div class="risk-note">' + escHtml(note) + '</div>' : '') +
           '</div></article>';
       }).join('');
+      /* L1 stays dots only — full labels stay in the drawer. No investment hints on the ribbon. */
+      var dotsEl = $('riskDots');
+      var riskChip = $('btnRisk');
+      if (dotsEl) {
+        dotsEl.innerHTML = rows.map(function (light) {
+          var sev = normalizeSev(light.sev);
+          return '<i class="sev-dot' + (sev ? ' sev-' + sev : '') + '" aria-hidden="true"></i>';
+        }).join('');
+      }
+      if (riskChip) {
+        riskChip.hidden = false;
+        riskChip.setAttribute('aria-label', '風控 ' + reds + ' 紅 ' + yellows + ' 黃 ' + greens + ' 綠');
+      }
       panel.hidden = false;
       document.body.classList.add('has-risk-board');
       syncUsageOffset();
@@ -806,8 +831,9 @@
     if (pill) {
       var aud = liveData && liveData.auditor;
       var ok = !aud || aud.ok !== false;
+      var narrow = window.matchMedia && window.matchMedia('(max-width: 820px)').matches;
       pill.className = 'auditor-pill ' + (ok ? 'ok' : 'fail');
-      pill.textContent = ok ? 'Auditor · 健康' : 'Auditor · 異常';
+      pill.textContent = narrow ? (ok ? '健康' : '異常') : (ok ? 'Auditor · 健康' : 'Auditor · 異常');
       pill.title = (aud && aud.note) ? ('System Auditor：' + aud.note) : 'System Auditor';
     }
     if ($('liveUpdated') && stamp) {
@@ -857,7 +883,7 @@
         (f.due ? ' · ' + f.due : '') + '</span></div>';
       btn.addEventListener('click', function () {
         if (f.staffId || f.zone) {
-          selectZone(f.zone || selectedZone, f.staffId || null, { toast: true, openModal: !!f.staffId });
+          selectZone(f.zone || selectedZone, f.staffId || null, { toast: true, openDrawer: true });
         }
       });
       board.appendChild(btn);
@@ -933,10 +959,10 @@
       btn.title = (d.owner ? d.owner + ' · ' : '') + (d.due || '');
       btn.addEventListener('click', function () {
         if (d.staffId || d.zone) {
-          selectZone(d.zone || selectedZone, d.staffId || null, { toast: true });
+          selectZone(d.zone || selectedZone, d.staffId || null, { toast: true, openDrawer: true });
         } else if (d.staffId) {
           var hit = findStaffAnywhere(d.staffId);
-          if (hit) selectZone(hit.zone.id, d.staffId, { toast: true });
+          if (hit) selectZone(hit.zone.id, d.staffId, { toast: true, openDrawer: true });
         }
       });
       el.appendChild(btn);
@@ -1080,24 +1106,50 @@
     if ($('changelogBackdrop')) $('changelogBackdrop').hidden = true;
   }
 
-  /* ---------- Collapse panels ---------- */
+  /* ---------- Phase A drawers (default closed; 今日焦點 stays open) ---------- */
+  var DRAWER_IDS = ['leftPanel', 'detailPanel', 'feedPanel', 'usageDrawer', 'riskDrawer'];
   function applyCollapse(panelId, open) {
     var panel = $(panelId);
     if (!panel) return;
     panel.classList.toggle('collapsed', !open);
+    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
     savePanelState(panelId, open);
+    document.querySelectorAll('.dock-btn[data-drawer="' + panelId + '"], .ribbon-chip[data-drawer="' + panelId + '"]').forEach(function (btn) {
+      btn.classList.toggle('active', !!open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    if (panelId === 'feedPanel' && open) {
+      var badge = $('feedBadge');
+      if (badge) badge.hidden = true;
+    }
+  }
+  function closeDrawers(exceptId) {
+    DRAWER_IDS.forEach(function (id) {
+      if (id !== exceptId) applyCollapse(id, false);
+    });
+  }
+  function closeTopDrawer() {
+    for (var i = 0; i < DRAWER_IDS.length; i++) {
+      var panel = $(DRAWER_IDS[i]);
+      if (panel && !panel.classList.contains('collapsed')) {
+        applyCollapse(DRAWER_IDS[i], false);
+        return true;
+      }
+    }
+    return false;
   }
   function initCollapse() {
-    ['leftPanel', 'detailPanel', 'feedPanel', 'focusPanel'].forEach(function (id) {
-      var open = loadPanelState(id, true);
-      applyCollapse(id, open);
+    DRAWER_IDS.forEach(function (id) {
+      applyCollapse(id, loadPanelState(id, false));
     });
-    document.querySelectorAll('.collapse-btn').forEach(function (btn) {
+    document.querySelectorAll('[data-drawer]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        var id = btn.getAttribute('data-panel');
+        var id = btn.getAttribute('data-drawer');
         var panel = $(id);
         if (!panel) return;
-        applyCollapse(id, panel.classList.contains('collapsed'));
+        var willOpen = panel.classList.contains('collapsed');
+        if (willOpen) closeDrawers(id);
+        applyCollapse(id, willOpen);
       });
     });
   }
@@ -1341,7 +1393,7 @@
         b.style.animationDelay = (i * 0.12 + zi * 0.05) + 's';
         b.textContent = z.staff[i].name.slice(0, 1);
         b.addEventListener('click', (function (zoneId, staffId) {
-          return function (ev) { ev.stopPropagation(); selectZone(zoneId, staffId, { openModal: true, toast: true }); };
+          return function (ev) { ev.stopPropagation(); selectZone(zoneId, staffId, { openDrawer: true, toast: true }); };
         })(z.id, z.staff[i].id));
         d.appendChild(b);
         desks.appendChild(d);
@@ -1352,7 +1404,7 @@
       plant.style.right = '10px';
       plant.style.top = '42px';
       cell.appendChild(plant);
-      cell.addEventListener('click', function () { selectZone(z.id, null, { toast: true }); });
+      cell.addEventListener('click', function () { selectZone(z.id, null, { toast: true, openDrawer: true }); });
       grid.appendChild(cell);
     });
     root.appendChild(grid);
@@ -1421,7 +1473,7 @@
       btn.textContent = '試 3D（進階）';
     }
     var hint = $('hint');
-    if (hint) hint.textContent = '點區域／機器人查看團隊';
+    if (hint) hint.textContent = '點區域開詳情 · 底欄開啟職能／動態';
     if (reason) pushFeed({ zone: 'sys', text: '平面模式：' + reason });
     build2D();
     renderDetail(selectedZone, selectedStaffId);
@@ -2208,8 +2260,8 @@
       setPointer(e);
       var hit = pick();
       if (hit) {
-        if (hit.staffId) selectZone(hit.zoneId, hit.staffId, { openModal: true, toast: true });
-        else selectZone(hit.zoneId, null, { toast: true });
+        if (hit.staffId) selectZone(hit.zoneId, hit.staffId, { openDrawer: true, toast: true });
+        else selectZone(hit.zoneId, null, { toast: true, openDrawer: true });
       }
     }
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
@@ -2227,6 +2279,7 @@
     window.addEventListener('resize', resize);
     window.addEventListener('orientationchange', onOrient);
     resize();
+    requestAnimationFrame(resize);
 
     var clock = new THREE.Clock();
     var floating = [];
@@ -2307,7 +2360,7 @@
       var btn = $('btnTry3d');
       if (btn) btn.textContent = '返回平面';
       var hint = $('hint');
-      if (hint) hint.textContent = '單指旋轉 · 雙指縮放 · 點區域／機器人';
+      if (hint) hint.textContent = '拖曳環視 · 點區域開詳情 · 底欄開抽屜';
       mode = '3d';
       setTimeout(function () {
         if (mode !== '3d') return;
@@ -2380,6 +2433,7 @@
       else if ($('changelogBackdrop') && !$('changelogBackdrop').hidden) closeChangelog();
       else if ($('reportsBackdrop') && !$('reportsBackdrop').hidden) closeReports();
       else if ($('dirBackdrop') && !$('dirBackdrop').hidden) closeDirectory();
+      else closeTopDrawer();
     }
   });
 
@@ -2393,12 +2447,11 @@
 
   loadDirectory().then(function () {
     var hosted = location.protocol === 'https:' || location.protocol === 'http:';
-    if (hosted) {
-      if (!enable3D()) {
-        enable2D(preferMobile2D() ? '手機／觸控平面後備' : '平面後備');
-      }
+    /* Narrow / touch stays on the 2D map so the smaller stage still shows the floors. 試 3D remains in the dock. */
+    if (hosted && !preferMobile2D()) {
+      if (!enable3D()) enable2D('平面後備');
     } else {
-      enable2D(preferMobile2D() ? '本機檔案預設平面（上載後自動 3D）' : '本機檔案預設平面（可試 3D）');
+      enable2D(preferMobile2D() ? '手機／觸控平面後備' : '本機檔案預設平面（可試 3D）');
     }
   });
 })();

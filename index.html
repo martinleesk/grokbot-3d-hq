@@ -10,6 +10,50 @@
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="mode-2d">
+  <div class="app-shell">
+  <header class="l1-ribbon trust-strip" id="trustStrip" aria-label="系統狀態">
+    <div class="brand">
+      <div class="logo">ML</div>
+      <div class="brand-copy">
+        <div class="title">GrokBot 3D Model HQ</div>
+        <div class="sub">Martin Lee · Hong Kong · 模範總部</div>
+      </div>
+    </div>
+    <div class="ribbon-cluster">
+      <div class="ribbon-live">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="liveText">實時運作中</span>
+      </div>
+      <span class="auditor-pill ok" id="auditorPill" title="System Auditor">Auditor · 健康</span>
+      <span class="trust-updated" id="trustUpdated">更新於 —</span>
+      <span id="liveUpdated" class="live-updated sr-only"></span>
+      <span class="ribbon-counts" aria-label="任務狀態">
+        <span>等待 <b id="cntWait">3</b></span>
+        <span>完成 <b id="cntDone">18</b></span>
+        <span class="ribbon-count-routine">例行 <b id="cntRoutine">7</b></span>
+      </span>
+      <button type="button" class="ribbon-chip" id="btnUsage" data-drawer="usageDrawer" hidden aria-expanded="false" aria-controls="usageDrawer">週 <b id="usagePctCompact">—</b></button>
+      <button type="button" class="ribbon-chip" id="btnRisk" data-drawer="riskDrawer" hidden aria-expanded="false" aria-controls="riskDrawer"><span class="risk-word">風控</span><span class="risk-dots" id="riskDots"></span></button>
+    </div>
+    <div class="ribbon-actions">
+      <button type="button" class="top-btn" id="btnReports" title="報告表">報告</button>
+      <button type="button" class="top-btn" id="btnDirectory" title="總目錄"><span class="label-full">總目錄</span><span class="label-short">目錄</span></button>
+      <button type="button" class="top-btn changelog-btn" id="btnChangelog" title="變更紀錄">紀錄</button>
+    </div>
+  </header>
+
+  <aside class="panel focus-panel" id="focusPanel">
+    <div class="panel-toolbar">
+      <div class="panel-label" style="margin:0">今日焦點</div>
+    </div>
+    <div class="panel-body" id="focusPanelBody">
+      <div class="calendar-strip" id="calendarStrip" aria-label="近期行程"></div>
+      <div class="focus-board" id="focusBoard"></div>
+      <div class="panel-label mt">死線看板</div>
+      <div class="deadline-list" id="deadlineList"></div>
+    </div>
+  </aside>
+
   <div id="stage">
     <div id="canvas-wrap" aria-hidden="true"></div>
     <div id="fallback" aria-label="平面總部地圖">
@@ -29,84 +73,35 @@
     </div>
   </div>
 
-  <div class="hud">
-    <header class="topbar">
-      <div class="brand">
-        <div class="logo">ML</div>
-        <div>
-          <div class="title">GrokBot 3D Model HQ</div>
-          <div class="sub">Martin Lee · Hong Kong · 模範總部 · 職能實時運作</div>
-        </div>
-      </div>
-      <div class="topbar-actions">
-        <button type="button" class="top-btn" id="btnReports" title="報告表">報告</button>
-        <button type="button" class="top-btn" id="btnDirectory" title="總目錄">總目錄</button>
-        <div class="live"><span class="dot"></span><span class="live-copy"><span id="liveText">實時運作中</span><span class="live-updated" id="liveUpdated"></span></span></div>
-      </div>
-    </header>
+  <nav class="drawer-dock" aria-label="抽屜">
+    <button type="button" class="dock-btn" data-drawer="leftPanel" aria-expanded="false" aria-controls="leftPanel">職能</button>
+    <button type="button" class="dock-btn" data-drawer="detailPanel" aria-expanded="false" aria-controls="detailPanel">詳情</button>
+    <button type="button" class="dock-btn" data-drawer="feedPanel" aria-expanded="false" aria-controls="feedPanel">動態 <span class="badge-dot" id="feedBadge" hidden></span></button>
+    <span class="dock-hint" id="hint">點區域開詳情 · 底欄開啟職能／動態</span>
+    <button type="button" class="mode-toggle" id="btnTry3d">試 3D（進階）</button>
+  </nav>
 
-    <div class="trust-strip" id="trustStrip" aria-label="系統健康與更新">
-      <span class="auditor-pill ok" id="auditorPill" title="System Auditor">Auditor · 健康</span>
-      <span class="trust-updated" id="trustUpdated">更新於 —</span>
-      <button type="button" class="top-btn changelog-btn" id="btnChangelog" title="變更紀錄">變更紀錄</button>
-      <div class="usage-strip" id="usageStrip" hidden aria-label="週用量">
-        <div class="usage-main">
-          <span class="usage-kicker">週用量</span>
-          <span class="usage-pct" id="usagePct">—</span>
-          <span class="usage-bar" id="usageBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="已用百分比"><span class="usage-fill" id="usageFill"></span></span>
-          <span class="usage-plan" id="usagePlan" hidden></span>
-          <span class="usage-grok" id="usageGrok" hidden></span>
-          <span class="usage-reset" id="usageReset" hidden></span>
-        </div>
-        <div class="usage-subline">
-          <span class="usage-shared" id="usageShared" hidden>週限額與其他 App 共用</span>
-          <span class="usage-note" id="usageNote" hidden></span>
-          <span class="usage-shares" id="usageShares" hidden></span>
-          <span class="usage-updated" id="usageUpdated" hidden></span>
-        </div>
-      </div>
-      <div class="risk-board" id="riskBoard" hidden aria-label="風控燈板">
-        <div class="risk-board-head">
-          <span class="risk-kicker">風控燈板</span>
-          <span class="risk-updated" id="riskUpdated"></span>
-        </div>
-        <div class="risk-lights" id="riskLights"></div>
-      </div>
-    </div>
+  <div class="disclaimer-ticker" id="disclaimerTicker" hidden role="note">
+    <span class="disclaimer-kicker" aria-hidden="true">免責</span>
+    <p class="disclaimer-text" id="disclaimerText"></p>
+  </div>
+  </div>
 
-    <aside class="panel focus-panel open" id="focusPanel">
-      <div class="panel-toolbar">
-        <div class="panel-label" style="margin:0">今日焦點</div>
-        <button type="button" class="collapse-btn" data-panel="focusPanel" aria-label="收合今日焦點">▾</button>
-      </div>
-      <div class="panel-body" id="focusPanelBody">
-        <div class="calendar-strip" id="calendarStrip" aria-label="近期行程"></div>
-        <div class="focus-board" id="focusBoard"></div>
-        <div class="panel-label mt">死線看板</div>
-        <div class="deadline-list" id="deadlineList"></div>
-      </div>
-    </aside>
-
-    <aside class="panel left-panel" id="leftPanel">
+  <div class="l2-layer" id="l2Layer">
+    <aside class="panel drawer left-panel collapsed" id="leftPanel" aria-hidden="true">
       <div class="panel-toolbar">
         <div class="panel-label">職能區域</div>
-        <button type="button" class="collapse-btn" data-panel="leftPanel" aria-label="收合左欄">▾</button>
+        <button type="button" class="collapse-btn" data-drawer="leftPanel" aria-label="關閉職能">×</button>
       </div>
       <div class="panel-body" id="leftPanelBody">
         <nav class="zone-nav" id="zoneNav"></nav>
-        <div class="panel-label mt">任務狀態</div>
-        <div class="status-list">
-          <button type="button" class="status-row"><span>等待我處理</span><b id="cntWait">3</b></button>
-          <button type="button" class="status-row"><span>已完成</span><b id="cntDone">18</b></button>
-          <button type="button" class="status-row"><span>例行工作</span><b id="cntRoutine">7</b></button>
-        </div>
       </div>
     </aside>
 
-    <aside class="panel detail-panel open" id="detailPanel">
+    <aside class="panel drawer detail-panel collapsed" id="detailPanel" aria-hidden="true">
       <div class="panel-toolbar">
         <div class="panel-label" style="margin:0">詳情</div>
-        <button type="button" class="collapse-btn" data-panel="detailPanel" aria-label="收合詳情">▾</button>
+        <button type="button" class="collapse-btn" data-drawer="detailPanel" aria-label="關閉詳情">×</button>
       </div>
       <div class="panel-body" id="detailPanelBody">
         <div class="detail-head">
@@ -126,22 +121,52 @@
       </div>
     </aside>
 
-    <section class="panel feed-panel" id="feedPanel">
+    <section class="panel drawer feed-panel collapsed" id="feedPanel" aria-hidden="true">
       <div class="panel-toolbar">
         <div class="panel-label" style="margin:0">活動紀錄 · LIVE</div>
-        <button type="button" class="collapse-btn" data-panel="feedPanel" aria-label="收合動態">▾</button>
+        <button type="button" class="collapse-btn" data-drawer="feedPanel" aria-label="關閉動態">×</button>
       </div>
       <div class="panel-body" id="feedPanelBody">
         <ul class="feed" id="feed"></ul>
       </div>
     </section>
 
-    <div class="hint" id="hint">拖曳環視 · 點區域／機器人查看團隊</div>
+    <aside class="panel drawer usage-drawer collapsed" id="usageDrawer" aria-label="週用量" aria-hidden="true">
+      <div class="panel-toolbar">
+        <div class="panel-label" style="margin:0">週用量</div>
+        <button type="button" class="collapse-btn" data-drawer="usageDrawer" aria-label="關閉週用量">×</button>
+      </div>
+      <div class="usage-strip" id="usageStrip" hidden aria-label="週用量">
+        <div class="usage-main">
+          <span class="usage-kicker">週用量</span>
+          <span class="usage-pct" id="usagePct">—</span>
+          <span class="usage-bar" id="usageBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="已用百分比"><span class="usage-fill" id="usageFill"></span></span>
+          <span class="usage-plan" id="usagePlan" hidden></span>
+          <span class="usage-grok" id="usageGrok" hidden></span>
+          <span class="usage-reset" id="usageReset" hidden></span>
+        </div>
+        <div class="usage-subline">
+          <span class="usage-shared" id="usageShared" hidden>週限額與其他 App 共用</span>
+          <span class="usage-note" id="usageNote" hidden></span>
+          <span class="usage-shares" id="usageShares" hidden></span>
+          <span class="usage-updated" id="usageUpdated" hidden></span>
+        </div>
+      </div>
+    </aside>
 
-    <div class="disclaimer-ticker" id="disclaimerTicker" hidden role="note">
-      <span class="disclaimer-kicker" aria-hidden="true">免責</span>
-      <p class="disclaimer-text" id="disclaimerText"></p>
-    </div>
+    <aside class="panel drawer risk-drawer collapsed" id="riskDrawer" aria-label="風控燈板" aria-hidden="true">
+      <div class="panel-toolbar">
+        <div class="panel-label" style="margin:0">風控燈板</div>
+        <button type="button" class="collapse-btn" data-drawer="riskDrawer" aria-label="關閉風控">×</button>
+      </div>
+      <div class="risk-board" id="riskBoard" hidden>
+        <div class="risk-board-head">
+          <span class="risk-kicker">風控燈板</span>
+          <span class="risk-updated" id="riskUpdated"></span>
+        </div>
+        <div class="risk-lights" id="riskLights"></div>
+      </div>
+    </aside>
   </div>
 
   <div id="toastStack" class="toast-stack" aria-live="polite"></div>
@@ -234,8 +259,6 @@
       <ul class="changelog-list" id="changelogList"></ul>
     </div>
   </div>
-
-  <button type="button" class="mode-toggle" id="btnTry3d">試 3D（進階）</button>
 
   <div class="boot-error" id="bootError" hidden>
     <h2>無法啟動 3D</h2>
