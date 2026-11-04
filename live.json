@@ -1,45 +1,63 @@
 {
-  "updated": "2026-11-03 12:40 HKT",
+  "updated": "2026-11-04 08:10 HKT",
   "status": "實時運作中",
   "auditor": {
     "ok": true,
-    "note": "工作日曆已同步（Pre Meeting 改早＋11/11 新會）"
+    "note": "早報已寫；新月結單到齊待對數；轉倉仍卡"
   },
   "counts": {
-    "wait": 7,
-    "done": 20,
+    "wait": 8,
+    "done": 21,
     "routine": 5
   },
   "focus": [
     {
       "id": "f1",
-      "title": "MTR 積分到期",
-      "detail": "今日可換一程免費車；入 MTR Mobile",
+      "title": "HSBC→富途轉倉",
+      "detail": "01211×10／02800×312；富途 11/3 再催 HSBC 轉出",
       "sev": "red",
-      "due": "2026-11-03",
+      "due": "2026-11-15",
       "staffId": "boss",
-      "zone": "life"
+      "zone": "cmd"
     },
     {
       "id": "f2",
-      "title": "熊貓基地開賣跟進",
-      "detail": "11/17 上午仍未開賣；旅遊規劃師每日跟；付款前問 Martin",
+      "title": "新月結單對數",
+      "detail": "富途1061／8035、老虎、SoFi、Mox 十月結單昨日到",
       "sev": "yellow",
-      "due": "2026-11-16",
-      "staffId": "travel",
-      "zone": "travel"
+      "due": "2026-11-07",
+      "staffId": "finance",
+      "zone": "invest"
     },
     {
       "id": "f3",
-      "title": "都江堰門票約開賣",
-      "detail": "約 11/04；鎖定 11/18 半日（唔去武侯祠）",
-      "sev": "yellow",
+      "title": "都江堰門票開賣",
+      "detail": "約今日；鎖定 11/18 半日；付款前問 Martin",
+      "sev": "red",
       "due": "2026-11-04",
       "staffId": "travel",
       "zone": "travel"
     },
     {
       "id": "f4",
+      "title": "熊貓基地開賣跟進",
+      "detail": "11/17 上午仍未開賣；routine 跟；付款前問",
+      "sev": "yellow",
+      "due": "2026-11-16",
+      "staffId": "travel",
+      "zone": "travel"
+    },
+    {
+      "id": "f5",
+      "title": "Brian Janice Annika",
+      "detail": "明日 15:00；確認出席",
+      "sev": "yellow",
+      "due": "2026-11-05",
+      "staffId": "boss",
+      "zone": "life"
+    },
+    {
+      "id": "f6",
       "title": "HKIC DOM Meeting",
       "detail": "11/6 11:30–13:00；另 Elder-Friendly 16:00–17:30",
       "sev": "yellow",
@@ -48,34 +66,7 @@
       "zone": "life"
     },
     {
-      "id": "f5",
-      "title": "HKIC Phlebotomy＋QMH 茶水會",
-      "detail": "11/10 11:00–13:00 委員會；14:00–15:00 茶水會",
-      "sev": "yellow",
-      "due": "2026-11-10",
-      "staffId": "sec",
-      "zone": "life"
-    },
-    {
-      "id": "f6",
-      "title": "QMH CND & HR Meeting",
-      "detail": "11/11 09:30–11:30（日曆新加）",
-      "sev": "yellow",
-      "due": "2026-11-11",
-      "staffId": "sec",
-      "zone": "life"
-    },
-    {
       "id": "f7",
-      "title": "HSBC→富途轉倉",
-      "detail": "01211×10／02800×312 仍欠 HSBC 轉出指示",
-      "sev": "yellow",
-      "due": "2026-11-15",
-      "staffId": "boss",
-      "zone": "cmd"
-    },
-    {
-      "id": "f8",
       "title": "Mox 關戶",
       "detail": "錢已轉 ZA；仍未關戶",
       "sev": "yellow",
@@ -86,77 +77,81 @@
   ],
   "calendar": [
     {
+      "when": "11/04 19:00",
+      "title": "Pokemon",
+      "where": "私人"
+    },
+    {
+      "when": "11/05 15:00",
+      "title": "Brian Janice Annika",
+      "where": "私人"
+    },
+    {
       "when": "11/06 11:30",
       "title": "HKIC DOM Meeting",
       "where": "工作"
-    },
-    {
-      "when": "11/06 16:00",
-      "title": "Elder-Friendly Hospital",
-      "where": "工作"
-    },
-    {
-      "when": "11/10 11:00",
-      "title": "HKIC Phlebotomy＋茶水會",
-      "where": "工作"
-    },
-    {
-      "when": "11/11 09:30",
-      "title": "QMH CND & HR",
-      "where": "工作"
-    },
-    {
-      "when": "11/15",
-      "title": "成都出發",
-      "where": "旅遊"
     }
   ],
   "events": [
     {
-      "zone": "life",
-      "text": "工作日曆同步：今日 Pre Meeting 改 10:30–11:30（已完）；新加 11/11 CND&HR",
-      "at": "12:40"
-    },
-    {
       "zone": "cmd",
-      "text": "總管早報 11/3 已寫入 Page 並同步 LIVE",
+      "text": "總管早報 11/4 已寫入 Page 並同步 LIVE／usage",
       "at": "08:10"
     },
     {
       "zone": "invest",
-      "text": "追蹤表更新：富途 1061 入表；總淨值約 HK$15,721",
-      "at": "08:05"
+      "text": "富途 11/3 再催轉倉；1061／8035 十月月結單到",
+      "at": "23:16"
+    },
+    {
+      "zone": "invest",
+      "text": "老虎／SoFi／Mox 月結單到齊待對數",
+      "at": "18:11"
     },
     {
       "zone": "travel",
-      "text": "熊貓 11/17 仍未開賣；跟進 routine 繼續",
-      "at": "09:10"
+      "text": "熊貓仍未開賣；都江堰約今日跟；變臉改 11/17 VIP¥178",
+      "at": "08:05"
     },
     {
       "zone": "content",
-      "text": "QMH 繁體講稿已交；Martin 確認就咁定",
-      "at": "12:38"
+      "text": "IG 今日曼谷街頭小食；X Skills 加監督紅旗",
+      "at": "08:05"
+    },
+    {
+      "zone": "life",
+      "text": "今日 19:00 Pokemon；明日 Brian；週五 DOM＋Elder-Friendly",
+      "at": "08:05"
     },
     {
       "zone": "sys",
-      "text": "System Auditor：早報流程健康",
-      "at": "07:35"
+      "text": "用量 Super 週限 28.6%（GB 27.5%）；重置 11/8 13:29 HKT",
+      "at": "08:04"
     }
   ],
-  "decisions": [],
   "usage": {
-    "pctUsed": 24.5,
-    "grokBotPctOfLimit": 24,
+    "pctUsed": 28.6,
+    "grokBotPctOfLimit": 27.5,
     "sharedWithOtherApps": true,
     "plan": "Super",
     "resetAt": "2026-11-08T13:29:00+08:00",
-    "resetLabel": "周日 11/8 13:29（香港）",
-    "note": "額外用量來自 additional usage credits；詳情 Settings > Usage & Billing",
+    "resetLabel": "週日 11/8 13:29 HKT（約 4 日後）",
+    "note": "額外用量來自 additional usage credits；見 Settings > Usage & Billing",
     "top": [
-      { "name": "Boss Bot", "share": 64 },
-      { "name": "旅遊規劃師", "share": 13 },
-      { "name": "財務管家", "share": 4 }
+      {
+        "name": "Boss Bot",
+        "share": 61
+      },
+      {
+        "name": "旅遊規劃師",
+        "share": 17
+      },
+      {
+        "name": "財務管家",
+        "share": 4
+      }
     ],
-    "updated": "2026-11-03 17:20 HKT"
-  }
+    "updated": "2026-11-04 08:04 HKT"
+  },
+  "decisions": []
 }
