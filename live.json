@@ -1,9 +1,20 @@
 {
-  "updated": "2026-11-04 08:10 HKT",
+  "updated": "2026-11-04 08:52 HKT",
   "status": "實時運作中",
+  "disclaimer": "資訊同監察用途 · 唔自動下單 · 非持牌投資建議",
   "auditor": {
     "ok": true,
-    "note": "早報已寫；新月結單到齊待對數；轉倉仍卡"
+    "note": "Signal House A：風控燈／字幕已上線"
+  },
+  "riskBoard": {
+    "updated": "2026-11-04 08:52 HKT",
+    "lights": [
+      {"id": "transfer", "label": "HSBC→Futu 轉倉", "sev": "red", "note": "01211×10／02800×312；富途 11/3 再催，仍未入倉", "owner": "invest"},
+      {"id": "recon", "label": "月結單對數", "sev": "green", "note": "十月對數完成；總淨值約 HK$17,344", "owner": "finance"},
+      {"id": "mox", "label": "Mox 關戶", "sev": "yellow", "note": "現金已轉 ZA；戶口未關", "owner": "finance"},
+      {"id": "routines", "label": "例行漏跑", "sev": "green", "note": "早報／例行正常", "owner": "auditor"},
+      {"id": "memory", "label": "共用記憶過時", "sev": "yellow", "note": "Signal House A 職責已更新；其餘定期覆核", "owner": "auditor"}
+    ]
   },
   "counts": {
     "wait": 8,
@@ -23,8 +34,8 @@
     {
       "id": "f2",
       "title": "新月結單對數",
-      "detail": "富途1061／8035、老虎、SoFi、Mox 十月結單昨日到",
-      "sev": "yellow",
+      "detail": "十月對數完成；總淨值約 HK$17,344",
+      "sev": "green",
       "due": "2026-11-07",
       "staffId": "finance",
       "zone": "invest"

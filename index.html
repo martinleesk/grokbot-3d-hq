@@ -65,6 +65,13 @@
           <span class="usage-updated" id="usageUpdated" hidden></span>
         </div>
       </div>
+      <div class="risk-board" id="riskBoard" hidden aria-label="風控燈板">
+        <div class="risk-board-head">
+          <span class="risk-kicker">風控燈板</span>
+          <span class="risk-updated" id="riskUpdated"></span>
+        </div>
+        <div class="risk-lights" id="riskLights"></div>
+      </div>
     </div>
 
     <aside class="panel focus-panel open" id="focusPanel">
@@ -130,6 +137,11 @@
     </section>
 
     <div class="hint" id="hint">拖曳環視 · 點區域／機器人查看團隊</div>
+
+    <div class="disclaimer-ticker" id="disclaimerTicker" hidden role="note">
+      <span class="disclaimer-kicker" aria-hidden="true">免責</span>
+      <p class="disclaimer-text" id="disclaimerText"></p>
+    </div>
   </div>
 
   <div id="toastStack" class="toast-stack" aria-live="polite"></div>

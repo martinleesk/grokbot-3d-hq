@@ -503,14 +503,19 @@
   function syncUsageOffset() {
     var trust = $('trustStrip');
     var strip = $('usageStrip');
-    if (!strip || strip.hidden || !trust) {
+    var risk = $('riskBoard');
+    var usageVisible = !!(strip && !strip.hidden && trust);
+    var riskVisible = !!(risk && !risk.hidden && trust);
+    if (!usageVisible && !riskVisible) {
       document.documentElement.style.setProperty('--usage-h', '0px');
       return;
     }
     // Narrow layout anchors focus/detail to the bottom, so only the map padding tracks the strip.
     if (!usageShiftsColumns()) {
-      var mh = strip.offsetHeight || 0;
-      document.documentElement.style.setProperty('--usage-h', (mh > 0 ? mh + 8 : 0) + 'px');
+      var extra = 0;
+      if (usageVisible) extra += strip.offsetHeight || 0;
+      if (riskVisible) extra += risk.offsetHeight || 0;
+      document.documentElement.style.setProperty('--usage-h', (extra > 0 ? extra + 8 : 0) + 'px');
       return;
     }
     var focus = $('focusPanel');
@@ -644,6 +649,146 @@
     } catch (err) {
       console.warn('usage panel failed', err);
       hideUsageStrip();
+    }
+  }
+
+  /* ---------- Signal House A: fixed disclaimer + risk lights ---------- */
+  function disclaimerString(value) {
+    if (typeof value !== 'string') return '';
+    return value.trim();
+  }
+
+  function readSafeBottom() {
+    var probe = $('safeProbe');
+    if (!probe) {
+      probe = document.createElement('div');
+      probe.id = 'safeProbe';
+      probe.setAttribute('aria-hidden', 'true');
+      probe.style.cssText = 'position:fixed;left:0;bottom:0;width:0;height:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;';
+      document.body.appendChild(probe);
+    }
+    return probe.getBoundingClientRect().height || 0;
+  }
+
+  function hideDisclaimer() {
+    var el = $('disclaimerTicker');
+    if (el) el.hidden = true;
+    document.body.classList.remove('has-disclaimer');
+    document.documentElement.style.setProperty('--disclaimer-h', '0px');
+  }
+
+  function syncDisclaimerOffset() {
+    var el = $('disclaimerTicker');
+    if (!el || el.hidden) {
+      document.documentElement.style.setProperty('--disclaimer-h', '0px');
+      return;
+    }
+    var full = el.getBoundingClientRect().height || 0;
+    var lift = Math.max(0, Math.round(full - readSafeBottom()));
+    document.documentElement.style.setProperty('--disclaimer-h', lift + 'px');
+  }
+
+  var disclaimerLayoutBound = false;
+  function bindDisclaimerLayout() {
+    if (disclaimerLayoutBound) return;
+    disclaimerLayoutBound = true;
+    window.addEventListener('resize', syncDisclaimerOffset);
+  }
+
+  function renderDisclaimer(raw) {
+    var el = $('disclaimerTicker');
+    var label = $('disclaimerText');
+    if (!el || !label) return;
+    try {
+      bindDisclaimerLayout();
+      var value = disclaimerString(raw);
+      if (!value) {
+        hideDisclaimer();
+        return;
+      }
+      if (label.textContent !== value) label.textContent = value;
+      el.hidden = false;
+      document.body.classList.add('has-disclaimer');
+      syncDisclaimerOffset();
+    } catch (err) {
+      console.warn('disclaimer ticker failed', err);
+      hideDisclaimer();
+    }
+  }
+
+  function normalizeSev(sev) {
+    var s = String(sev == null ? '' : sev).trim().toLowerCase();
+    if (s === 'red' || s === 'yellow' || s === 'green') return s;
+    return '';
+  }
+
+  function sevWord(sev) {
+    if (sev === 'red') return '紅燈';
+    if (sev === 'yellow') return '黃燈';
+    if (sev === 'green') return '綠燈';
+    return '';
+  }
+
+  function hideRiskBoard() {
+    var panel = $('riskBoard');
+    if (panel) panel.hidden = true;
+    var lightsEl = $('riskLights');
+    if (lightsEl) lightsEl.innerHTML = '';
+    document.body.classList.remove('has-risk-board');
+    syncUsageOffset();
+  }
+
+  function renderRiskBoard(board) {
+    var panel = $('riskBoard');
+    var lightsEl = $('riskLights');
+    if (!panel || !lightsEl) return;
+    try {
+      var lights = (board && typeof board === 'object' && !Array.isArray(board) && Array.isArray(board.lights))
+        ? board.lights : null;
+      var rows = [];
+      if (lights) {
+        lights.forEach(function (light) {
+          if (!light || typeof light !== 'object' || Array.isArray(light)) return;
+          var label = light.label == null ? '' : String(light.label).trim();
+          var id = light.id == null ? '' : String(light.id).trim();
+          if (!label && !id) return;
+          rows.push(light);
+        });
+      }
+      if (!rows.length) {
+        hideRiskBoard();
+        return;
+      }
+      var updatedEl = $('riskUpdated');
+      if (updatedEl) {
+        var stamp = (typeof board.updated === 'string') ? board.updated.trim() : '';
+        updatedEl.textContent = stamp;
+      }
+      lightsEl.innerHTML = rows.map(function (light) {
+        var sev = normalizeSev(light.sev);
+        var label = (light.label != null && String(light.label).trim()) ? String(light.label) : String(light.id);
+        var note = light.note == null ? '' : String(light.note);
+        var owner = light.owner == null ? '' : String(light.owner).trim();
+        var described = [sevWord(sev), label, note, owner].filter(function (part) { return !!part; }).join('。');
+        return '<article class="risk-light' + (sev ? ' sev-' + sev : '') + '"' +
+          ' data-sev="' + escHtml(sev) + '"' +
+          (light.id != null ? ' data-id="' + escHtml(light.id) + '"' : '') +
+          ' aria-label="' + escHtml(described) + '">' +
+          '<span class="risk-dot" aria-hidden="true"></span>' +
+          '<div class="risk-copy">' +
+            '<div class="risk-label-row"><span class="risk-label">' + escHtml(label) + '</span>' +
+            (owner ? '<span class="risk-owner">' + escHtml(owner) + '</span>' : '') +
+            '</div>' +
+            (note ? '<div class="risk-note">' + escHtml(note) + '</div>' : '') +
+          '</div></article>';
+      }).join('');
+      panel.hidden = false;
+      document.body.classList.add('has-risk-board');
+      syncUsageOffset();
+      requestAnimationFrame(syncUsageOffset);
+    } catch (err) {
+      console.warn('risk board failed', err);
+      hideRiskBoard();
     }
   }
 
@@ -838,6 +983,8 @@
     }
     updateTrustStrip();
     renderUsage(data.usage);
+    renderDisclaimer(data.disclaimer);
+    renderRiskBoard(data.riskBoard);
     renderFocusBoard(data.focus || []);
     renderCalendarStrip(data.calendar || []);
     renderDeadlineList();
