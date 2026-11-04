@@ -902,6 +902,107 @@ body.mode-3d #fallback { display: none !important; }
   background: rgba(255,255,255,0.04);
 }
 
+/* L5 detail drawer. Hidden unless the invest floor is open and live.invest exists. */
+.invest-slot {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(78, 161, 255, 0.32);
+  background: rgba(16, 32, 58, 0.78);
+}
+.invest-slot[hidden] { display: none !important; }
+.invest-slot.is-halt { border-color: rgba(255, 107, 138, 0.5); }
+.invest-slot-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.invest-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #4ea1ff;
+}
+.invest-mode {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #d5e4f5;
+  background: rgba(255,255,255,0.06);
+}
+.invest-mode.mode-paper {
+  color: #c5e2ff;
+  border-color: rgba(78, 161, 255, 0.5);
+  background: rgba(78, 161, 255, 0.16);
+}
+.invest-mode.mode-halt {
+  color: #ffb4c4;
+  border-color: rgba(255, 107, 138, 0.55);
+  background: rgba(255, 107, 138, 0.14);
+}
+.invest-halt,
+.invest-paper,
+.invest-morning {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.invest-halt { color: #ffb4c4; }
+.invest-paper {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.invest-sim {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffb86b;
+}
+.invest-pnl {
+  font-weight: 750;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.invest-morning {
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.invest-lights {
+  list-style: none;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.invest-light {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 650;
+  color: #e8f0ff;
+}
+.invest-light > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.invest-light .risk-dot { width: 8px; height: 8px; margin-top: 0; }
+.invest-light.sev-red .risk-dot { background: #ff6b8a; color: #ff6b8a; }
+.invest-light.sev-yellow .risk-dot { background: #ffb86b; color: #ffb86b; }
+.invest-light.sev-green .risk-dot { background: #3dffa8; color: #3dffa8; }
+
 /* Fixed disclaimer. Stays visible whenever live.disclaimer is a non-empty string. */
 .disclaimer-ticker {
   position: fixed;

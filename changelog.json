@@ -1,5 +1,6 @@
 {
   "items": [
+    { "at": "2026-11-04 21:45", "text": "L5 投資抽屜：live.invest 短狀態（PLAN／PAPER／HALT、暫停原因、SIMULATED 盈虧、早報一行）" },
     { "at": "2026-11-04 20:45", "text": "HQ UI Phase A：薄狀態帶＋今日焦點常駐；職能／詳情／動態收進抽屜；舞台縮小" },
     { "at": "2026-11-04 08:52", "text": "Signal House A：風控燈板＋固定免責字幕（live.disclaimer／riskBoard）" },
     { "at": "2026-11-03 17:25", "text": "週用量面板：live.json usage 顯示使用率、重置與使用情況" },

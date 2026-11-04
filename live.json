@@ -16,6 +16,21 @@
       {"id": "memory", "label": "共用記憶過時", "sev": "yellow", "note": "Signal House A 職責已更新；其餘定期覆核", "owner": "auditor"}
     ]
   },
+  "invest": {
+    "mode": "PLAN",
+    "halt": false,
+    "haltReason": "",
+    "paper": {
+      "label": "SIMULATED",
+      "pnl": 0,
+      "currency": "HKD"
+    },
+    "morning": {
+      "opportunities": [],
+      "alerts": [],
+      "handover": ""
+    }
+  },
   "counts": {
     "wait": 8,
     "done": 21,
