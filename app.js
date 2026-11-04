@@ -260,6 +260,7 @@
 
     highlight3D(zone.id, staff.id);
     highlight2D(zone.id);
+    renderInvestSlot();
   }
 
   function selectZone(zoneId, staffId, opts) {
@@ -730,6 +731,126 @@
     return '';
   }
 
+  /* L5 detail drawer. Reads live.invest from the existing poll. No trading engine. */
+  function hideInvestSlot() {
+    var slot = $('investSlot');
+    if (!slot) return;
+    slot.hidden = true;
+    slot.className = 'invest-slot';
+    slot.innerHTML = '';
+  }
+
+  function investModeToken(raw) {
+    var m = String(raw == null ? '' : raw).trim().toUpperCase();
+    if (m === 'PLAN' || m === 'PAPER' || m === 'HALT') return m;
+    return '';
+  }
+
+  function investShortText(value) {
+    if (typeof value === 'string') return value.trim();
+    if (typeof value === 'number' && isFinite(value)) return String(value);
+    if (!Array.isArray(value)) return '';
+    for (var i = 0; i < value.length; i++) {
+      var item = value[i];
+      if (typeof item === 'string' && item.trim()) return item.trim();
+      if (typeof item === 'number' && isFinite(item)) return String(item);
+    }
+    return '';
+  }
+
+  function investMorningLine(morning) {
+    if (!morning || typeof morning !== 'object' || Array.isArray(morning)) return '';
+    var handover = investShortText(morning.handover);
+    if (handover) return handover;
+    var opp = investShortText(morning.opportunities);
+    var alertText = investShortText(morning.alerts);
+    if (opp && alertText) return opp + ' · ' + alertText;
+    return opp || alertText || '';
+  }
+
+  function investCurrency(raw) {
+    var c = String(raw == null ? '' : raw).trim().toUpperCase();
+    if (/^[A-Z]{3,4}$/.test(c)) return c;
+    return '';
+  }
+
+  function formatInvestPnl(n, currency) {
+    var neg = n < 0;
+    var abs = Math.abs(n);
+    var text = (Math.round(abs * 100) / 100).toFixed(2);
+    var signed = neg ? ('-' + text) : (n > 0 ? ('+' + text) : text);
+    return currency ? (signed + ' ' + currency) : signed;
+  }
+
+  function investOwnedLights() {
+    var board = liveData && liveData.riskBoard;
+    var lights = (board && typeof board === 'object' && !Array.isArray(board) && Array.isArray(board.lights))
+      ? board.lights : [];
+    var rows = [];
+    lights.forEach(function (light) {
+      if (!light || typeof light !== 'object' || Array.isArray(light)) return;
+      var owner = light.owner == null ? '' : String(light.owner).trim().toLowerCase();
+      if (owner !== 'invest') return;
+      var label = light.label == null ? '' : String(light.label).trim();
+      var id = light.id == null ? '' : String(light.id).trim();
+      if (!label && !id) return;
+      rows.push(light);
+    });
+    return rows;
+  }
+
+  function renderInvestSlot() {
+    var slot = $('investSlot');
+    if (!slot) return;
+    try {
+      var invest = liveData && liveData.invest;
+      var show = selectedZone === 'invest' && invest && typeof invest === 'object' && !Array.isArray(invest);
+      if (!show) {
+        hideInvestSlot();
+        return;
+      }
+      var mode = investModeToken(invest.mode);
+      if (!mode && (invest.mode == null || String(invest.mode).trim() === '')) mode = 'PLAN';
+      var halted = invest.halt === true || mode === 'HALT';
+      var reason = halted && typeof invest.haltReason === 'string' ? invest.haltReason.trim() : '';
+      var paper = (invest.paper && typeof invest.paper === 'object' && !Array.isArray(invest.paper)) ? invest.paper : null;
+      var morning = investMorningLine(invest.morning);
+      var lights = investOwnedLights();
+      var modeClass = mode === 'HALT' ? 'mode-halt' : (mode === 'PAPER' ? 'mode-paper' : (mode === 'PLAN' ? 'mode-plan' : 'mode-unknown'));
+      var modeTitle = mode === 'PLAN' ? '規劃' : (mode === 'PAPER' ? '模擬' : (mode === 'HALT' ? '暫停' : ''));
+      var html = '<div class="invest-slot-head"><span class="invest-kicker">L5</span>' +
+        '<span class="invest-mode ' + modeClass + '"' +
+        (modeTitle ? ' title="' + escHtml(modeTitle) + '"' : '') + '>' +
+        escHtml(mode || '—') + '</span></div>';
+      if (reason) html += '<p class="invest-halt">' + escHtml(reason) + '</p>';
+      if (paper) {
+        var pnlNum = asFiniteNum(paper.pnl);
+        var pnlText = pnlNum == null ? '—' : formatInvestPnl(pnlNum, investCurrency(paper.currency));
+        html += '<p class="invest-paper"><span class="invest-sim">SIMULATED</span>' +
+          '<span class="invest-pnl">盈虧 ' + escHtml(pnlText) + '</span></p>';
+      }
+      if (morning) html += '<p class="invest-morning">' + escHtml(morning) + '</p>';
+      if (lights.length) {
+        html += '<ul class="invest-lights">';
+        lights.forEach(function (light) {
+          var sev = normalizeSev(light.sev);
+          var label = (light.label != null && String(light.label).trim()) ? String(light.label) : String(light.id);
+          var note = light.note == null ? '' : String(light.note).trim();
+          html += '<li class="invest-light' + (sev ? ' sev-' + sev : '') + '"' +
+            (note ? ' title="' + escHtml(note) + '"' : '') + '>' +
+            '<span class="risk-dot" aria-hidden="true"></span><span>' + escHtml(label) + '</span></li>';
+        });
+        html += '</ul>';
+      }
+      slot.className = 'invest-slot' + (halted ? ' is-halt' : '');
+      slot.innerHTML = html;
+      slot.hidden = false;
+    } catch (err) {
+      console.warn('invest slot failed', err);
+      hideInvestSlot();
+    }
+  }
+
   function hideRiskBoard() {
     var panel = $('riskBoard');
     if (panel) panel.hidden = true;
@@ -1011,6 +1132,7 @@
     renderUsage(data.usage);
     renderDisclaimer(data.disclaimer);
     renderRiskBoard(data.riskBoard);
+    renderInvestSlot();
     renderFocusBoard(data.focus || []);
     renderCalendarStrip(data.calendar || []);
     renderDeadlineList();
