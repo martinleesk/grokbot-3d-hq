@@ -56,18 +56,26 @@
 
   <div id="stage">
     <div id="canvas-wrap" aria-hidden="true"></div>
-    <div id="fallback" aria-label="平面總部地圖">
+    <nav class="floor-rail" id="floorRail" aria-label="樓層">
+      <button type="button" class="floor-btn" data-id="cmd" style="--floor:#ff6b8a"><span class="floor-code">L6</span><span class="floor-short">指揮</span></button>
+      <button type="button" class="floor-btn" data-id="invest" style="--floor:#4ea1ff"><span class="floor-code">L5</span><span class="floor-short">投資</span></button>
+      <button type="button" class="floor-btn" data-id="life" style="--floor:#3dffa8"><span class="floor-code">L4</span><span class="floor-short">生活</span></button>
+      <button type="button" class="floor-btn" data-id="travel" style="--floor:#c4a1ff"><span class="floor-code">L3</span><span class="floor-short">旅遊</span></button>
+      <button type="button" class="floor-btn" data-id="content" style="--floor:#ffd166"><span class="floor-code">L2</span><span class="floor-short">內容</span></button>
+      <button type="button" class="floor-btn" data-id="sys" style="--floor:#9aa4b2"><span class="floor-code">L1</span><span class="floor-short">系統</span></button>
+    </nav>
+    <div id="fallback" aria-label="樓層總部">
       <div class="fb-office" id="fbOffice">
         <div class="fb-windows" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         <div class="fb-aisle" aria-hidden="true"></div>
         <!-- zones injected by app.js; static placeholder so never blank before JS -->
-        <div class="fb-grid" id="fbGridPlaceholder">
-          <div class="fb-zone" style="border-color:#ff6b8a"><div class="fb-zone-head"><h3 style="color:#ff6b8a">指揮中心</h3><span class="tag">L6</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ff6b8a">B</div></div></div><div class="fb-plant" style="right:10px;top:40px"></div></div>
-          <div class="fb-zone" style="border-color:#4ea1ff"><div class="fb-zone-head"><h3 style="color:#4ea1ff">投資樓層</h3><span class="tag">L5</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">投</div></div><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">Q</div></div></div></div>
-          <div class="fb-zone" style="border-color:#3dffa8"><div class="fb-zone-head"><h3 style="color:#1a8f5c">生活樓層</h3><span class="tag">L4</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#3dffa8">生</div></div></div></div>
-          <div class="fb-zone" style="border-color:#c4a1ff"><div class="fb-zone-head"><h3 style="color:#8a5fd6">旅遊樓層</h3><span class="tag">L3</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#c4a1ff">旅</div></div></div></div>
-          <div class="fb-zone" style="border-color:#ffd166"><div class="fb-zone-head"><h3 style="color:#c9991a">內容樓層</h3><span class="tag">L2</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ffd166">新</div></div></div></div>
-          <div class="fb-zone" style="border-color:#9aa4b2"><div class="fb-zone-head"><h3 style="color:#5c6675">系統樓層</h3><span class="tag">L1</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#9aa4b2">S</div></div></div></div>
+        <div class="fb-stack" id="fbGridPlaceholder">
+          <div class="fb-floor fb-zone" data-id="cmd" style="--floor:#ff6b8a;border-color:#ff6b8a"><span class="tag">L6</span><h3 style="color:#ff6b8a">指揮</h3></div>
+          <div class="fb-floor fb-zone" data-id="invest" style="--floor:#4ea1ff;border-color:#4ea1ff"><span class="tag">L5</span><h3 style="color:#4ea1ff">投資</h3></div>
+          <div class="fb-floor fb-zone" data-id="life" style="--floor:#3dffa8;border-color:#3dffa8"><span class="tag">L4</span><h3 style="color:#1a8f5c">生活</h3></div>
+          <div class="fb-floor fb-zone" data-id="travel" style="--floor:#c4a1ff;border-color:#c4a1ff"><span class="tag">L3</span><h3 style="color:#8a5fd6">旅遊</h3></div>
+          <div class="fb-floor fb-zone" data-id="content" style="--floor:#ffd166;border-color:#ffd166"><span class="tag">L2</span><h3 style="color:#c9991a">內容</h3></div>
+          <div class="fb-floor fb-zone" data-id="sys" style="--floor:#9aa4b2;border-color:#9aa4b2"><span class="tag">L1</span><h3 style="color:#5c6675">系統</h3></div>
         </div>
       </div>
     </div>
@@ -77,7 +85,7 @@
     <button type="button" class="dock-btn" data-drawer="leftPanel" aria-expanded="false" aria-controls="leftPanel">職能</button>
     <button type="button" class="dock-btn" data-drawer="detailPanel" aria-expanded="false" aria-controls="detailPanel">詳情</button>
     <button type="button" class="dock-btn" data-drawer="feedPanel" aria-expanded="false" aria-controls="feedPanel">動態 <span class="badge-dot" id="feedBadge" hidden></span></button>
-    <span class="dock-hint" id="hint">點區域開詳情 · 底欄開啟職能／動態</span>
+    <span class="dock-hint" id="hint">點樓層聚焦並開詳情 · 底欄開啟職能／動態</span>
     <button type="button" class="mode-toggle" id="btnTry3d">試 3D（進階）</button>
   </nav>
 

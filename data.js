@@ -2,14 +2,14 @@
 window.HQ_DATA = {
   zones: [
     {
-      id: 'cmd', name: '指揮中心', en: 'Command', color: '#ff6b8a', shape: 'cube',
+      id: 'cmd', level: 6, short: '指揮', name: '指揮中心', en: 'Command', color: '#ff6b8a', shape: 'cube',
       desc: '總部最高決策層，Boss Bot 統籌跨區協作與優先級。',
       staff: [
         { id: 'boss', name: 'Boss Bot', role: '總管 · 全域調度與決策', status: '指揮中' }
       ]
     },
     {
-      id: 'invest', name: '投資樓層', en: 'Invest', color: '#4ea1ff', shape: 'cylinder',
+      id: 'invest', level: 5, short: '投資', name: '投資樓層', en: 'Invest', color: '#4ea1ff', shape: 'cylinder',
       desc: '投資顧問與資產追蹤：股票、ETF、基金與人生財務大計。',
       staff: [
         { id: 'advisor', name: '投資顧問', role: '組合分析與配置建議', status: '監察中' },
@@ -28,7 +28,7 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'life', name: '生活樓層', en: 'Life', color: '#3dffa8', shape: 'rounded',
+      id: 'life', level: 4, short: '生活', name: '生活樓層', en: 'Life', color: '#3dffa8', shape: 'rounded',
       desc: '日常生活、財務、健康與工作支援自動化。',
       staff: [
         { id: 'life', name: '生活管家', role: '日常安排與提醒', status: '運作中' },
@@ -41,14 +41,14 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'travel', name: '旅遊樓層', en: 'Travel', color: '#c4a1ff', shape: 'cone',
+      id: 'travel', level: 3, short: '旅遊', name: '旅遊樓層', en: 'Travel', color: '#c4a1ff', shape: 'cone',
       desc: '行程、機票、住宿與活動規劃。',
       staff: [
         { id: 'travel', name: '旅遊規劃師', role: '行程設計與預訂建議', status: '規劃中' }
       ]
     },
     {
-      id: 'content', name: '內容樓層', en: 'Content', color: '#ffd166', shape: 'pyramid',
+      id: 'content', level: 2, short: '內容', name: '內容樓層', en: 'Content', color: '#ffd166', shape: 'pyramid',
       desc: '新聞、社交、摘要、翻譯與研究資訊流。',
       staff: [
         { id: 'news', name: '新聞小編', role: '頭條篩選與整理', status: '掃描中' },
@@ -60,7 +60,7 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'sys', name: '系統樓層', en: 'Systems', color: '#9aa4b2', shape: 'cross',
+      id: 'sys', level: 1, short: '系統', name: '系統樓層', en: 'Systems', color: '#9aa4b2', shape: 'cross',
       desc: '基礎設施稽核、安全與穩定性監控。',
       staff: [
         { id: 'auditor', name: 'System Auditor', role: '系統稽核與健康檢查', status: '稽核中' }
