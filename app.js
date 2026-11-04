@@ -232,7 +232,6 @@
     $('detailBadge').className = 'badge ' + (staff.status.indexOf('待機') >= 0 || staff.status.indexOf('待命') >= 0 ? 'warn' : 'ok');
 
     var av = $('detailAvatar');
-    av.style.background = 'linear-gradient(160deg,' + zone.color + ',#fff8)';
     av.textContent = staff.name.slice(0, 1);
 
     var metrics = $('detailMetrics');
@@ -258,7 +257,7 @@
       var row = document.createElement('button');
       row.type = 'button';
       row.className = 'roster-item' + (s.id === staff.id ? ' active' : '');
-      row.innerHTML = '<span class="mini-bot" style="background:' + zone.color + '">' + s.name.slice(0, 1) + '</span>' +
+      row.innerHTML = '<span class="mini-bot">' + s.name.slice(0, 1) + '</span>' +
         '<span><div class="rn">' + s.name + '</div><div class="rr">' + s.role + '</div></span>';
       row.addEventListener('click', function () { selectZone(zone.id, s.id, { openModal: true, toast: true }); });
       roster.appendChild(row);
@@ -300,7 +299,6 @@
     $('modalBadge').textContent = staff.status;
     $('modalBadge').className = 'badge ' + (staff.status.indexOf('待機') >= 0 || staff.status.indexOf('待命') >= 0 ? 'warn' : 'ok');
     var av = $('modalAvatar');
-    av.style.background = 'linear-gradient(160deg,' + zone.color + ',#fff8)';
     av.textContent = staff.name.slice(0, 1);
     renderChecklist($('modalFollow'), staff.id, true);
     var pages = relatedPagesSmart(staff.id, zone.id);
@@ -1485,16 +1483,14 @@
     if (oldStack) oldStack.parentNode.removeChild(oldStack);
     var grid = document.createElement('div');
     grid.className = 'fb-stack';
-    ZONES.forEach(function (z, zi) {
+    ZONES.forEach(function (z) {
       var info = floorInfo(z);
       var cell = document.createElement('div');
       cell.className = 'fb-floor fb-zone' + (z.id === selectedZone ? ' active' : '');
       cell.dataset.id = z.id;
-      cell.style.setProperty('--floor', z.color);
-      cell.style.borderColor = z.color;
       var head = document.createElement('div');
       head.className = 'fb-zone-head';
-      head.innerHTML = '<span class="tag">' + info.code + '</span><h3 style="color:' + z.color + '">' + info.short + '</h3>';
+      head.innerHTML = '<span class="tag">' + info.code + '</span><h3>' + info.short + '</h3>';
       cell.appendChild(head);
       var desks = document.createElement('div');
       desks.className = 'fb-desks';
@@ -1503,8 +1499,6 @@
         var b = document.createElement('div');
         b.className = 'fb-bot';
         b.title = z.staff[i].name;
-        b.style.background = z.color;
-        b.style.animationDelay = (i * 0.12 + zi * 0.05) + 's';
         b.textContent = z.staff[i].name.slice(0, 1);
         b.addEventListener('click', (function (zoneId, staffId) {
           return function (ev) { ev.stopPropagation(); selectZone(zoneId, staffId, { openDrawer: true, toast: true }); };
@@ -1639,32 +1633,32 @@
       plantTop: new THREE.SphereGeometry(0.12, 8, 8)
     };
     var mats = {
-      wood: new THREE.MeshStandardMaterial({ color: 0xc9b59a, metalness: 0.08, roughness: 0.55 }),
-      metal: new THREE.MeshStandardMaterial({ color: 0x2a3344, metalness: 0.65, roughness: 0.35 }),
-      mug: new THREE.MeshStandardMaterial({ color: 0xf0f4fa, roughness: 0.4 }),
-      coffee: new THREE.MeshStandardMaterial({ color: 0x4a2c1a, roughness: 0.8 }),
-      seat: new THREE.MeshStandardMaterial({ color: 0x1e2838, metalness: 0.2, roughness: 0.55 }),
-      chairBack: new THREE.MeshStandardMaterial({ color: 0x243044, metalness: 0.15, roughness: 0.5 }),
-      shade: new THREE.MeshStandardMaterial({ color: 0xf2e6c9, emissive: 0xffe0a0, emissiveIntensity: 0.35, side: THREE.DoubleSide, roughness: 0.6 }),
-      bulb: new THREE.MeshStandardMaterial({ color: 0xfff2cc, emissive: 0xffd080, emissiveIntensity: 0.9 }),
-      pot: new THREE.MeshStandardMaterial({ color: 0xd8c3a5, roughness: 0.55, metalness: 0.05 }),
-      soil: new THREE.MeshStandardMaterial({ color: 0x3a2a1c, roughness: 1 }),
-      leaf: new THREE.MeshStandardMaterial({ color: 0x3dcf74, roughness: 0.55, metalness: 0.05 }),
-      dark: new THREE.MeshStandardMaterial({ color: 0x1a2230, metalness: 0.4, roughness: 0.45 }),
-      foot: new THREE.MeshStandardMaterial({ color: 0x121820, metalness: 0.3, roughness: 0.5 }),
-      eye: new THREE.MeshBasicMaterial({ color: 0xffffff }),
-      pupil: new THREE.MeshBasicMaterial({ color: 0x101820 }),
-      wall: new THREE.MeshStandardMaterial({ color: 0x121a2a, metalness: 0.45, roughness: 0.4 }),
+      wood: new THREE.MeshStandardMaterial({ color: 0x4A3F34, metalness: 0.04, roughness: 0.9 }),
+      metal: new THREE.MeshStandardMaterial({ color: 0x3F3830, metalness: 0.48, roughness: 0.46 }),
+      mug: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, roughness: 0.72 }),
+      coffee: new THREE.MeshStandardMaterial({ color: 0x3A2A1C, roughness: 0.9 }),
+      seat: new THREE.MeshStandardMaterial({ color: 0x2E2924, metalness: 0.08, roughness: 0.8 }),
+      chairBack: new THREE.MeshStandardMaterial({ color: 0x24201C, metalness: 0.08, roughness: 0.78 }),
+      shade: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.08, side: THREE.DoubleSide, roughness: 0.8 }),
+      bulb: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.16 }),
+      pot: new THREE.MeshStandardMaterial({ color: 0x3F3830, roughness: 0.8, metalness: 0.12 }),
+      soil: new THREE.MeshStandardMaterial({ color: 0x2A2118, roughness: 1 }),
+      leaf: new THREE.MeshStandardMaterial({ color: 0x6A7058, roughness: 0.82, metalness: 0.02 }),
+      dark: new THREE.MeshStandardMaterial({ color: 0x1C1916, metalness: 0.16, roughness: 0.72 }),
+      foot: new THREE.MeshStandardMaterial({ color: 0x2E2924, metalness: 0.12, roughness: 0.72 }),
+      eye: new THREE.MeshBasicMaterial({ color: 0xEDE6DA }),
+      pupil: new THREE.MeshBasicMaterial({ color: 0x1C1916 }),
+      wall: new THREE.MeshStandardMaterial({ color: 0x24201C, metalness: 0.06, roughness: 0.92 }),
       glassWin: new THREE.MeshStandardMaterial({
-        color: 0x8eb6ff, transparent: true, opacity: 0.22,
-        metalness: 0.7, roughness: 0.1,
-        emissive: 0x3a6aaa, emissiveIntensity: 0.25,
+        color: 0x2E2924, transparent: true, opacity: 0.16,
+        metalness: 0.18, roughness: 0.46,
+        emissive: 0x1C1916, emissiveIntensity: 0.02,
         side: THREE.DoubleSide
       }),
-      mullion: new THREE.MeshStandardMaterial({ color: 0xd0d8e8, metalness: 0.5, roughness: 0.3 }),
-      ceiling: new THREE.MeshStandardMaterial({ color: 0x0e1522, metalness: 0.2, roughness: 0.8 }),
-      recess: new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffe0a8, emissiveIntensity: 0.85 }),
-      frame: new THREE.MeshStandardMaterial({ color: 0x2a3348, metalness: 0.25, roughness: 0.5 })
+      mullion: new THREE.MeshStandardMaterial({ color: 0xB79F80, metalness: 0.5, roughness: 0.42 }),
+      ceiling: new THREE.MeshStandardMaterial({ color: 0x1C1916, metalness: 0.04, roughness: 0.92 }),
+      recess: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.1 }),
+      frame: new THREE.MeshStandardMaterial({ color: 0x3F3830, metalness: 0.28, roughness: 0.62 })
     };
     var zoneStrip = {};
     var zoneScreen = {};
@@ -1672,7 +1666,7 @@
       var key = String(color);
       if (!zoneStrip[key]) {
         zoneStrip[key] = new THREE.MeshStandardMaterial({
-          color: color, emissive: color, emissiveIntensity: 0.55, metalness: 0.2, roughness: 0.4
+          color: 0x3F3830, emissive: 0xB79F80, emissiveIntensity: 0.06, metalness: 0.55, roughness: 0.46
         });
       }
       return zoneStrip[key];
@@ -1681,9 +1675,10 @@
       var key = String(glowCol);
       if (!zoneScreen[key]) {
         var m = new THREE.MeshStandardMaterial({
-          color: 0x0a1220, emissive: new THREE.Color(glowCol), emissiveIntensity: 0.55,
-          metalness: 0.2, roughness: 0.25
+          color: 0x1C1916, emissive: new THREE.Color(0xB79F80), emissiveIntensity: 0.06,
+          metalness: 0.2, roughness: 0.62
         });
+        m.userData.baseEmissive = 0.06;
         zoneScreen[key] = m;
         screenMats.push(m);
       }
@@ -1701,8 +1696,8 @@
       var s = (activeStaff ? 1.28 : (activeZone ? 1.1 : 1)) * base;
       b.scale.setScalar(s);
       if (b.userData.glow) {
-        b.userData.glow.visible = activeStaff || activeZone;
-        b.userData.glow.material.opacity = activeStaff ? 0.7 : 0.32;
+        b.userData.glow.visible = !!(activeStaff || activeZone);
+        b.userData.glow.material.opacity = activeStaff ? 0.18 : 0.07;
       }
     });
     var mid = (FLOOR_PITCH * 5) / 2;
@@ -1710,14 +1705,25 @@
       var g = zoneRoots[id];
       if (!g || !g.userData.matFloor) return;
       var on = id === zoneId;
-      g.userData.matFloor.emissiveIntensity = on ? 0.42 : 0.1;
-      g.userData.goalZ = on ? 1.15 : 0;
-      g.userData.goalScale = on ? 1.06 : 0.98;
-      if (g.userData.fasciaMat) g.userData.fasciaMat.emissiveIntensity = on ? 0.95 : 0.4;
+      g.userData.matFloor.color.set(on ? 0x2E2924 : 0x24201C);
+      g.userData.matFloor.emissive.set(on ? 0x3A332C : 0x1C1916);
+      g.userData.matFloor.emissiveIntensity = on ? 0.1 : 0.02;
+      g.userData.goalZ = on ? 0.72 : 0;
+      g.userData.goalScale = on ? 1.035 : 0.985;
+      if (g.userData.fasciaMat) {
+        g.userData.fasciaMat.color.set(on ? 0xB79F80 : 0x3F3830);
+        g.userData.fasciaMat.emissive.set(on ? 0xB79F80 : 0x000000);
+        g.userData.fasciaMat.emissiveIntensity = on ? 0.55 : 0;
+      }
+      if (g.userData.coveMat) {
+        g.userData.coveMat.emissiveIntensity = on ? 0.45 : 0.05;
+      }
+      if (g.userData.screenMat) g.userData.screenMat.emissiveIntensity = on ? 0.14 : 0.03;
+      if (g.userData.labelMat) g.userData.labelMat.opacity = on ? 1 : 0.46;
       if (g.userData.glassMats) {
         g.userData.glassMats.forEach(function (m) {
-          m.opacity = on ? 0.28 : 0.18;
-          m.emissiveIntensity = on ? 0.22 : 0.08;
+          m.opacity = on ? 0.2 : 0.1;
+          m.emissiveIntensity = on ? 0.06 : 0.02;
         });
       }
     });
@@ -1729,15 +1735,15 @@
 
   function makeCuteBot(color, shape, shared) {
     var group = new THREE.Group();
-    var c = new THREE.Color(color);
+    var tint = new THREE.Color(color);
     var bodyMat = new THREE.MeshStandardMaterial({
-      color: c.clone().lerp(new THREE.Color(0xffffff), 0.12),
-      metalness: 0.22, roughness: 0.38,
-      emissive: c, emissiveIntensity: 0.12
+      color: new THREE.Color(0x8A7968).lerp(tint, 0.18),
+      metalness: 0.06, roughness: 0.78,
+      emissive: new THREE.Color(0x2E2924), emissiveIntensity: 0.04
     });
     var accentMat = new THREE.MeshStandardMaterial({
-      color: c, metalness: 0.35, roughness: 0.32,
-      emissive: c, emissiveIntensity: 0.4
+      color: 0xB79F80, metalness: 0.55, roughness: 0.42,
+      emissive: new THREE.Color(0xB79F80), emissiveIntensity: 0.05
     });
     var darkMat = shared.mats.dark;
     var body;
@@ -1791,8 +1797,8 @@
     fL.position.set(-0.1, 0.05, 0.02); fR.position.set(0.1, 0.05, 0.02);
     group.add(fL); group.add(fR);
     var glow = new THREE.Mesh(
-      new THREE.RingGeometry(0.32, 0.46, 24),
-      new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false })
+      new THREE.RingGeometry(0.34, 0.4, 28),
+      new THREE.MeshBasicMaterial({ color: 0xB79F80, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false })
     );
     glow.rotation.x = -Math.PI / 2;
     glow.position.y = 0.03;
@@ -1964,15 +1970,15 @@
   function makeGlassWall(w, h, color) {
     var g = new THREE.Group();
     var glassMat = new THREE.MeshStandardMaterial({
-      color: 0xa8c4e8, transparent: true, opacity: 0.18,
-      metalness: 0.55, roughness: 0.12,
-      emissive: new THREE.Color(color), emissiveIntensity: 0.1,
+      color: 0x2E2924, transparent: true, opacity: 0.16,
+      metalness: 0.2, roughness: 0.46,
+      emissive: 0x1C1916, emissiveIntensity: 0.02,
       side: THREE.DoubleSide
     });
     var pane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), glassMat);
     pane.position.y = h / 2;
     g.add(pane);
-    var frameMat = new THREE.MeshStandardMaterial({ color: 0xe8eef8, metalness: 0.4, roughness: 0.35 });
+    var frameMat = new THREE.MeshStandardMaterial({ color: 0x3F3830, metalness: 0.45, roughness: 0.48 });
     var topF = new THREE.Mesh(new THREE.BoxGeometry(w + 0.08, 0.06, 0.06), frameMat);
     topF.position.y = h;
     g.add(topF);
@@ -1981,7 +1987,7 @@
     g.add(botF);
     var stripe = new THREE.Mesh(
       new THREE.BoxGeometry(w + 0.08, 0.05, 0.07),
-      new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.5 })
+      new THREE.MeshStandardMaterial({ color: 0x3F3830, emissive: 0xB79F80, emissiveIntensity: 0.06 })
     );
     stripe.position.y = h * 0.55;
     g.add(stripe);
@@ -2001,8 +2007,8 @@
     var shared = createSharedPool();
     var wrap = $('canvas-wrap');
     var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x070b14);
-    scene.fog = new THREE.FogExp2(0x070b14, 0.018);
+    scene.background = new THREE.Color(0x1C1916);
+    scene.fog = new THREE.FogExp2(0x1C1916, 0.012);
 
     var camera = new THREE.PerspectiveCamera(30, 1, 0.1, 140);
     var towerMid = (FLOOR_PITCH * 5) / 2;
@@ -2010,13 +2016,13 @@
 
     var renderer = new THREE.WebGLRenderer({ antialias: !isTouch, alpha: false, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isTouch ? 1.25 : 1.75));
-    renderer.setClearColor(0x070b14, 1);
+    renderer.setClearColor(0x1C1916, 1);
     renderer.shadowMap.enabled = !isTouch;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.shadowMap.autoUpdate = true;
     if (renderer.toneMapping !== undefined) {
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.15;
+      renderer.toneMappingExposure = 0.94;
     }
     if (renderer.outputEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
     wrap.appendChild(renderer.domElement);
@@ -2037,11 +2043,11 @@
     }
     controls.addEventListener('start', function () { controls.autoRotate = false; });
 
-    // ---- lighting: ≤3 dynamic (key + fill + rim); no PointLights ----
-    scene.add(new THREE.HemisphereLight(0x6a8cff, 0x1a1018, 0.55));
-    scene.add(new THREE.AmbientLight(0x304060, 0.42));
+    // Warm lamp on stone. Key + fill + rim only; no point lights, no bloom.
+    scene.add(new THREE.HemisphereLight(0xEDE6DA, 0x1C1916, 0.14));
+    scene.add(new THREE.AmbientLight(0x3A332C, 0.18));
 
-    var key = new THREE.DirectionalLight(0xffe2c4, 0.85);
+    var key = new THREE.DirectionalLight(0xF3E6D2, 0.5);
     key.position.set(8, 16, 10);
     key.castShadow = !isTouch;
     if (!isTouch) {
@@ -2056,11 +2062,11 @@
     }
     scene.add(key);
 
-    var fill = new THREE.DirectionalLight(0x6a9fff, 0.38);
+    var fill = new THREE.DirectionalLight(0xB79F80, 0.05);
     fill.position.set(-12, 8, -6);
     scene.add(fill);
 
-    var rim = new THREE.DirectionalLight(0xff6b8a, 0.2);
+    var rim = new THREE.DirectionalLight(0xEDE6DA, 0.07);
     rim.position.set(0, 6, -14);
     scene.add(rim);
 
@@ -2069,8 +2075,8 @@
     var podium = new THREE.Mesh(
       new THREE.CylinderGeometry(3.7, 4.15, 0.26, 28),
       new THREE.MeshStandardMaterial({
-        color: 0x141c2c, metalness: 0.45, roughness: 0.42,
-        emissive: 0x0a1428, emissiveIntensity: 0.25
+        color: 0x24201C, metalness: 0.12, roughness: 0.9,
+        emissive: 0x1C1916, emissiveIntensity: 0.06
       })
     );
     podium.position.y = -0.2;
@@ -2079,21 +2085,21 @@
 
     var cityGlow = new THREE.Mesh(
       new THREE.PlaneGeometry(26, 14),
-      new THREE.MeshBasicMaterial({ color: 0x14243f, transparent: true, opacity: 0.7, depthWrite: false })
+      new THREE.MeshBasicMaterial({ color: 0x1C1916, transparent: true, opacity: 0.2, depthWrite: false })
     );
     cityGlow.position.set(0, towerMid, -7.2);
     scene.add(cityGlow);
 
     var emblem = new THREE.Mesh(
       new THREE.TorusGeometry(0.42, 0.07, 10, 28),
-      new THREE.MeshStandardMaterial({ color: 0x6eb6ff, emissive: 0x4ea1ff, emissiveIntensity: 0.65, metalness: 0.7, roughness: 0.25 })
+      new THREE.MeshStandardMaterial({ color: 0xB79F80, emissive: 0xB79F80, emissiveIntensity: 0.08, metalness: 0.62, roughness: 0.4 })
     );
     emblem.rotation.x = Math.PI / 2;
     emblem.position.set(0, towerTop + 1.05, 0);
     scene.add(emblem);
     var emblemCore = new THREE.Mesh(
       new THREE.SphereGeometry(0.14, 12, 10),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x8ec5ff, emissiveIntensity: 0.8 })
+      new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.1, metalness: 0.4, roughness: 0.45 })
     );
     emblemCore.position.copy(emblem.position);
     scene.add(emblemCore);
@@ -2109,13 +2115,13 @@
       }
       geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       particles = new THREE.Points(geo, new THREE.PointsMaterial({
-        color: 0xb8d4ff, size: 0.04, transparent: true, opacity: 0.4,
+        color: 0xB79F80, size: 0.025, transparent: true, opacity: 0.1,
         depthWrite: false, sizeAttenuation: true
       }));
       scene.add(particles);
     })();
 
-    function makeCompactDesk(zoneColor) {
+    function makeCompactDesk(screenMaterial) {
       var g = new THREE.Group();
       var top = new THREE.Mesh(shared.geos.deskTop, shared.mats.wood);
       top.scale.set(0.72, 1, 0.72);
@@ -2128,7 +2134,7 @@
       bezel.scale.set(0.8, 0.8, 1);
       bezel.position.set(0, 0.92, -0.08);
       g.add(bezel);
-      var screen = new THREE.Mesh(shared.geos.monScreen, shared.screenMat(zoneColor));
+      var screen = new THREE.Mesh(shared.geos.monScreen, screenMaterial);
       screen.scale.set(0.8, 0.8, 1);
       screen.position.set(0, 0.92, -0.06);
       g.add(screen);
@@ -2148,10 +2154,10 @@
       root.userData.goalScale = 1;
 
       var rugMat = new THREE.MeshStandardMaterial({
-        color: 0x1a2233,
-        emissive: new THREE.Color(zone.color),
-        emissiveIntensity: 0.1,
-        roughness: 0.8, metalness: 0.08
+        color: 0x24201C,
+        emissive: 0x1C1916,
+        emissiveIntensity: 0.04,
+        roughness: 0.93, metalness: 0.04
       });
       var slab = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.18, 3.5), rugMat);
       slab.position.y = 0.1;
@@ -2162,32 +2168,51 @@
       root.userData.matFloor = rugMat;
 
       var fasciaMat = new THREE.MeshStandardMaterial({
-        color: zone.color, emissive: zone.color, emissiveIntensity: 0.45,
-        metalness: 0.35, roughness: 0.4
+        color: 0x3F3830, emissive: 0x000000, emissiveIntensity: 0,
+        metalness: 0.62, roughness: 0.4
       });
-      var fascia = new THREE.Mesh(new THREE.BoxGeometry(6.7, 0.22, 0.08), fasciaMat);
-      fascia.position.set(0, 0.16, 1.76);
+      var fascia = new THREE.Mesh(new THREE.BoxGeometry(6.62, 0.06, 0.045), fasciaMat);
+      fascia.position.set(0, 0.19, 1.745);
       fascia.userData.isZone = true;
       fascia.userData.zoneId = zone.id;
       root.add(fascia);
+      var inlay = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.014, 0.09), fasciaMat);
+      inlay.position.set(0, 0.198, 1.62);
+      root.add(inlay);
       root.userData.fasciaMat = fasciaMat;
 
+      var coveMat = new THREE.MeshStandardMaterial({
+        color: 0x3F3830, emissive: 0xB79F80, emissiveIntensity: 0.04,
+        metalness: 0.3, roughness: 0.58
+      });
+      var cove = new THREE.Mesh(new THREE.BoxGeometry(6.35, 0.01, 0.025), coveMat);
+      cove.position.set(0, 0.198, 1.7);
+      root.add(cove);
+      root.userData.coveMat = coveMat;
+
+      var screenMat = new THREE.MeshStandardMaterial({
+        color: 0x1C1916, emissive: 0xB79F80, emissiveIntensity: 0.03,
+        metalness: 0.18, roughness: 0.64
+      });
+      root.userData.screenMat = screenMat;
+
       var spine = new THREE.Mesh(
-        new THREE.BoxGeometry(0.22, FLOOR_PITCH, 0.22),
+        new THREE.BoxGeometry(0.08, FLOOR_PITCH, 0.08),
         shared.mats.metal
       );
       spine.position.set(0, FLOOR_PITCH * 0.5, -1.45);
       root.add(spine);
 
-      var label = makeLabel(info.code + '  ' + info.short, zone.color);
+      var label = makeLabel(info.code + '  ' + info.short);
       label.position.set(0, 0.72, 2.05);
       label.scale.set(2.35, 0.52, 1);
       root.add(label);
+      root.userData.labelMat = label.material;
 
       var shown = Math.min(zone.staff.length, 3);
       for (var idx = 0; idx < shown; idx++) {
         var staff = zone.staff[idx];
-        var desk = makeCompactDesk(zone.color);
+        var desk = makeCompactDesk(screenMat);
         var x = (idx - (shown - 1) / 2) * 1.85;
         desk.position.set(x, 0, 0.15);
         root.add(desk);
@@ -2208,23 +2233,23 @@
       zoneRoots[zone.id] = root;
     });
 
-    function makeLabel(text, color) {
+    function makeLabel(text) {
       var canvas = document.createElement('canvas');
       canvas.width = 512; canvas.height = 128;
       var ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, 512, 128);
-      ctx.fillStyle = 'rgba(8,14,28,0.82)';
-      roundRect(ctx, 16, 24, 480, 80, 22); ctx.fill();
-      ctx.strokeStyle = color; ctx.lineWidth = 3;
-      roundRect(ctx, 16, 24, 480, 80, 22); ctx.stroke();
-      ctx.shadowColor = color; ctx.shadowBlur = 16;
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 42px "Noto Sans TC","PingFang TC",sans-serif';
+      ctx.fillStyle = 'rgba(28,25,22,0.92)';
+      roundRect(ctx, 48, 30, 416, 68, 2); ctx.fill();
+      ctx.strokeStyle = '#B79F80'; ctx.lineWidth = 2;
+      roundRect(ctx, 48, 30, 416, 68, 2); ctx.stroke();
+      ctx.fillStyle = '#EDE6DA';
+      ctx.font = '500 38px "Noto Serif TC","Songti TC",serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(text, 256, 66);
       var tex = new THREE.CanvasTexture(canvas);
-      var spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-      spr.scale.set(3.4, 0.85, 1);
+      var mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+      var spr = new THREE.Sprite(mat);
+      spr.scale.set(3.05, 0.76, 1);
       return spr;
     }
 
@@ -2232,12 +2257,12 @@
       var canvas = document.createElement('canvas');
       canvas.width = 256; canvas.height = 96;
       var ctx = canvas.getContext('2d');
-      ctx.fillStyle = 'rgba(8,14,28,0.88)';
-      roundRect(ctx, 8, 16, 240, 64, 14); ctx.fill();
-      ctx.strokeStyle = color; ctx.lineWidth = 2;
-      roundRect(ctx, 8, 16, 240, 64, 14); ctx.stroke();
-      ctx.fillStyle = '#e8f0ff';
-      ctx.font = '24px "Noto Sans TC",sans-serif';
+      ctx.fillStyle = 'rgba(28,25,22,0.92)';
+      roundRect(ctx, 8, 16, 240, 64, 2); ctx.fill();
+      ctx.strokeStyle = '#3F3830'; ctx.lineWidth = 1.5;
+      roundRect(ctx, 8, 16, 240, 64, 2); ctx.stroke();
+      ctx.fillStyle = '#EDE6DA';
+      ctx.font = '500 22px "Noto Serif TC","Songti TC",serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(text.slice(0, 10), 128, 50);
       var spr = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -2341,24 +2366,26 @@
         g.position.z += (g.userData.goalZ - g.position.z) * 0.14;
         var gs = g.userData.goalScale == null ? 1 : g.userData.goalScale;
         g.scale.setScalar(g.scale.x + (gs - g.scale.x) * 0.14);
+        if (g.userData.screenMat && g.userData.zoneId === selectedZone) {
+          g.userData.screenMat.emissiveIntensity = 0.12 + 0.015 * Math.sin(t * 0.7);
+        }
       });
       if (runtime3d.focusY != null) {
         controls.target.y += (runtime3d.focusY - controls.target.y) * 0.1;
       }
       controls.update();
       botMeshes.forEach(function (b) {
-        b.position.y = (b.userData.baseY || 0) + Math.sin(t * 2.1 + b.userData.phase) * 0.045;
-        b.rotation.y = Math.sin(t * 0.55 + b.userData.phase) * 0.18;
+        b.position.y = (b.userData.baseY || 0) + Math.sin(t * 0.6 + b.userData.phase) * 0.008;
+        b.rotation.y = Math.sin(t * 0.2 + b.userData.phase) * 0.025;
       });
       floating.forEach(function (s) {
-        s.position.y = 1.55 + Math.sin(t * 1.4 + s.userData.phase) * 0.09;
+        s.position.y = 1.55 + Math.sin(t * 0.5 + s.userData.phase) * 0.015;
       });
       for (var i = 0; i < screenMats.length; i++) {
-        screenMats[i].emissiveIntensity = 0.4 + 0.25 * Math.sin(t * 3.2 + i * 0.7) + 0.08 * Math.sin(t * 11 + i);
+        var base = screenMats[i].userData.baseEmissive == null ? 0.06 : screenMats[i].userData.baseEmissive;
+        screenMats[i].emissiveIntensity = base;
       }
-      if (particles) particles.rotation.y = t * 0.02;
-      emblem.rotation.z = t * 0.4;
-      emblemCore.position.y = emblem.position.y + Math.sin(t * 1.5) * 0.06;
+      if (particles) particles.rotation.y = t * 0.006;
       renderer.render(scene, camera);
       if (!isTouch && !shadowBaked && t > 0.6) {
         shadowBaked = true;

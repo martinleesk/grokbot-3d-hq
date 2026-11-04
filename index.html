@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#070b14" />
+<meta name="theme-color" content="#1C1916" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet" />
 <title>Martin Lee · GrokBot 3D Model HQ</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
@@ -57,12 +60,12 @@
   <div id="stage">
     <div id="canvas-wrap" aria-hidden="true"></div>
     <nav class="floor-rail" id="floorRail" aria-label="樓層">
-      <button type="button" class="floor-btn" data-id="cmd" style="--floor:#ff6b8a"><span class="floor-code">L6</span><span class="floor-short">指揮</span></button>
-      <button type="button" class="floor-btn" data-id="invest" style="--floor:#4ea1ff"><span class="floor-code">L5</span><span class="floor-short">投資</span></button>
-      <button type="button" class="floor-btn" data-id="life" style="--floor:#3dffa8"><span class="floor-code">L4</span><span class="floor-short">生活</span></button>
-      <button type="button" class="floor-btn" data-id="travel" style="--floor:#c4a1ff"><span class="floor-code">L3</span><span class="floor-short">旅遊</span></button>
-      <button type="button" class="floor-btn" data-id="content" style="--floor:#ffd166"><span class="floor-code">L2</span><span class="floor-short">內容</span></button>
-      <button type="button" class="floor-btn" data-id="sys" style="--floor:#9aa4b2"><span class="floor-code">L1</span><span class="floor-short">系統</span></button>
+      <button type="button" class="floor-btn" data-id="cmd"><span class="floor-code">L6</span><span class="floor-short">指揮</span></button>
+      <button type="button" class="floor-btn" data-id="invest"><span class="floor-code">L5</span><span class="floor-short">投資</span></button>
+      <button type="button" class="floor-btn" data-id="life"><span class="floor-code">L4</span><span class="floor-short">生活</span></button>
+      <button type="button" class="floor-btn" data-id="travel"><span class="floor-code">L3</span><span class="floor-short">旅遊</span></button>
+      <button type="button" class="floor-btn" data-id="content"><span class="floor-code">L2</span><span class="floor-short">內容</span></button>
+      <button type="button" class="floor-btn" data-id="sys"><span class="floor-code">L1</span><span class="floor-short">系統</span></button>
     </nav>
     <div id="fallback" aria-label="樓層總部">
       <div class="fb-office" id="fbOffice">
@@ -70,12 +73,12 @@
         <div class="fb-aisle" aria-hidden="true"></div>
         <!-- zones injected by app.js; static placeholder so never blank before JS -->
         <div class="fb-stack" id="fbGridPlaceholder">
-          <div class="fb-floor fb-zone" data-id="cmd" style="--floor:#ff6b8a;border-color:#ff6b8a"><span class="tag">L6</span><h3 style="color:#ff6b8a">指揮</h3></div>
-          <div class="fb-floor fb-zone" data-id="invest" style="--floor:#4ea1ff;border-color:#4ea1ff"><span class="tag">L5</span><h3 style="color:#4ea1ff">投資</h3></div>
-          <div class="fb-floor fb-zone" data-id="life" style="--floor:#3dffa8;border-color:#3dffa8"><span class="tag">L4</span><h3 style="color:#1a8f5c">生活</h3></div>
-          <div class="fb-floor fb-zone" data-id="travel" style="--floor:#c4a1ff;border-color:#c4a1ff"><span class="tag">L3</span><h3 style="color:#8a5fd6">旅遊</h3></div>
-          <div class="fb-floor fb-zone" data-id="content" style="--floor:#ffd166;border-color:#ffd166"><span class="tag">L2</span><h3 style="color:#c9991a">內容</h3></div>
-          <div class="fb-floor fb-zone" data-id="sys" style="--floor:#9aa4b2;border-color:#9aa4b2"><span class="tag">L1</span><h3 style="color:#5c6675">系統</h3></div>
+          <div class="fb-floor fb-zone" data-id="cmd"><span class="tag">L6</span><h3>指揮</h3></div>
+          <div class="fb-floor fb-zone" data-id="invest"><span class="tag">L5</span><h3>投資</h3></div>
+          <div class="fb-floor fb-zone" data-id="life"><span class="tag">L4</span><h3>生活</h3></div>
+          <div class="fb-floor fb-zone" data-id="travel"><span class="tag">L3</span><h3>旅遊</h3></div>
+          <div class="fb-floor fb-zone" data-id="content"><span class="tag">L2</span><h3>內容</h3></div>
+          <div class="fb-floor fb-zone" data-id="sys"><span class="tag">L1</span><h3>系統</h3></div>
         </div>
       </div>
     </div>
