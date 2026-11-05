@@ -225,5 +225,15 @@
       "detail": "L4 Live Agent Tower MVP（開放辦公室＋玻璃會議室）",
       "url": "https://github.com/martinleesk/grokbot-3d-hq/pull/6"
     }
-  ]
+  ],
+  "campus": {
+    "meetings": [
+      {
+        "id": "cross-brief",
+        "title": "跨樓早會",
+        "targetFloor": "cmd",
+        "staffIds": ["boss", "life", "advisor"]
+      }
+    ]
+  }
 }

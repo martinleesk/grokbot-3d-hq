@@ -1761,8 +1761,8 @@
       var y = zoneRoots[zoneId].position.y + 0.35;
       runtime3d.focusY = mid + (y - mid) * 0.34;
       runtime3d.suspendFrame = false;
-      runtime3d.frameLife = zoneId === 'life' && !!(zoneRoots.life && zoneRoots.life.userData.lifeOffice);
-      if (runtime3d.frameLife) runtime3d.controls.autoRotate = false;
+      runtime3d.frameLife = false;
+      runtime3d.focusY = null;
     }
   }
 
@@ -1786,6 +1786,26 @@
     bot.position.z = agent.z;
     bot.position.y = baseY;
     bot.rotation.y = agent.yaw;
+  }
+
+  function towerView(topY) {
+    var top = topY || (window.HQLook ? window.HQLook.floorBaseY(6) + window.HQLook.pitch : 12);
+    return {
+      target: new THREE.Vector3(8.2, 6.2, 0.15),
+      pos: new THREE.Vector3(34, Math.max(14, top * 0.95), 50)
+    };
+  }
+
+  function frameTower() {
+    if (!runtime3d || !runtime3d.controls) return;
+    var view = towerView();
+    runtime3d.frameLife = false;
+    runtime3d.wasLife = false;
+    runtime3d.focusY = null;
+    runtime3d.suspendFrame = false;
+    runtime3d.userSteer = false;
+    runtime3d.glide = { pos: view.pos.clone(), target: view.target.clone() };
+    runtime3d.controls.autoRotate = false;
   }
 
   function setTowerWash(mode) {
@@ -2021,10 +2041,11 @@
     scene.background = new THREE.Color(window.HQLook ? 0x6EB4EA : 0x1C1916);
     scene.fog = new THREE.FogExp2(window.HQLook ? 0xD5E6F4 : 0x1C1916, window.HQLook ? 0.0028 : 0.012);
 
-    var camera = new THREE.PerspectiveCamera(30, 1, 0.1, 180);
+    var camera = new THREE.PerspectiveCamera(window.HQLook ? 44 : 30, 1, 0.1, 280);
     var towerTopY = window.HQLook ? window.HQLook.floorBaseY(6) + window.HQLook.pitch : FLOOR_PITCH * 5;
     var towerMid = window.HQLook ? towerTopY * 0.46 : (FLOOR_PITCH * 5) / 2;
-    camera.position.set(window.HQLook ? 16 : 11.5, towerMid + (window.HQLook ? 1.2 : 1.5), window.HQLook ? 26 : 16.2);
+    var overview = towerView(towerTopY);
+    camera.position.copy(overview.pos);
 
     var renderer = new THREE.WebGLRenderer({ antialias: !isTouch, alpha: false, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isTouch ? 1.25 : 1.75));
@@ -2042,11 +2063,13 @@
     var controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    controls.minDistance = 6;
-    controls.maxDistance = window.HQLook ? 72 : 32;
-    controls.maxPolarAngle = Math.PI * 0.5;
-    controls.minPolarAngle = Math.PI * 0.18;
-    controls.target.set(-0.55, towerMid, 0);
+    controls.minDistance = window.HQLook ? 30 : 6;
+    controls.maxDistance = window.HQLook ? 120 : 32;
+    controls.maxPolarAngle = window.HQLook ? Math.PI * 0.49 : Math.PI * 0.5;
+    controls.minPolarAngle = window.HQLook ? 0.04 : Math.PI * 0.18;
+    controls.minAzimuthAngle = -Infinity;
+    controls.maxAzimuthAngle = Infinity;
+    controls.target.copy(overview.target);
     controls.enablePan = !isTouch;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.35;
@@ -2058,6 +2081,7 @@
       if (runtime3d) {
         runtime3d.userSteer = true;
         runtime3d.suspendFrame = true;
+        runtime3d.glide = null;
       }
     });
 
@@ -2176,6 +2200,7 @@
 
     var office = new THREE.Group();
     scene.add(office);
+    var floorLayouts = {};
 
     ZONES.forEach(function (zone) {
       var info = floorInfo(zone);
@@ -2278,9 +2303,48 @@
           });
           root.userData.lifeOffice = true;
           lifePaint = builtLife && builtLife.paint;
+          floorLayouts.life = lifeLayout;
+          if (window.HQOffice) {
+            window.HQOffice.dress({
+              THREE: THREE,
+              root: root,
+              zone: zone,
+              shared: shared,
+              surfaceY: 0.19,
+              makePlant: makePlant,
+              layout: {
+                lamps: [{ x: -1.6, z: 0.05 }, { x: 0.35, z: -0.2 }, { x: 1.05, z: 0.85 }],
+                art: { x: -0.15, z: 2.32, yaw: Math.PI },
+                greenWall: { x: 0.35, z: -2.32, yaw: 0 }
+              },
+              extraPlants: [{ x: 3.9, z: 1.45 }]
+            });
+          }
         } catch (errLife) {
           console.warn('life office build failed', errLife);
           root.userData.lifeOffice = false;
+        }
+      }
+      if (!root.userData.lifeOffice && window.HQOffice && window.HQCampus) {
+        try {
+          var madeLayout = window.HQCampus.layoutFor(zone.id, zone.staff.map(function (s) { return s.id; }));
+          floorLayouts[zone.id] = madeLayout;
+          window.HQOffice.build({
+            THREE: THREE,
+            root: root,
+            zone: zone,
+            layout: madeLayout,
+            shared: shared,
+            surfaceY: 0.19,
+            makeCuteBot: makeCuteBot,
+            makePlant: makePlant,
+            makeGlassWall: makeGlassWall,
+            botMeshes: botMeshes
+          });
+          root.userData.lifeOffice = true;
+        } catch (errOffice) {
+          console.warn('office build failed', zone.id, errOffice);
+          floorLayouts[zone.id] = null;
         }
       }
       if (!root.userData.lifeOffice) {
@@ -2309,8 +2373,13 @@
       zoneRoots[zone.id] = root;
     });
 
+    var staffBots = {};
     botMeshes.forEach(function (b) {
-      if (b.userData.lifeAgent) lifeBots[b.userData.staffId] = b;
+      if (b.userData.lifeAgent) {
+        lifeBots[b.userData.staffId] = b;
+        b.userData.campusAgent = true;
+      }
+      if (b.userData.staffId) staffBots[b.userData.staffId] = b;
     });
     if (lifePaint && window.HQLifeSim && lifeLayout && zoneRoots.life && zoneRoots.life.userData.lifeOffice) {
       try {
@@ -2325,6 +2394,55 @@
       } catch (errSim) {
         console.warn('life sim failed', errSim);
         lifeSim = null;
+      }
+    }
+
+    var campusView = null;
+    var director = null;
+    if (window.HQCampus && window.HQLifeSim && window.HQLook) {
+      try {
+        var levelY = {};
+        ZONES.forEach(function (z) {
+          if (zoneRoots[z.id]) levelY[z.id] = zoneRoots[z.id].position.y + 0.19;
+        });
+        var bridgeY = levelY.travel || (window.HQLook.floorBaseY(3) + 0.19);
+        if (window.HQCampusScene && shared.look) {
+          campusView = window.HQCampusScene.build({
+            THREE: THREE,
+            scene: scene,
+            look: shared.look,
+            mats: shared.mats,
+            shared: shared,
+            bridgeY: bridgeY,
+            topY: towerTopY,
+            makePlant: makePlant,
+            makeBot: makeCuteBot
+          });
+          (campusView.wingBots || []).forEach(function (b) { botMeshes.push(b); });
+        }
+        var directorFloors = [];
+        ZONES.forEach(function (z) {
+          var layout = floorLayouts[z.id];
+          if (!layout) return;
+          directorFloors.push({
+            id: z.id,
+            layout: layout,
+            staff: z.staff,
+            sim: z.id === 'life' ? lifeSim : null
+          });
+        });
+        if (directorFloors.length) {
+          director = window.HQCampus.createDirector({
+            Life: window.HQLifeSim,
+            floors: directorFloors,
+            levelY: levelY,
+            bridgeY: bridgeY,
+            getLive: function () { return liveData || {}; }
+          });
+        }
+      } catch (errCampus) {
+        console.warn('campus build failed', errCampus);
+        director = null;
       }
     }
 
@@ -2486,10 +2604,43 @@
           if (!runtime3d.userSteer) controls.autoRotate = true;
         }
       }
+      if (runtime3d.glide && !runtime3d.suspendFrame) {
+        controls.target.lerp(runtime3d.glide.target, 0.12);
+        camera.position.lerp(runtime3d.glide.pos, 0.12);
+        if (camera.position.distanceTo(runtime3d.glide.pos) < 0.4) {
+          runtime3d.glide = null;
+          if (!runtime3d.userSteer) controls.autoRotate = true;
+        }
+      }
       controls.update();
-      if (lifeSim) lifeSim.step(dt);
+      if (director) {
+        director.step(dt);
+        director.poses().forEach(function (p) {
+          var bot = staffBots[p.staffId];
+          if (!bot) return;
+          var parent = p.riding ? scene : zoneRoots[p.floorId];
+          if (parent && bot.parent !== parent) parent.attach(bot);
+          applyLifePose(bot, { x: p.x, z: p.z, yaw: p.yaw || 0, anim: p.anim || 'idle' }, t);
+          if (p.riding) bot.position.set(p.x, p.y, p.z);
+        });
+        if (campusView && campusView.car) campusView.car.position.y = director.carY() - 0.1;
+        var openDoors = director.openFloors();
+        Object.keys(zoneRoots).forEach(function (id) {
+          var doors = zoneRoots[id].userData.liftDoors;
+          if (!doors || !doors.left) return;
+          var spread = openDoors[id] ? 0.38 : 0.14;
+          doors.left.position.z += ((-spread) - doors.left.position.z) * 0.2;
+          doors.right.position.z += (spread - doors.right.position.z) * 0.2;
+        });
+      } else if (lifeSim) {
+        lifeSim.step(dt);
+        lifeSim.agents.forEach(function (a) {
+          var bot = lifeBots[a.staffId];
+          if (bot) applyLifePose(bot, a, t);
+        });
+      }
       botMeshes.forEach(function (b) {
-        if (b.userData.lifeAgent) return;
+        if (b.userData.campusAgent || b.userData.lifeAgent) return;
         if (b.userData.fashion && window.HQLook) {
           window.HQLook.applyPose(b, null, t);
           return;
@@ -2497,11 +2648,8 @@
         b.position.y = (b.userData.baseY || 0) + Math.sin(t * 0.6 + b.userData.phase) * 0.008;
         b.rotation.y = Math.sin(t * 0.2 + b.userData.phase) * 0.025;
       });
-      if (lifeSim) {
-        lifeSim.agents.forEach(function (a) {
-          var bot = lifeBots[a.staffId];
-          if (bot) applyLifePose(bot, a, t);
-        });
+      if (campusView && campusView.water) {
+        campusView.water.position.y = -0.3 + Math.sin(t * 1.1) * 0.015;
       }
       floating.forEach(function (s) {
         s.position.y = 1.55 + Math.sin(t * 0.5 + s.userData.phase) * 0.015;
@@ -2538,6 +2686,8 @@
       userSteer: false,
       towerPos: camera.position.clone(),
       towerTarget: controls.target.clone(),
+      director: director,
+      glide: null,
       wash: 'day',
       look: shared.look || null,
       applyWash: wash ? wash.apply : null
@@ -2653,6 +2803,10 @@
       else closeTopDrawer();
     }
   });
+
+  if ($('btnFrame')) {
+    $('btnFrame').addEventListener('click', function () { frameTower(); });
+  }
 
   if ($('btnWash')) {
     $('btnWash').addEventListener('click', function () {

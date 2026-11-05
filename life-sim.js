@@ -473,6 +473,10 @@
 
       for (var i = 0; i < agents.length; i++) {
         var a = agents[i];
+        if (a.hold) {
+          proposed.push({ x: a.x, z: a.z, yaw: a.yaw, moving: false, consumed: false, held: true });
+          continue;
+        }
         var rec = { x: a.x, z: a.z, yaw: a.yaw, moving: false, consumed: false };
         if (a.desiredAnim === 'walk' && (!a.path || !a.path.length)) queueNextPatrol(a, pts);
         if (a.path && a.path.length) {
@@ -539,6 +543,7 @@
       for (var n = 0; n < agents.length; n++) {
         var ag = agents[n];
         var pr = proposed[n];
+        if (pr.held) continue;
         if (pr.moving || pr.consumed) {
           if (pr.moving) {
             var resolved = resolveAABB(pr.x, pr.z, layout.obstacles, radius);
@@ -576,7 +581,17 @@
       }
     }
 
-    return { agents: agents, step: step, setIntents: setIntents };
+    function repath(staffId) {
+      agents.forEach(function (a) {
+        if (staffId && a.staffId !== staffId) return;
+        a.hold = false;
+        a.path = buildPath(a, layout);
+        a.stuck = 0;
+        a.anim = a.path.length ? 'walk' : a.desiredAnim;
+      });
+    }
+
+    return { agents: agents, step: step, setIntents: setIntents, repath: repath };
   }
 
   return {
