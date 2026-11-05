@@ -1,0 +1,87 @@
+{
+  "zone": "life",
+  "notes": "L4 open office. Waypoints: life.desk.{staffId}, life.patrol.1..N, life.meet.A.seat.n, life.door.meet.A. Enter the room desk → corridor → door → seat.",
+  "floor": { "width": 9.2, "depth": 5.2, "inset": 0.28 },
+  "motion": { "speed": 1.45, "separation": 0.35, "radius": 0.16, "arrive": 0.22 },
+  "corridor": { "x": -1.35, "z": 0, "length": 4.6 },
+  "desks": [
+    { "staffId": "life", "x": -3.65, "z": -1.62, "yaw": 0 },
+    { "staffId": "finance", "x": -2.35, "z": -1.62, "yaw": 0 },
+    { "staffId": "health", "x": -1.05, "z": -1.62, "yaw": 0 },
+    { "staffId": "mind", "x": 0.25, "z": -1.62, "yaw": 0 },
+    { "staffId": "learn", "x": -3.65, "z": 1.62, "yaw": 3.1416 },
+    { "staffId": "sec", "x": -2.35, "z": 1.62, "yaw": 3.1416 },
+    { "staffId": "meet", "x": -1.05, "z": 1.62, "yaw": 3.1416 }
+  ],
+  "patrol": [
+    "life.patrol.1",
+    "life.patrol.2",
+    "life.patrol.3",
+    "life.patrol.4",
+    "life.patrol.5"
+  ],
+  "plants": [
+    { "x": -4.15, "z": -2.15 },
+    { "x": -4.15, "z": 2.15 },
+    { "x": 1.02, "z": -1.7 }
+  ],
+  "meeting": {
+    "id": "A",
+    "door": "life.door.meet.A",
+    "seats": [
+      "life.meet.A.seat.1",
+      "life.meet.A.seat.2",
+      "life.meet.A.seat.3",
+      "life.meet.A.seat.4",
+      "life.meet.A.seat.5",
+      "life.meet.A.seat.6"
+    ],
+    "bounds": { "minX": 1.7, "maxX": 4.1, "minZ": -1.78, "maxZ": 1.78 },
+    "table": { "x": 2.9, "z": 0, "w": 0.76, "d": 1.4 },
+    "screen": { "x": 3.42, "y": 0.84, "z": -1.68, "yaw": 0, "w": 1.12, "h": 0.46 },
+    "walls": [
+      { "x": 1.56, "z": -1.24, "w": 1.48, "rot": 1.5708, "h": 1.08 },
+      { "x": 1.56, "z": 1.24, "w": 1.48, "rot": 1.5708, "h": 1.08 },
+      { "x": 2.89, "z": -1.94, "w": 2.78, "rot": 0, "h": 1.08 },
+      { "x": 2.89, "z": 1.94, "w": 2.78, "rot": 0, "h": 1.08 },
+      { "x": 4.22, "z": 0, "w": 3.96, "rot": 1.5708, "h": 1.08 }
+    ],
+    "doorFrame": { "x": 1.56, "z": 0, "gap": 1.0, "h": 1.08 }
+  },
+  "waypoints": {
+    "life.desk.life": { "x": -3.65, "z": -1.02, "yaw": 3.1416 },
+    "life.desk.finance": { "x": -2.35, "z": -1.02, "yaw": 3.1416 },
+    "life.desk.health": { "x": -1.05, "z": -1.02, "yaw": 3.1416 },
+    "life.desk.mind": { "x": 0.25, "z": -1.02, "yaw": 3.1416 },
+    "life.desk.learn": { "x": -3.65, "z": 1.02, "yaw": 0 },
+    "life.desk.sec": { "x": -2.35, "z": 1.02, "yaw": 0 },
+    "life.desk.meet": { "x": -1.05, "z": 1.02, "yaw": 0 },
+    "life.patrol.1": { "x": -3.65, "z": 0 },
+    "life.patrol.2": { "x": -2.35, "z": 0 },
+    "life.patrol.3": { "x": -1.05, "z": 0 },
+    "life.patrol.4": { "x": 0.25, "z": 0 },
+    "life.patrol.5": { "x": 0.95, "z": 0 },
+    "life.door.meet.A": { "x": 1.56, "z": 0, "yaw": 1.5708 },
+    "life.meet.A.seat.1": { "x": 2.9, "z": -1.18, "yaw": 0, "via": [{ "x": 2.05, "z": -1.18 }] },
+    "life.meet.A.seat.2": { "x": 2.9, "z": 1.18, "yaw": 3.1416, "via": [{ "x": 2.05, "z": 1.18 }] },
+    "life.meet.A.seat.3": { "x": 2.15, "z": -0.32, "yaw": 1.5708, "via": [{ "x": 1.9, "z": -0.32 }] },
+    "life.meet.A.seat.4": { "x": 2.15, "z": 0.36, "yaw": 1.5708, "via": [{ "x": 1.9, "z": 0.36 }] },
+    "life.meet.A.seat.5": { "x": 3.62, "z": -0.32, "yaw": -1.5708, "via": [{ "x": 2.05, "z": -1.18 }, { "x": 3.62, "z": -1.18 }] },
+    "life.meet.A.seat.6": { "x": 3.62, "z": 0.36, "yaw": -1.5708, "via": [{ "x": 2.05, "z": 1.18 }, { "x": 3.62, "z": 1.18 }] }
+  },
+  "obstacles": [
+    { "id": "desk.life", "minX": -4.21, "maxX": -3.09, "minZ": -1.9, "maxZ": -1.34 },
+    { "id": "desk.finance", "minX": -2.91, "maxX": -1.79, "minZ": -1.9, "maxZ": -1.34 },
+    { "id": "desk.health", "minX": -1.61, "maxX": -0.49, "minZ": -1.9, "maxZ": -1.34 },
+    { "id": "desk.mind", "minX": -0.31, "maxX": 0.81, "minZ": -1.9, "maxZ": -1.34 },
+    { "id": "desk.learn", "minX": -4.21, "maxX": -3.09, "minZ": 1.34, "maxZ": 1.9 },
+    { "id": "desk.sec", "minX": -2.91, "maxX": -1.79, "minZ": 1.34, "maxZ": 1.9 },
+    { "id": "desk.meet", "minX": -1.61, "maxX": -0.49, "minZ": 1.34, "maxZ": 1.9 },
+    { "id": "wall.west.n", "minX": 1.5, "maxX": 1.64, "minZ": -2.02, "maxZ": -0.5 },
+    { "id": "wall.west.s", "minX": 1.5, "maxX": 1.64, "minZ": 0.5, "maxZ": 2.02 },
+    { "id": "wall.north", "minX": 1.5, "maxX": 4.3, "minZ": -2.02, "maxZ": -1.86 },
+    { "id": "wall.south", "minX": 1.5, "maxX": 4.3, "minZ": 1.86, "maxZ": 2.02 },
+    { "id": "wall.east", "minX": 4.14, "maxX": 4.3, "minZ": -2.02, "maxZ": 2.02 },
+    { "id": "table.A", "minX": 2.52, "maxX": 3.28, "minZ": -0.7, "maxZ": 0.7 }
+  ]
+}

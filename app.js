@@ -16,6 +16,7 @@
   var reportsData = null;
   var reportsActiveId = null;
   var liveData = null;
+  var lifeLayout = null;
   var liveUpdatedStamp = null;
   var livePollTimer = null;
   var liveRelativeTimer = null;
@@ -1137,6 +1138,7 @@
     renderDisclaimer(data.disclaimer);
     renderRiskBoard(data.riskBoard);
     renderInvestSlot();
+    syncLifeFromLive();
     renderFocusBoard(data.focus || []);
     renderCalendarStrip(data.calendar || []);
     renderDeadlineList();
@@ -1337,6 +1339,17 @@
         }).join('') + '</ul>';
       }
     }
+  }
+
+  function loadLifeLayout() {
+    return fetch('floors/life.layout.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('life layout ' + r.status); return r.json(); })
+      .then(function (data) { lifeLayout = data; return data; })
+      .catch(function (err) {
+        console.warn('life layout load failed', err);
+        lifeLayout = null;
+        return null;
+      });
   }
 
   function loadDirectory() {
@@ -1708,8 +1721,8 @@
       g.userData.matFloor.color.set(on ? 0x2E2924 : 0x24201C);
       g.userData.matFloor.emissive.set(on ? 0x3A332C : 0x1C1916);
       g.userData.matFloor.emissiveIntensity = on ? 0.1 : 0.02;
-      g.userData.goalZ = on ? 0.72 : 0;
-      g.userData.goalScale = on ? 1.035 : 0.985;
+      g.userData.goalZ = on ? (g.userData.lifeOffice ? 4.15 : 0.72) : 0;
+      g.userData.goalScale = on ? (g.userData.lifeOffice ? 1 : 1.035) : (g.userData.lifeOffice ? 0.7 : 0.985);
       if (g.userData.fasciaMat) {
         g.userData.fasciaMat.color.set(on ? 0xB79F80 : 0x3F3830);
         g.userData.fasciaMat.emissive.set(on ? 0xB79F80 : 0x000000);
@@ -1730,6 +1743,9 @@
     if (runtime3d && runtime3d.controls && zoneRoots[zoneId]) {
       var y = zoneRoots[zoneId].position.y + 0.35;
       runtime3d.focusY = mid + (y - mid) * 0.34;
+      runtime3d.suspendFrame = false;
+      runtime3d.frameLife = zoneId === 'life' && !!(zoneRoots.life && zoneRoots.life.userData.lifeOffice);
+      if (runtime3d.frameLife) runtime3d.controls.autoRotate = false;
     }
   }
 
@@ -1806,9 +1822,80 @@
     group.add(glow);
     group.userData.glow = glow;
     group.userData.accentLight = null;
+    group.userData.parts = {
+      body: body, head: head, ant: ant, tip: tip, badge: badge, collar: collar,
+      eyeL: eyeL, eyeR: eyeR, pL: pL, pR: pR, fL: fL, fR: fR
+    };
     group.position.y = 0;
     group.userData.baseY = 0;
     return group;
+  }
+
+  /* Capsule pose offsets for L4. Other floors keep the standing bob. */
+  var LIFE_STAND = {
+    body: [0, 0.38, 0, 0], head: [0, 0.82, 0], ant: [0, 1.08, 0], tip: [0, 1.18, 0],
+    badge: [0, 0.42, 0.2], collar: [0, 0.62, 0],
+    eyeL: [-0.08, 0.84, 0.18], eyeR: [0.08, 0.84, 0.18],
+    pL: [-0.08, 0.84, 0.215], pR: [0.08, 0.84, 0.215],
+    fL: [-0.1, 0.05, 0.02], fR: [0.1, 0.05, 0.02]
+  };
+  var LIFE_SIT = {
+    body: [0, 0.24, 0.08, 0.5], head: [0, 0.5, 0.12], ant: [0, 0.74, 0.12], tip: [0, 0.84, 0.12],
+    badge: [0, 0.28, 0.22], collar: [0, 0.38, 0.1],
+    eyeL: [-0.08, 0.52, 0.28], eyeR: [0.08, 0.52, 0.28],
+    pL: [-0.08, 0.52, 0.315], pR: [0.08, 0.52, 0.315],
+    fL: [-0.1, 0.18, 0.26], fR: [0.1, 0.18, 0.26]
+  };
+
+  function applyLifePose(bot, agent, t) {
+    var parts = bot.userData.parts;
+    var sit = agent.anim === 'sit' || agent.anim === 'meeting';
+    var pose = sit ? LIFE_SIT : LIFE_STAND;
+    if (parts) {
+      Object.keys(pose).forEach(function (key) {
+        var mesh = parts[key];
+        var v = pose[key];
+        if (!mesh || !v) return;
+        mesh.position.set(v[0], v[1], v[2]);
+        if (key === 'body') mesh.rotation.x = v.length > 3 ? v[3] : 0;
+      });
+    }
+    var phase = bot.userData.phase || 0;
+    var baseY = bot.userData.baseY || 0;
+    bot.position.x = agent.x;
+    bot.position.z = agent.z;
+    if (agent.anim === 'walk' && parts) {
+      var swing = Math.sin(t * 8.5 + phase);
+      parts.fL.position.z = LIFE_STAND.fL[2] + swing * 0.09;
+      parts.fR.position.z = LIFE_STAND.fR[2] - swing * 0.09;
+      parts.fL.position.y = LIFE_STAND.fL[1] + Math.max(0, swing) * 0.05;
+      parts.fR.position.y = LIFE_STAND.fR[1] + Math.max(0, -swing) * 0.05;
+      parts.body.position.y = LIFE_STAND.body[1] + Math.abs(swing) * 0.02;
+      bot.position.y = baseY + Math.abs(swing) * 0.025;
+      bot.rotation.y = agent.yaw;
+    } else if (sit) {
+      bot.position.y = baseY + Math.sin(t * 1.5 + phase) * 0.005;
+      bot.rotation.y = agent.yaw;
+    } else {
+      bot.position.y = baseY + Math.sin(t * 1.3 + phase) * 0.012;
+      bot.rotation.y = agent.yaw + Math.sin(t * 0.55 + phase) * 0.1;
+    }
+  }
+
+  function syncLifeFromLive() {
+    if (!runtime3d || !runtime3d.lifeSim || !window.HQLifeSim || !lifeLayout) return;
+    try {
+      var zone = findZone('life');
+      var inferred = window.HQLifeSim.inferLifeRoster(liveData || {}, zone.staff, lifeLayout, Date.now());
+      runtime3d.lifeSim.setIntents(inferred.intents);
+      var title = inferred.meetingTitle || '';
+      if (title !== runtime3d.meetingTitle) {
+        runtime3d.meetingTitle = title;
+        if (runtime3d.paintMeet) runtime3d.paintMeet(title);
+      }
+    } catch (err) {
+      console.warn('life floor sync failed', err);
+    }
   }
 
   function makeDesk(zoneColor, shared) {
@@ -2005,6 +2092,12 @@
     screenMats = [];
 
     var shared = createSharedPool();
+    var lifePaint = null;
+    var lifeBots = {};
+    var lifeSim = null;
+    var lifeTitle = '';
+    var lifeTgtTmp = new THREE.Vector3();
+    var lifeCamTmp = new THREE.Vector3();
     var wrap = $('canvas-wrap');
     var scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1C1916);
@@ -2030,7 +2123,7 @@
     var controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    controls.minDistance = 10;
+    controls.minDistance = 6;
     controls.maxDistance = 32;
     controls.maxPolarAngle = Math.PI * 0.5;
     controls.minPolarAngle = Math.PI * 0.18;
@@ -2041,7 +2134,13 @@
     if (THREE.TOUCH) {
       controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
     }
-    controls.addEventListener('start', function () { controls.autoRotate = false; });
+    controls.addEventListener('start', function () {
+      controls.autoRotate = false;
+      if (runtime3d) {
+        runtime3d.userSteer = true;
+        runtime3d.suspendFrame = true;
+      }
+    });
 
     // Warm lamp on stone. Key + fill + rim only; no point lights, no bloom.
     scene.add(new THREE.HemisphereLight(0xEDE6DA, 0x1C1916, 0.14));
@@ -2153,13 +2252,17 @@
       root.userData.goalZ = 0;
       root.userData.goalScale = 1;
 
+      var lifeHere = zone.id === 'life' && lifeLayout && window.HQLifeScene;
+      var slabW = lifeHere ? (lifeLayout.floor && lifeLayout.floor.width) || 9.2 : 6.6;
+      var slabD = lifeHere ? (lifeLayout.floor && lifeLayout.floor.depth) || 5.2 : 3.5;
+      var halfD = slabD / 2;
       var rugMat = new THREE.MeshStandardMaterial({
         color: 0x24201C,
         emissive: 0x1C1916,
         emissiveIntensity: 0.04,
         roughness: 0.93, metalness: 0.04
       });
-      var slab = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.18, 3.5), rugMat);
+      var slab = new THREE.Mesh(new THREE.BoxGeometry(slabW, 0.18, slabD), rugMat);
       slab.position.y = 0.1;
       slab.receiveShadow = true;
       slab.userData.isZone = true;
@@ -2171,13 +2274,13 @@
         color: 0x3F3830, emissive: 0x000000, emissiveIntensity: 0,
         metalness: 0.62, roughness: 0.4
       });
-      var fascia = new THREE.Mesh(new THREE.BoxGeometry(6.62, 0.06, 0.045), fasciaMat);
-      fascia.position.set(0, 0.19, 1.745);
+      var fascia = new THREE.Mesh(new THREE.BoxGeometry(slabW + 0.02, 0.06, 0.045), fasciaMat);
+      fascia.position.set(0, 0.19, halfD - 0.005);
       fascia.userData.isZone = true;
       fascia.userData.zoneId = zone.id;
       root.add(fascia);
-      var inlay = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.014, 0.09), fasciaMat);
-      inlay.position.set(0, 0.198, 1.62);
+      var inlay = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.2, slabW - 0.4), 0.014, 0.09), fasciaMat);
+      inlay.position.set(0, 0.198, halfD - 0.13);
       root.add(inlay);
       root.userData.fasciaMat = fasciaMat;
 
@@ -2185,8 +2288,8 @@
         color: 0x3F3830, emissive: 0xB79F80, emissiveIntensity: 0.04,
         metalness: 0.3, roughness: 0.58
       });
-      var cove = new THREE.Mesh(new THREE.BoxGeometry(6.35, 0.01, 0.025), coveMat);
-      cove.position.set(0, 0.198, 1.7);
+      var cove = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.2, slabW - 0.25), 0.01, 0.025), coveMat);
+      cove.position.set(0, 0.198, halfD - 0.05);
       root.add(cove);
       root.userData.coveMat = coveMat;
 
@@ -2200,38 +2303,81 @@
         new THREE.BoxGeometry(0.08, FLOOR_PITCH, 0.08),
         shared.mats.metal
       );
-      spine.position.set(0, FLOOR_PITCH * 0.5, -1.45);
+      spine.position.set(0, FLOOR_PITCH * 0.5, lifeHere ? (-halfD + 0.18) : -1.45);
       root.add(spine);
 
       var label = makeLabel(info.code + '  ' + info.short);
-      label.position.set(0, 0.72, 2.05);
-      label.scale.set(2.35, 0.52, 1);
+      label.position.set(0, lifeHere ? 0.42 : 0.72, halfD + (lifeHere ? 0.02 : 0.3));
+      label.scale.set(lifeHere ? 1.55 : 2.35, lifeHere ? 0.36 : 0.52, 1);
       root.add(label);
       root.userData.labelMat = label.material;
 
-      var shown = Math.min(zone.staff.length, 3);
-      for (var idx = 0; idx < shown; idx++) {
-        var staff = zone.staff[idx];
-        var desk = makeCompactDesk(screenMat);
-        var x = (idx - (shown - 1) / 2) * 1.85;
-        desk.position.set(x, 0, 0.15);
-        root.add(desk);
-        var bot = makeCuteBot(zone.color, zone.shape, shared);
-        bot.userData.baseScale = 0.78;
-        bot.scale.setScalar(0.78);
-        bot.position.set(x, 0, 0.95);
-        bot.userData.zoneId = zone.id;
-        bot.userData.staffId = staff.id;
-        bot.userData.isBot = true;
-        bot.userData.phase = Math.random() * Math.PI * 2;
-        bot.userData.baseY = 0;
-        root.add(bot);
-        botMeshes.push(bot);
+      if (lifeHere) {
+        try {
+          var builtLife = window.HQLifeScene.build({
+            THREE: THREE,
+            root: root,
+            zone: zone,
+            layout: lifeLayout,
+            shared: shared,
+            surfaceY: 0.19,
+            screenMat: screenMat,
+            makeCuteBot: makeCuteBot,
+            makePlant: makePlant,
+            makeGlassWall: makeGlassWall,
+            botMeshes: botMeshes
+          });
+          root.userData.lifeOffice = true;
+          lifePaint = builtLife && builtLife.paint;
+        } catch (errLife) {
+          console.warn('life office build failed', errLife);
+          root.userData.lifeOffice = false;
+        }
+      }
+      if (!root.userData.lifeOffice) {
+        var shown = Math.min(zone.staff.length, 3);
+        for (var idx = 0; idx < shown; idx++) {
+          var staff = zone.staff[idx];
+          var desk = makeCompactDesk(screenMat);
+          var x = (idx - (shown - 1) / 2) * 1.85;
+          desk.position.set(x, 0, 0.15);
+          root.add(desk);
+          var bot = makeCuteBot(zone.color, zone.shape, shared);
+          bot.userData.baseScale = 0.78;
+          bot.scale.setScalar(0.78);
+          bot.position.set(x, 0, 0.95);
+          bot.userData.zoneId = zone.id;
+          bot.userData.staffId = staff.id;
+          bot.userData.isBot = true;
+          bot.userData.phase = Math.random() * Math.PI * 2;
+          bot.userData.baseY = 0;
+          root.add(bot);
+          botMeshes.push(bot);
+        }
       }
 
       office.add(root);
       zoneRoots[zone.id] = root;
     });
+
+    botMeshes.forEach(function (b) {
+      if (b.userData.lifeAgent) lifeBots[b.userData.staffId] = b;
+    });
+    if (lifePaint && window.HQLifeSim && lifeLayout && zoneRoots.life && zoneRoots.life.userData.lifeOffice) {
+      try {
+        var inferredLife = window.HQLifeSim.inferLifeRoster(liveData || {}, findZone('life').staff, lifeLayout, Date.now());
+        lifeSim = window.HQLifeSim.createSim(lifeLayout, inferredLife.intents);
+        lifeTitle = inferredLife.meetingTitle || '';
+        lifePaint(lifeTitle);
+        lifeSim.agents.forEach(function (a) {
+          var bot = lifeBots[a.staffId];
+          if (bot) applyLifePose(bot, a, 0);
+        });
+      } catch (errSim) {
+        console.warn('life sim failed', errSim);
+        lifeSim = null;
+      }
+    }
 
     function makeLabel(text) {
       var canvas = document.createElement('canvas');
@@ -2359,7 +2505,9 @@
     function animate() {
       if (!alive) return;
       runtime3d.raf = requestAnimationFrame(animate);
-      var t = clock.getElapsedTime();
+      var dt = clock.getDelta();
+      if (dt > 0.05) dt = 0.05;
+      var t = clock.elapsedTime;
       Object.keys(zoneRoots).forEach(function (id) {
         var g = zoneRoots[id];
         if (!g || g.userData.goalZ == null) return;
@@ -2370,14 +2518,38 @@
           g.userData.screenMat.emissiveIntensity = 0.12 + 0.015 * Math.sin(t * 0.7);
         }
       });
-      if (runtime3d.focusY != null) {
+      if (runtime3d.focusY != null && !runtime3d.frameLife && !runtime3d.wasLife) {
         controls.target.y += (runtime3d.focusY - controls.target.y) * 0.1;
       }
+      if (runtime3d.frameLife && !runtime3d.suspendFrame && zoneRoots.life) {
+        lifeTgtTmp.set(0.15, 0.45, -0.05);
+        zoneRoots.life.localToWorld(lifeTgtTmp);
+        lifeCamTmp.set(5.2, 8.6, 7.8);
+        zoneRoots.life.localToWorld(lifeCamTmp);
+        controls.target.lerp(lifeTgtTmp, 0.16);
+        camera.position.lerp(lifeCamTmp, 0.16);
+        runtime3d.wasLife = true;
+      } else if (runtime3d.wasLife && !runtime3d.suspendFrame && !runtime3d.frameLife && runtime3d.towerTarget) {
+        controls.target.lerp(runtime3d.towerTarget, 0.08);
+        camera.position.lerp(runtime3d.towerPos, 0.08);
+        if (controls.target.distanceTo(runtime3d.towerTarget) < 0.15) {
+          runtime3d.wasLife = false;
+          if (!runtime3d.userSteer) controls.autoRotate = true;
+        }
+      }
       controls.update();
+      if (lifeSim) lifeSim.step(dt);
       botMeshes.forEach(function (b) {
+        if (b.userData.lifeAgent) return;
         b.position.y = (b.userData.baseY || 0) + Math.sin(t * 0.6 + b.userData.phase) * 0.008;
         b.rotation.y = Math.sin(t * 0.2 + b.userData.phase) * 0.025;
       });
+      if (lifeSim) {
+        lifeSim.agents.forEach(function (a) {
+          var bot = lifeBots[a.staffId];
+          if (bot) applyLifePose(bot, a, t);
+        });
+      }
       floating.forEach(function (s) {
         s.position.y = 1.55 + Math.sin(t * 0.5 + s.userData.phase) * 0.015;
       });
@@ -2402,8 +2574,23 @@
       raf: 0,
       onResize: resize,
       onOrient: onOrient,
-      kill: function () { alive = false; }
+      kill: function () { alive = false; },
+      lifeSim: lifeSim,
+      lifeBots: lifeBots,
+      paintMeet: lifePaint,
+      meetingTitle: lifeTitle,
+      frameLife: false,
+      suspendFrame: false,
+      wasLife: false,
+      userSteer: false,
+      towerPos: camera.position.clone(),
+      towerTarget: controls.target.clone()
     };
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        if (runtime3d && runtime3d.paintMeet) runtime3d.paintMeet(runtime3d.meetingTitle || '');
+      });
+    }
     animate();
 
     selectZone(selectedZone || 'cmd');
@@ -2520,7 +2707,7 @@
 
   buildFloorRail();
 
-  loadDirectory().then(function () {
+  Promise.all([loadDirectory(), loadLifeLayout()]).then(function () {
     var hosted = location.protocol === 'https:' || location.protocol === 'http:';
     /* Tower fits the framed stage, including the short mobile stage. 返回平面 stays in the dock. */
     if (hosted) {
