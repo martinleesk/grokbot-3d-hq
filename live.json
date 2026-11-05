@@ -1,19 +1,56 @@
 {
-  "updated": "2026-11-04 08:52 HKT",
+  "updated": "2026-11-05 08:35 HKT",
   "status": "實時運作中",
   "disclaimer": "資訊同監察用途 · 唔自動下單 · 非持牌投資建議",
   "auditor": {
     "ok": true,
-    "note": "Signal House A：風控燈／字幕已上線"
+    "note": "早報 routine ~08:05 失敗後已補發；Signal House A 風控燈仍在"
   },
   "riskBoard": {
-    "updated": "2026-11-04 08:52 HKT",
+    "updated": "2026-11-05 08:35 HKT",
     "lights": [
-      {"id": "transfer", "label": "HSBC→Futu 轉倉", "sev": "red", "note": "01211×10／02800×312；富途 11/3 再催，仍未入倉", "owner": "invest"},
-      {"id": "recon", "label": "月結單對數", "sev": "green", "note": "十月對數完成；總淨值約 HK$17,344", "owner": "finance"},
-      {"id": "mox", "label": "Mox 關戶", "sev": "yellow", "note": "現金已轉 ZA；戶口未關", "owner": "finance"},
-      {"id": "routines", "label": "例行漏跑", "sev": "green", "note": "早報／例行正常", "owner": "auditor"},
-      {"id": "memory", "label": "共用記憶過時", "sev": "yellow", "note": "Signal House A 職責已更新；其餘定期覆核", "owner": "auditor"}
+      {
+        "id": "transfer",
+        "label": "HSBC→Futu 轉倉",
+        "sev": "red",
+        "note": "01211×10／02800×312；11/4 仍未入倉",
+        "owner": "invest"
+      },
+      {
+        "id": "recon",
+        "label": "月結單對數",
+        "sev": "yellow",
+        "note": "十月結單到齊待下載對數",
+        "owner": "finance"
+      },
+      {
+        "id": "mox",
+        "label": "Mox 關戶",
+        "sev": "yellow",
+        "note": "現金已轉 ZA；戶口未關",
+        "owner": "finance"
+      },
+      {
+        "id": "usage",
+        "label": "用量週限",
+        "sev": "yellow",
+        "note": "Super ~86.4%；重置 11/8 13:29 HKT",
+        "owner": "auditor"
+      },
+      {
+        "id": "routines",
+        "label": "例行漏跑",
+        "sev": "yellow",
+        "note": "11/5 早報 routine 失敗後已人手補發",
+        "owner": "auditor"
+      },
+      {
+        "id": "memory",
+        "label": "共用記憶過時",
+        "sev": "yellow",
+        "note": "定期覆核",
+        "owner": "auditor"
+      }
     ]
   },
   "invest": {
@@ -32,15 +69,15 @@
     }
   },
   "counts": {
-    "wait": 8,
-    "done": 21,
+    "wait": 9,
+    "done": 22,
     "routine": 5
   },
   "focus": [
     {
       "id": "f1",
       "title": "HSBC→富途轉倉",
-      "detail": "01211×10／02800×312；富途 11/3 再催 HSBC 轉出",
+      "detail": "01211×10／02800×312；仍欠 HSBC 轉出",
       "sev": "red",
       "due": "2026-11-15",
       "staffId": "boss",
@@ -48,26 +85,26 @@
     },
     {
       "id": "f2",
+      "title": "Brian Janice Annika",
+      "detail": "今日 15:00–20:00；確認出席",
+      "sev": "red",
+      "due": "2026-11-05",
+      "staffId": "boss",
+      "zone": "life"
+    },
+    {
+      "id": "f3",
       "title": "新月結單對數",
-      "detail": "十月對數完成；總淨值約 HK$17,344",
-      "sev": "green",
+      "detail": "富途／老虎／SoFi／Mox 十月結單待對數",
+      "sev": "yellow",
       "due": "2026-11-07",
       "staffId": "finance",
       "zone": "invest"
     },
     {
-      "id": "f3",
-      "title": "都江堰門票開賣",
-      "detail": "約今日；鎖定 11/18 半日；付款前問 Martin",
-      "sev": "red",
-      "due": "2026-11-04",
-      "staffId": "travel",
-      "zone": "travel"
-    },
-    {
       "id": "f4",
-      "title": "熊貓基地開賣跟進",
-      "detail": "11/17 上午仍未開賣；routine 跟；付款前問",
+      "title": "熊貓／都江堰門票",
+      "detail": "11/17 熊貓上午跟開賣；11/18 都江堰；付款前問",
       "sev": "yellow",
       "due": "2026-11-16",
       "staffId": "travel",
@@ -75,38 +112,33 @@
     },
     {
       "id": "f5",
-      "title": "Brian Janice Annika",
-      "detail": "明日 15:00；確認出席",
-      "sev": "yellow",
-      "due": "2026-11-05",
-      "staffId": "boss",
-      "zone": "life"
-    },
-    {
-      "id": "f6",
       "title": "HKIC DOM Meeting",
-      "detail": "11/6 11:30–13:00；另 Elder-Friendly 16:00–17:30",
+      "detail": "11/6 11:30–13:00；Elder-Friendly 14:00–15:30",
       "sev": "yellow",
       "due": "2026-11-06",
       "staffId": "sec",
       "zone": "life"
     },
     {
-      "id": "f7",
+      "id": "f6",
       "title": "Mox 關戶",
       "detail": "錢已轉 ZA；仍未關戶",
       "sev": "yellow",
       "due": "2026-11-15",
       "staffId": "finance",
       "zone": "life"
+    },
+    {
+      "id": "f7",
+      "title": "HQ PR #6 merge",
+      "detail": "L4 Live Agent Tower MVP 等 Martin 確認 merge",
+      "sev": "yellow",
+      "due": "2026-11-06",
+      "staffId": "boss",
+      "zone": "cmd"
     }
   ],
   "calendar": [
-    {
-      "when": "11/04 19:00",
-      "title": "Pokemon",
-      "where": "私人"
-    },
     {
       "when": "11/05 15:00",
       "title": "Brian Janice Annika",
@@ -116,68 +148,82 @@
       "when": "11/06 11:30",
       "title": "HKIC DOM Meeting",
       "where": "工作"
+    },
+    {
+      "when": "11/06 14:00",
+      "title": "Elder-Friendly Hospital",
+      "where": "工作"
+    },
+    {
+      "when": "11/06 19:00",
+      "title": "Tsz Kin",
+      "where": "私人"
+    },
+    {
+      "when": "11/10 11:00",
+      "title": "HKIC Phlebotomy",
+      "where": "工作"
+    },
+    {
+      "when": "11/11 09:30",
+      "title": "QMH CND & HR",
+      "where": "工作"
     }
   ],
   "events": [
     {
       "zone": "cmd",
-      "text": "總管早報 11/4 已寫入 Page 並同步 LIVE／usage",
-      "at": "08:10"
-    },
-    {
-      "zone": "invest",
-      "text": "富途 11/3 再催轉倉；1061／8035 十月月結單到",
-      "at": "23:16"
-    },
-    {
-      "zone": "invest",
-      "text": "老虎／SoFi／Mox 月結單到齊待對數",
-      "at": "18:11"
-    },
-    {
-      "zone": "travel",
-      "text": "熊貓仍未開賣；都江堰約今日跟；變臉改 11/17 VIP¥178",
-      "at": "08:05"
-    },
-    {
-      "zone": "content",
-      "text": "IG 今日曼谷街頭小食；X Skills 加監督紅旗",
-      "at": "08:05"
-    },
-    {
-      "zone": "life",
-      "text": "今日 19:00 Pokemon；明日 Brian；週五 DOM＋Elder-Friendly",
-      "at": "08:05"
+      "text": "總管早報 11/5 補發（routine 失敗後）；Page 已更新",
+      "at": "08:35"
     },
     {
       "zone": "sys",
-      "text": "用量 Super 週限 28.6%（GB 27.5%）；重置 11/8 13:29 HKT",
-      "at": "08:04"
+      "text": "用量 Super 週限 ~86.4%；重置 11/8 13:29 HKT",
+      "at": "08:33"
+    },
+    {
+      "zone": "sys",
+      "text": "HQ PR #5 靜奢暖金 merged；PR #6 L4 Tower open 等 merge",
+      "at": "08:33"
+    },
+    {
+      "zone": "content",
+      "text": "quiet-zone PR #19 訊號牌已上 main；試玩 raw.githack signal/",
+      "at": "08:33"
+    },
+    {
+      "zone": "life",
+      "text": "今日 15:00 Brian；明日 DOM＋Elder-Friendly＋Tsz Kin",
+      "at": "08:35"
+    },
+    {
+      "zone": "invest",
+      "text": "HSBC→富途仍卡；十月結單待對數；ORCL/騰訊晶片租賃傳聞（FT，待核）",
+      "at": "08:35"
+    },
+    {
+      "zone": "travel",
+      "text": "熊貓／都江堰門票跟進；成都 11 月霧／濕滑提醒",
+      "at": "08:35"
     }
   ],
   "usage": {
-    "pctUsed": 28.6,
-    "grokBotPctOfLimit": 27.5,
+    "pctUsed": 86.4,
+    "grokBotPctOfLimit": null,
     "sharedWithOtherApps": true,
     "plan": "Super",
     "resetAt": "2026-11-08T13:29:00+08:00",
-    "resetLabel": "週日 11/8 13:29 HKT（約 4 日後）",
-    "note": "額外用量來自 additional usage credits；見 Settings > Usage & Billing",
-    "top": [
-      {
-        "name": "Boss Bot",
-        "share": 61
-      },
-      {
-        "name": "旅遊規劃師",
-        "share": 17
-      },
-      {
-        "name": "財務管家",
-        "share": 4
-      }
-    ],
-    "updated": "2026-11-04 08:04 HKT"
+    "resetLabel": "週日 11/8 13:29 HKT（約 3 日後）",
+    "note": "額外用量來自 additional usage credits；見 Settings > Usage & Billing。CheckSubscriptionUsage 未分拆 Grok Bot 佔比。",
+    "top": [],
+    "updated": "2026-11-05 08:33 HKT"
   },
-  "decisions": []
+  "decisions": [
+    {
+      "id": "d1",
+      "title": "Merge HQ PR #6？",
+      "detail": "L4 Live Agent Tower MVP（開放辦公室＋玻璃會議室）",
+      "url": "https://github.com/martinleesk/grokbot-3d-hq/pull/6"
+    }
+  ]
 }
