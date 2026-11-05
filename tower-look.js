@@ -61,34 +61,35 @@
   }
 
   function addFacade(THREE, parent, look, length, glassH, yMid, x, z, rotY) {
-    var mullion = 0.04;
-    var bays = Math.max(4, Math.round(length / 1.55));
-    var inner = length - mullion;
+    /* One center mullion on the long face only. No end bars — corners are round posts. */
+    var mullion = 0.02;
+    var splits = length > 7.5 ? 1 : 0;
+    var bays = splits + 1;
+    var inner = length - (splits ? mullion : 0);
     var bay = inner / bays;
     var g = new THREE.Group();
     g.position.set(x, yMid, z);
     g.rotation.y = rotY || 0;
     for (var i = 0; i < bays; i++) {
-      var paneW = bay - mullion;
+      var paneW = bay - (splits ? mullion * 0.15 : 0);
       var pane = new THREE.Mesh(new THREE.PlaneGeometry(paneW, glassH), look.glass);
       pane.position.x = -inner / 2 + bay * i + bay / 2;
-      pane.position.z = 0.01;
+      pane.position.z = 0.012;
       pane.renderOrder = 2;
       g.add(pane);
     }
-    for (var k = 0; k <= bays; k++) {
-      var bar = box(THREE, mullion, glassH + 0.02, 0.045, look.brass);
-      bar.position.x = -inner / 2 + bay * k;
-      bar.position.z = 0.03;
+    if (splits) {
+      var bar = box(THREE, mullion, glassH, 0.028, look.brass);
+      bar.position.z = 0.02;
       g.add(bar);
     }
-    var head = box(THREE, length, 0.035, 0.05, look.brass);
+    var head = box(THREE, length, 0.016, 0.03, look.brass);
     head.position.y = glassH / 2;
-    head.position.z = 0.03;
+    head.position.z = 0.02;
     g.add(head);
-    var sill = box(THREE, length, 0.03, 0.05, look.brass);
+    var sill = box(THREE, length, 0.014, 0.03, look.brass);
     sill.position.y = -glassH / 2;
-    sill.position.z = 0.03;
+    sill.position.z = 0.02;
     g.add(sill);
     parent.add(g);
   }
@@ -97,34 +98,30 @@
     var storyH = opts.storyH;
     var w = SHELL_W;
     var d = SHELL_D;
-    var bandH = 0.11;
-    var glassBottom = 0.18 + bandH;
-    var glassTop = storyH - 0.06;
+    var bandH = 0.05;
+    var glassBottom = 0.16 + bandH;
+    var glassTop = storyH - 0.04;
     var glassH = Math.max(0.8, glassTop - glassBottom);
     var yMid = glassBottom + glassH / 2;
-    var band = box(THREE, w + 0.12, bandH, d + 0.12, look.band);
-    band.position.y = 0.2 + bandH / 2;
+    var inset = 0.18;
+    var band = box(THREE, w - 0.06, bandH, d - 0.06, look.band);
+    band.position.y = 0.16 + bandH / 2;
     root.add(band);
-    var lip = box(THREE, w + 0.16, 0.018, d + 0.16, look.brass);
-    lip.position.y = 0.2 + bandH;
+    var lip = box(THREE, w - 0.02, 0.012, d - 0.02, look.brass);
+    lip.position.y = 0.16 + bandH + 0.004;
     root.add(lip);
-    addFacade(THREE, root, look, w, glassH, yMid, 0, d / 2, 0);
-    addFacade(THREE, root, look, w, glassH, yMid, 0, -d / 2, Math.PI);
-    addFacade(THREE, root, look, d, glassH, yMid, w / 2, 0, Math.PI / 2);
-    addFacade(THREE, root, look, d, glassH, yMid, -w / 2, 0, -Math.PI / 2);
+    addFacade(THREE, root, look, w - inset, glassH, yMid, 0, d / 2, 0);
+    addFacade(THREE, root, look, w - inset, glassH, yMid, 0, -d / 2, Math.PI);
+    addFacade(THREE, root, look, d - inset, glassH, yMid, w / 2, 0, Math.PI / 2);
+    addFacade(THREE, root, look, d - inset, glassH, yMid, -w / 2, 0, -Math.PI / 2);
     [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (s) {
-      var post = box(THREE, 0.07, storyH - 0.08, 0.07, look.brass);
-      post.position.set(s[0] * w / 2, storyH / 2, s[1] * d / 2);
+      var post = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.055, 0.055, storyH - 0.06, 16),
+        look.brass
+      );
+      post.position.set(s[0] * (w / 2 - 0.02), (storyH - 0.06) / 2 + 0.04, s[1] * (d / 2 - 0.02));
       root.add(post);
     });
-    if (opts.lobby) {
-      var transom = box(THREE, w, 0.02, 0.04, look.brass);
-      transom.position.set(0, glassBottom + glassH * 0.5, d / 2 + 0.02);
-      root.add(transom);
-      var transomB = box(THREE, w, 0.02, 0.04, look.brass);
-      transomB.position.set(0, glassBottom + glassH * 0.5, -d / 2 - 0.02);
-      root.add(transomB);
-    }
     if (opts.parapet) {
       var cap = box(THREE, w + 0.14, 0.08, d + 0.14, look.band);
       cap.position.y = storyH - 0.02;
@@ -133,15 +130,12 @@
       crown.position.y = storyH + 0.05;
       root.add(crown);
     }
-    var glow = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.7, glassH * 0.86), look.glow);
-    glow.position.set(0, yMid, -d / 2 + 0.42);
+    var glow = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.55, glassH * 0.62), look.glow);
+    glow.position.set(0, yMid, -0.2);
     glow.renderOrder = 1;
     root.add(glow);
-    var backWall = box(THREE, w - 0.55, glassH * 0.78, 0.04, look.interior);
-    backWall.position.set(0, yMid, -d / 2 + 0.28);
-    root.add(backWall);
-    var ceiling = box(THREE, w - 0.5, 0.04, d - 0.5, look.interior);
-    ceiling.position.y = glassTop - 0.08;
+    var ceiling = box(THREE, w - 0.7, 0.03, d - 0.7, look.interior);
+    ceiling.position.y = glassTop - 0.05;
     root.add(ceiling);
   }
 
@@ -180,10 +174,17 @@
     return { pivot: pivot, knee: knee };
   }
 
+  var HAIR_COLORS = [0x1A120E, 0x3A2418, 0x5C3A28, 0x2A2A32, 0x6A4030];
+
   function makeAgent(THREE, color, shape, shared) {
     var look = shared.look || mats(THREE);
     shared.look = look;
+    shared.agentN = (shared.agentN || 0) + 1;
+    var female = shared.agentN % 2 === 0;
     var cut = cutFor(shape);
+    if (female) {
+      cut = { shoulder: cut.shoulder * 0.9, coat: Math.min(cut.coat, 0.46), waist: cut.waist * 0.88, collar: 0.06 };
+    }
     var group = new THREE.Group();
     var accent = badgeMat(THREE, color);
     var legL = addLeg(THREE, look, -1);
@@ -223,22 +224,66 @@
       bust.add(scarf);
     }
 
-    var head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 12), look.skin);
-    head.scale.set(0.92, 1.18, 0.95);
-    head.position.y = 1.28;
+    var skin = new THREE.MeshStandardMaterial({ color: 0xF6D3C4, roughness: 0.55, metalness: 0.02 });
+    var hairMat = new THREE.MeshStandardMaterial({
+      color: HAIR_COLORS[shared.agentN % HAIR_COLORS.length],
+      roughness: 0.45, metalness: 0.08
+    });
+    var head = new THREE.Mesh(new THREE.SphereGeometry(0.125, 16, 14), skin);
+    head.scale.set(0.96, 1.05, 0.92);
+    head.position.y = 1.22;
     head.castShadow = true;
     bust.add(head);
-    var hair = new THREE.Mesh(new THREE.SphereGeometry(0.092, 12, 10), look.hair);
-    hair.scale.set(0.96, 0.72, 1);
-    hair.position.y = 1.34;
-    bust.add(hair);
-    var eyeMat = shared.mats && shared.mats.eye ? shared.mats.eye : new THREE.MeshBasicMaterial({ color: 0xEDE6DA });
-    var eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 6), eyeMat);
-    var eyeR = eyeL.clone();
-    eyeL.position.set(-0.03, 1.28, 0.08);
-    eyeR.position.set(0.03, 1.28, 0.08);
-    bust.add(eyeL);
-    bust.add(eyeR);
+    var hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.132, 14, 12), hairMat);
+    hairCap.scale.set(1.02, female ? 0.78 : 0.62, 1.05);
+    hairCap.position.y = female ? 1.3 : 1.28;
+    bust.add(hairCap);
+    var bang = box(THREE, 0.2, 0.06, 0.04, hairMat);
+    bang.position.set(0, 1.3, 0.1);
+    bust.add(bang);
+    if (female) {
+      var lockL = box(THREE, 0.05, 0.42, 0.04, hairMat);
+      lockL.position.set(-0.12, 1.08, 0.02);
+      lockL.rotation.z = 0.08;
+      var lockR = lockL.clone();
+      lockR.position.x = 0.12;
+      lockR.rotation.z = -0.08;
+      bust.add(lockL);
+      bust.add(lockR);
+    } else {
+      var sweep = box(THREE, 0.16, 0.04, 0.08, hairMat);
+      sweep.position.set(0.04, 1.32, 0.06);
+      sweep.rotation.z = -0.35;
+      bust.add(sweep);
+    }
+    var iris = new THREE.MeshBasicMaterial({ color: 0x2A211C });
+    var white = new THREE.MeshBasicMaterial({ color: 0xFFFBFA });
+    var catchLt = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+    function addEye(x) {
+      var eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), white);
+      eye.scale.set(1.15, 1.35, 0.45);
+      eye.position.set(x, 1.23, 0.1);
+      var pupil = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 6), iris);
+      pupil.position.set(x, 1.225, 0.118);
+      var glint = new THREE.Mesh(new THREE.SphereGeometry(0.006, 6, 4), catchLt);
+      glint.position.set(x + 0.008, 1.236, 0.126);
+      bust.add(eye);
+      bust.add(pupil);
+      bust.add(glint);
+    }
+    addEye(-0.045);
+    addEye(0.045);
+    var blushMat = new THREE.MeshBasicMaterial({ color: 0xE8A0A0, transparent: true, opacity: 0.45 });
+    var blushL = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), blushMat);
+    blushL.scale.set(1.4, 0.7, 0.3);
+    blushL.position.set(-0.07, 1.19, 0.1);
+    var blushR = blushL.clone();
+    blushR.position.x = 0.07;
+    bust.add(blushL);
+    bust.add(blushR);
+    var mouth = box(THREE, 0.02, 0.004, 0.004, new THREE.MeshBasicMaterial({ color: 0xC47A78 }));
+    mouth.position.set(0, 1.16, 0.112);
+    bust.add(mouth);
 
     var badge = box(THREE, 0.06, 0.035, 0.015, accent);
     badge.position.set(cut.waist * 0.28, 1.0, 0.09);
@@ -312,7 +357,26 @@
     }
   }
 
-  function createWash(THREE, scene) {
+  function setEnv(THREE, renderer, scene, night) {
+    if (!renderer || !THREE.PMREMGenerator) return;
+    var pmrem = new THREE.PMREMGenerator(renderer);
+    var envScene = new THREE.Scene();
+    envScene.add(new THREE.Mesh(
+      new THREE.SphereGeometry(12, 24, 16),
+      new THREE.MeshBasicMaterial({ color: night ? 0x8EACC8 : 0xFFF6EA, side: THREE.BackSide })
+    ));
+    envScene.add(new THREE.Mesh(
+      new THREE.SphereGeometry(12, 16, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: night ? 0xE8C49A : 0xF4E2CC, side: THREE.BackSide })
+    ));
+    var tex = pmrem.fromScene(envScene, 0.04).texture;
+    if (scene.userData.envMap) scene.userData.envMap.dispose();
+    scene.environment = tex;
+    scene.userData.envMap = tex;
+    pmrem.dispose();
+  }
+
+  function createWash(THREE, scene, renderer) {
     var hemi = new THREE.HemisphereLight(0x243044, 0x140E0C, 0.34);
     var amb = new THREE.AmbientLight(0x14110F, 0.16);
     var moon = new THREE.DirectionalLight(0xD5DEEA, 0.46);
@@ -359,6 +423,7 @@
         look.glow.opacity = night ? 0.22 : 0.14;
         look.interior.emissiveIntensity = night ? 0.28 : 0.12;
       }
+      setEnv(THREE, renderer, scene, night);
       return night ? 'night' : 'day';
     }
     return { hemi: hemi, moon: moon, apply: apply };

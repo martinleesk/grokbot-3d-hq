@@ -2062,7 +2062,7 @@
 
     var wash = null;
     if (window.HQLook) {
-      wash = window.HQLook.createWash(THREE, scene);
+      wash = window.HQLook.createWash(THREE, scene, renderer);
       wash.moon.castShadow = !isTouch;
       if (!isTouch) {
         wash.moon.shadow.mapSize.set(1024, 1024);
