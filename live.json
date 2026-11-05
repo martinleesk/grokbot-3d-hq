@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-05 08:35 HKT",
+  "updated": "2026-11-05 17:10 HKT",
   "status": "實時運作中",
   "disclaimer": "資訊同監察用途 · 唔自動下單 · 非持牌投資建議",
   "auditor": {
@@ -136,6 +136,30 @@
       "due": "2026-11-06",
       "staffId": "boss",
       "zone": "cmd"
+    },
+    {
+      "id": "f8",
+      "title": "共用資料庫",
+      "detail": "Postgres 就緒",
+      "sev": "green",
+      "staffId": "shared-db",
+      "zone": "sys"
+    },
+    {
+      "id": "f9",
+      "title": "數據分析中心",
+      "detail": "分析板已交",
+      "sev": "green",
+      "staffId": "analytics",
+      "zone": "invest"
+    },
+    {
+      "id": "f10",
+      "title": "研創中心",
+      "detail": "研創待原型題目",
+      "sev": "green",
+      "staffId": "lab",
+      "zone": "content"
     }
   ],
   "calendar": [
@@ -171,6 +195,21 @@
     }
   ],
   "events": [
+    {
+      "zone": "sys",
+      "text": "共用資料庫：Postgres 就緒（martin_shared）",
+      "at": "17:10"
+    },
+    {
+      "zone": "invest",
+      "text": "數據分析中心：分析板已交",
+      "at": "17:10"
+    },
+    {
+      "zone": "content",
+      "text": "研創中心：研創待原型題目（掛內容翼）",
+      "at": "17:10"
+    },
     {
       "zone": "cmd",
       "text": "總管早報 11/5 補發（routine 失敗後）；Page 已更新",

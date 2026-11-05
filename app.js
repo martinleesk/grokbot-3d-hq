@@ -51,6 +51,92 @@
     return zone.staff[0];
   }
 
+  function centerStaff(zone) {
+    if (!zone || !zone.staff) return null;
+    for (var i = 0; i < zone.staff.length; i++) {
+      if (zone.staff[i] && zone.staff[i].center) return zone.staff[i];
+    }
+    return null;
+  }
+
+  function centerStatus(staff) {
+    if (!staff) return '';
+    var status = staff.status || '';
+    var focus = liveData && liveData.focus;
+    if (focus) {
+      for (var i = 0; i < focus.length; i++) {
+        var f = focus[i];
+        if (f && f.staffId === staff.id && f.detail) return String(f.detail);
+      }
+    }
+    return status;
+  }
+
+  var CENTER_ZONE_ORDER = { sys: 0, invest: 1, content: 2 };
+
+  function centerRows() {
+    var rows = [];
+    ZONES.forEach(function (z) {
+      var staff = centerStaff(z);
+      if (!staff) return;
+      rows.push({ zone: z, staff: staff, status: centerStatus(staff) });
+    });
+    rows.sort(function (a, b) {
+      var oa = CENTER_ZONE_ORDER[a.zone.id];
+      var ob = CENTER_ZONE_ORDER[b.zone.id];
+      if (oa == null) oa = 9;
+      if (ob == null) ob = 9;
+      return oa - ob;
+    });
+    return rows;
+  }
+
+  function renderCenterStrip() {
+    var el = $('centerStrip');
+    if (!el) return;
+    var rows = centerRows();
+    el.innerHTML = '';
+    var kicker = document.createElement('div');
+    kicker.className = 'center-kicker';
+    kicker.textContent = '共用基建';
+    el.appendChild(kicker);
+    rows.forEach(function (row) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'center-line';
+      var name = document.createElement('span');
+      name.className = 'cn';
+      name.textContent = row.staff.name;
+      var st = document.createElement('span');
+      st.className = 'cs';
+      st.textContent = row.status;
+      btn.appendChild(name);
+      btn.appendChild(st);
+      btn.addEventListener('click', function () {
+        selectZone(row.zone.id, row.staff.id, { toast: true, openDrawer: true });
+      });
+      el.appendChild(btn);
+    });
+  }
+
+  function paintFloorRailCenters() {
+    document.querySelectorAll('.floor-btn').forEach(function (btn) {
+      var zone = findZone(btn.dataset.id);
+      var center = centerStaff(zone);
+      var old = btn.querySelector('.floor-center');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+      if (!center) {
+        if (btn.title && btn.title.indexOf(' · ') >= 0) btn.removeAttribute('title');
+        return;
+      }
+      var span = document.createElement('span');
+      span.className = 'floor-center';
+      span.textContent = center.mark || center.name;
+      btn.appendChild(span);
+      btn.title = center.name + ' · ' + centerStatus(center);
+    });
+  }
+
   function findStaffAnywhere(staffId) {
     for (var i = 0; i < ZONES.length; i++) {
       for (var j = 0; j < ZONES[i].staff.length; j++) {
@@ -116,8 +202,10 @@
       btn.type = 'button';
       btn.className = 'zone-btn' + (z.id === selectedZone ? ' active' : '');
       btn.dataset.id = z.id;
+      var center = centerStaff(z);
       btn.innerHTML = '<span class="swatch" style="background:' + z.color + ';color:' + z.color + '"></span>' +
-        '<span><div class="name">' + z.name + '</div><div class="meta">' + z.staff.length + ' 代理人 · ' + z.en + '</div></span>';
+        '<span><div class="name">' + z.name + '</div><div class="meta">' + z.staff.length + ' 代理人 · ' + z.en +
+        (center ? ' · ' + center.name : '') + '</div></span>';
       btn.addEventListener('click', function () { selectZone(z.id, null, { toast: true, openDrawer: true }); });
       nav.appendChild(btn);
     });
@@ -1118,6 +1206,9 @@
   function applyLivePayload(data, opts) {
     if (!data) return false;
     liveData = data;
+    centerRows().forEach(function (row) {
+      if (row.status) row.staff.status = row.status;
+    });
     var events = data.events || [];
     var hasEvents = events.length > 0;
     if (data.status && $('liveText')) {
@@ -1139,6 +1230,8 @@
     renderRiskBoard(data.riskBoard);
     renderInvestSlot();
     syncLifeFromLive();
+    renderCenterStrip();
+    paintFloorRailCenters();
     renderFocusBoard(data.focus || []);
     renderCalendarStrip(data.calendar || []);
     renderDeadlineList();
@@ -1504,6 +1597,13 @@
       var head = document.createElement('div');
       head.className = 'fb-zone-head';
       head.innerHTML = '<span class="tag">' + info.code + '</span><h3>' + info.short + '</h3>';
+      var centerLine = centerStaff(z);
+      if (centerLine) {
+        var centerEl = document.createElement('div');
+        centerEl.className = 'fb-center';
+        centerEl.textContent = centerLine.name + ' · ' + centerStatus(centerLine);
+        head.appendChild(centerEl);
+      }
       cell.appendChild(head);
       var desks = document.createElement('div');
       desks.className = 'fb-desks';
@@ -1544,6 +1644,7 @@
       });
     });
     highlight2D(selectedZone);
+    paintFloorRailCenters();
   }
 
   function dispose3D() {
@@ -2271,7 +2372,8 @@
         root.add(spine);
       }
 
-      var label = makeLabel(info.code + '  ' + info.short);
+      var centerMark = centerStaff(zone);
+      var label = makeLabel(info.code + '  ' + info.short + (centerMark && centerMark.mark ? ' · ' + centerMark.mark : ''));
       label.position.set(0, lifeHere ? 0.42 : 0.72, halfD + (lifeHere ? 0.02 : 0.3));
       label.scale.set(lifeHere ? 1.55 : 2.35, lifeHere ? 0.36 : 0.52, 1);
       root.add(label);
@@ -2457,8 +2559,13 @@
       ctx.strokeStyle = '#B79F80'; ctx.lineWidth = 2;
       roundRect(ctx, 48, 30, 416, 68, 2); ctx.stroke();
       ctx.fillStyle = '#EDE6DA';
-      ctx.font = '500 38px "Noto Serif TC","Songti TC",serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var size = 38;
+      ctx.font = '500 ' + size + 'px "Noto Serif TC","Songti TC",serif';
+      while (size > 22 && ctx.measureText(text).width > 400) {
+        size -= 2;
+        ctx.font = '500 ' + size + 'px "Noto Serif TC","Songti TC",serif';
+      }
       ctx.fillText(text, 256, 66);
       var tex = new THREE.CanvasTexture(canvas);
       var mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
@@ -2748,6 +2855,7 @@
 
   /* ---------- boot ---------- */
   buildNav();
+  renderCenterStrip();
   startLivePolling();
   initCollapse();
   loadReports();

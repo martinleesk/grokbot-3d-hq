@@ -10,7 +10,7 @@ window.HQ_DATA = {
     },
     {
       id: 'invest', level: 5, short: '投資', name: '投資樓層', en: 'Invest', color: '#8C7B68', shape: 'cylinder',
-      desc: '投資顧問與資產追蹤：股票、ETF、基金與人生財務大計。',
+      desc: '投資顧問與資產追蹤：股票、ETF、基金與人生財務大計。數據分析中心在此層，只報狀態。',
       staff: [
         { id: 'advisor', name: '投資顧問', role: '組合分析與配置建議', status: '監察中' },
         { id: 'byd', name: '比亞迪', role: '個股追蹤 · BYD', status: '更新中' },
@@ -24,7 +24,8 @@ window.HQ_DATA = {
         { id: 'dcf', name: '大成中國基金', role: '中國主題基金', status: '監察中' },
         { id: 'passive', name: '被動收入', role: '現金流與股息規劃', status: '規劃中' },
         { id: 'retire', name: '退休大計', role: '長期退休目標', status: '規劃中' },
-        { id: 'home', name: '買樓大計', role: '置業資金與時程', status: '規劃中' }
+        { id: 'home', name: '買樓大計', role: '置業資金與時程', status: '規劃中' },
+        { id: 'analytics', name: '數據分析中心', mark: '分析', role: '投資層分析板 · 只報狀態', status: '分析板已交', center: true }
       ]
     },
     {
@@ -49,21 +50,23 @@ window.HQ_DATA = {
     },
     {
       id: 'content', level: 2, short: '內容', name: '內容樓層', en: 'Content', color: '#7A6E62', shape: 'pyramid',
-      desc: '新聞、社交、摘要、翻譯與研究資訊流。',
+      desc: '新聞、社交、摘要、翻譯與研究資訊流。研創中心掛此翼（無獨立樓層）。',
       staff: [
         { id: 'news', name: '新聞小編', role: '頭條篩選與整理', status: '掃描中' },
         { id: 'social', name: '社交媒體小編', role: '貼文草稿與排程', status: '創作中' },
         { id: 'sum', name: '摘要專員', role: '長文濃縮與要點', status: '摘要中' },
         { id: 'tr', name: '翻譯專員', role: '中英及其他語種', status: '待命' },
         { id: 'research', name: '研究專員', role: '深度資料蒐集', status: '研究中' },
-        { id: 'scout', name: '新資訊探索員', role: '趨勢與新知發現', status: '探索中' }
+        { id: 'scout', name: '新資訊探索員', role: '趨勢與新知發現', status: '探索中' },
+        { id: 'lab', name: '研創中心', mark: '研創', role: '內容翼研創 · 原型題目待指定', status: '研創待原型題目', center: true }
       ]
     },
     {
       id: 'sys', level: 1, short: '系統', name: '系統樓層', en: 'Systems', color: '#5C564E', shape: 'cross',
-      desc: '基礎設施稽核、安全與穩定性監控。',
+      desc: '基礎設施稽核、安全與穩定性監控。共用資料庫在此層。',
       staff: [
-        { id: 'auditor', name: 'System Auditor', role: '系統稽核與健康檢查', status: '稽核中' }
+        { id: 'auditor', name: 'System Auditor', role: '系統稽核與健康檢查', status: '稽核中' },
+        { id: 'shared-db', name: '共用資料庫', mark: '資料庫', role: 'L1 系統 · martin_shared', status: 'Postgres 就緒', center: true }
       ]
     }
   ],
@@ -93,6 +96,15 @@ window.HQ_DATA = {
     ],
     learn: [
       { id: 'learn-py', text: 'Python 數據分析學習計劃進度覆核' }
+    ],
+    'shared-db': [
+      { id: 'db-ready', text: 'martin_shared Postgres 就緒' }
+    ],
+    analytics: [
+      { id: 'analytics-board', text: '分析板已交（唔顯示持倉）' }
+    ],
+    lab: [
+      { id: 'lab-topic', text: '研創待原型題目' }
     ]
   },
   feedTemplates: [
