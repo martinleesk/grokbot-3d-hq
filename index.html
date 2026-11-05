@@ -52,6 +52,12 @@
       <div class="panel-label" style="margin:0">今日焦點</div>
     </div>
     <div class="panel-body" id="focusPanelBody">
+      <div class="center-strip" id="centerStrip" aria-label="共用基建">
+        <div class="center-kicker">共用基建</div>
+        <button type="button" class="center-line" data-zone="sys" data-staff="shared-db"><span class="cn">共用資料庫</span><span class="cs">Postgres 就緒</span></button>
+        <button type="button" class="center-line" data-zone="invest" data-staff="analytics"><span class="cn">數據分析中心</span><span class="cs">分析板已交</span></button>
+        <button type="button" class="center-line" data-zone="content" data-staff="lab"><span class="cn">研創中心</span><span class="cs">研創待原型題目</span></button>
+      </div>
       <div class="calendar-strip" id="calendarStrip" aria-label="近期行程"></div>
       <div class="focus-board" id="focusBoard"></div>
       <div class="panel-label mt">死線看板</div>
@@ -76,11 +82,11 @@
         <!-- zones injected by app.js; static placeholder so never blank before JS -->
         <div class="fb-stack" id="fbGridPlaceholder">
           <div class="fb-floor fb-zone" data-id="cmd"><span class="tag">L6</span><h3>指揮</h3></div>
-          <div class="fb-floor fb-zone" data-id="invest"><span class="tag">L5</span><h3>投資</h3></div>
+          <div class="fb-floor fb-zone" data-id="invest"><span class="tag">L5</span><h3>投資</h3><span class="fb-center">數據分析中心 · 分析板已交</span></div>
           <div class="fb-floor fb-zone" data-id="life"><span class="tag">L4</span><h3>生活</h3></div>
           <div class="fb-floor fb-zone" data-id="travel"><span class="tag">L3</span><h3>旅遊</h3></div>
-          <div class="fb-floor fb-zone" data-id="content"><span class="tag">L2</span><h3>內容</h3></div>
-          <div class="fb-floor fb-zone" data-id="sys"><span class="tag">L1</span><h3>系統</h3></div>
+          <div class="fb-floor fb-zone" data-id="content"><span class="tag">L2</span><h3>內容</h3><span class="fb-center">研創中心 · 研創待原型題目</span></div>
+          <div class="fb-floor fb-zone" data-id="sys"><span class="tag">L1</span><h3>系統</h3><span class="fb-center">共用資料庫 · Postgres 就緒</span></div>
         </div>
       </div>
     </div>

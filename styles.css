@@ -1093,6 +1093,45 @@ body.has-risk-board .toast-stack {
   margin-left: auto; font-size: 10px; opacity: 0.85; white-space: nowrap;
 }
 
+.center-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  order: -1;
+}
+.center-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.center-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(247,241,232,0.7);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.center-line .cn {
+  font-size: 12px;
+  font-weight: 750;
+  color: #3A322C;
+}
+.center-line .cs {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--muted);
+  white-space: nowrap;
+}
 .focus-board { display: flex; flex-direction: column; gap: 8px; }
 .focus-card {
   position: relative;
@@ -1687,6 +1726,16 @@ body.has-risk-board .toast-stack { top: calc(var(--ribbon-h) + 8px); }
   font-size: 14px;
   font-weight: 750;
 }
+.floor-btn .floor-center {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.2;
+  color: var(--muted);
+}
 .floor-btn.active {
   color: #3A322C;
   background: rgba(243, 230, 212, 0.94);
@@ -1738,6 +1787,16 @@ body.has-disclaimer #fallback {
   gap: 8px;
 }
 .fb-stack .fb-floor h3 { font-size: 15px; }
+.fb-center {
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.25;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 .fb-stack .fb-desks {
   display: flex;
   gap: 6px;
@@ -1769,6 +1828,7 @@ body.has-disclaimer #fallback {
   }
   .floor-btn .floor-short { font-size: 12px; }
   .floor-btn .floor-code { font-size: 9px; }
+  .floor-btn .floor-center { display: none; }
   body.mode-3d #canvas-wrap { top: 0; bottom: 54px; }
   #fallback,
   body.has-usage #fallback,
