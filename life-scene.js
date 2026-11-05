@@ -106,14 +106,14 @@
       }
       if (!staff || !seat || !makeCuteBot) return;
       var bot = makeCuteBot(zone.color, zone.shape, shared);
-      bot.userData.baseScale = 0.96;
+      bot.userData.baseScale = 0.84;
       bot.userData.baseY = surfaceY;
       bot.userData.zoneId = zone.id;
       bot.userData.staffId = staff.id;
       bot.userData.isBot = true;
       bot.userData.lifeAgent = true;
       bot.userData.phase = Math.random() * Math.PI * 2;
-      bot.scale.setScalar(0.96);
+      bot.scale.setScalar(0.84);
       bot.position.set(seat.x, surfaceY, seat.z);
       bot.rotation.y = seat.yaw || 0;
       root.add(bot);

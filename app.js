@@ -1713,20 +1713,37 @@
         b.userData.glow.material.opacity = activeStaff ? 0.18 : 0.07;
       }
     });
-    var mid = (FLOOR_PITCH * 5) / 2;
+    var mid = window.HQLook ? window.HQLook.floorBaseY(6) * 0.46 : (FLOOR_PITCH * 5) / 2;
     Object.keys(zoneRoots).forEach(function (id) {
       var g = zoneRoots[id];
       if (!g || !g.userData.matFloor) return;
       var on = id === zoneId;
-      g.userData.matFloor.color.set(on ? 0x2E2924 : 0x24201C);
-      g.userData.matFloor.emissive.set(on ? 0x3A332C : 0x1C1916);
-      g.userData.matFloor.emissiveIntensity = on ? 0.1 : 0.02;
-      g.userData.goalZ = on ? (g.userData.lifeOffice ? 4.15 : 0.72) : 0;
-      g.userData.goalScale = on ? (g.userData.lifeOffice ? 1 : 1.035) : (g.userData.lifeOffice ? 0.7 : 0.985);
+      if (window.HQLook) {
+        g.userData.matFloor.color.set(on ? 0xF4EBDF : 0xE8DFD2);
+        g.userData.matFloor.emissive.set(0xFFF1E0);
+        g.userData.matFloor.emissiveIntensity = on ? 0.2 : 0.12;
+      } else {
+        g.userData.matFloor.color.set(on ? 0x2E2924 : 0x24201C);
+        g.userData.matFloor.emissive.set(on ? 0x3A332C : 0x1C1916);
+        g.userData.matFloor.emissiveIntensity = on ? 0.1 : 0.02;
+      }
+      if (window.HQLook) {
+        g.userData.goalZ = 0;
+        g.userData.goalScale = 1;
+      } else {
+        g.userData.goalZ = on ? (g.userData.lifeOffice ? 4.15 : 0.72) : 0;
+        g.userData.goalScale = on ? (g.userData.lifeOffice ? 1 : 1.035) : (g.userData.lifeOffice ? 0.7 : 0.985);
+      }
       if (g.userData.fasciaMat) {
-        g.userData.fasciaMat.color.set(on ? 0xB79F80 : 0x3F3830);
-        g.userData.fasciaMat.emissive.set(on ? 0xB79F80 : 0x000000);
-        g.userData.fasciaMat.emissiveIntensity = on ? 0.55 : 0;
+        if (window.HQLook) {
+          g.userData.fasciaMat.color.set(0xB79F80);
+          g.userData.fasciaMat.emissive.set(0xB79F80);
+          g.userData.fasciaMat.emissiveIntensity = on ? 0.4 : 0.16;
+        } else {
+          g.userData.fasciaMat.color.set(on ? 0xB79F80 : 0x3F3830);
+          g.userData.fasciaMat.emissive.set(on ? 0xB79F80 : 0x000000);
+          g.userData.fasciaMat.emissiveIntensity = on ? 0.55 : 0;
+        }
       }
       if (g.userData.coveMat) {
         g.userData.coveMat.emissiveIntensity = on ? 0.45 : 0.05;
@@ -1750,135 +1767,35 @@
   }
 
   function makeCuteBot(color, shape, shared) {
-    var group = new THREE.Group();
-    var tint = new THREE.Color(color);
-    var bodyMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(0x8A7968).lerp(tint, 0.18),
-      metalness: 0.06, roughness: 0.78,
-      emissive: new THREE.Color(0x2E2924), emissiveIntensity: 0.04
-    });
-    var accentMat = new THREE.MeshStandardMaterial({
-      color: 0xB79F80, metalness: 0.55, roughness: 0.42,
-      emissive: new THREE.Color(0xB79F80), emissiveIntensity: 0.05
-    });
-    var darkMat = shared.mats.dark;
-    var body;
-    if (THREE.CapsuleGeometry) {
-      body = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.28, 4, 10), bodyMat);
-    } else {
-      body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.55, 12), bodyMat);
+    if (!window.HQLook) {
+      var g = new THREE.Group();
+      g.userData.baseY = 0;
+      g.userData.baseScale = 1;
+      return g;
     }
-    body.position.y = 0.38;
-    body.castShadow = true;
-    group.add(body);
-    var head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 12), bodyMat);
-    head.position.y = 0.82;
-    head.castShadow = true;
-    group.add(head);
-    var ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.16, 6), darkMat);
-    ant.position.y = 1.08;
-    group.add(ant);
-    var tip = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), accentMat);
-    tip.position.y = 1.18;
-    group.add(tip);
-    var badge;
-    if (shape === 'cylinder') badge = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.04, 10), accentMat);
-    else if (shape === 'cone') badge = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.1, 8), accentMat);
-    else if (shape === 'pyramid') badge = new THREE.Mesh(new THREE.TetrahedronGeometry(0.09), accentMat);
-    else if (shape === 'cross') {
-      badge = new THREE.Group();
-      badge.add(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 0.04), accentMat));
-      badge.add(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.04), accentMat));
-    } else if (shape === 'rounded') badge = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), accentMat);
-    else badge = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.04), accentMat);
-    badge.position.set(0, 0.42, 0.2);
-    group.add(badge);
-    var collar = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.035, 6, 16), accentMat);
-    collar.rotation.x = Math.PI / 2;
-    collar.position.y = 0.62;
-    group.add(collar);
-    var eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), shared.mats.eye);
-    var eyeR = eyeL.clone();
-    eyeL.position.set(-0.08, 0.84, 0.18);
-    eyeR.position.set(0.08, 0.84, 0.18);
-    group.add(eyeL); group.add(eyeR);
-    var pL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), shared.mats.pupil);
-    var pR = pL.clone();
-    pL.position.set(-0.08, 0.84, 0.215);
-    pR.position.set(0.08, 0.84, 0.215);
-    group.add(pL); group.add(pR);
-    var fL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), shared.mats.foot);
-    var fR = fL.clone();
-    fL.scale.set(1.2, 0.55, 1.3); fR.scale.copy(fL.scale);
-    fL.position.set(-0.1, 0.05, 0.02); fR.position.set(0.1, 0.05, 0.02);
-    group.add(fL); group.add(fR);
-    var glow = new THREE.Mesh(
-      new THREE.RingGeometry(0.34, 0.4, 28),
-      new THREE.MeshBasicMaterial({ color: 0xB79F80, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false })
-    );
-    glow.rotation.x = -Math.PI / 2;
-    glow.position.y = 0.03;
-    glow.visible = false;
-    group.add(glow);
-    group.userData.glow = glow;
-    group.userData.accentLight = null;
-    group.userData.parts = {
-      body: body, head: head, ant: ant, tip: tip, badge: badge, collar: collar,
-      eyeL: eyeL, eyeR: eyeR, pL: pL, pR: pR, fL: fL, fR: fR
-    };
-    group.position.y = 0;
-    group.userData.baseY = 0;
-    return group;
+    return window.HQLook.makeAgent(THREE, color, shape, shared);
   }
 
-  /* Capsule pose offsets for L4. Other floors keep the standing bob. */
-  var LIFE_STAND = {
-    body: [0, 0.38, 0, 0], head: [0, 0.82, 0], ant: [0, 1.08, 0], tip: [0, 1.18, 0],
-    badge: [0, 0.42, 0.2], collar: [0, 0.62, 0],
-    eyeL: [-0.08, 0.84, 0.18], eyeR: [0.08, 0.84, 0.18],
-    pL: [-0.08, 0.84, 0.215], pR: [0.08, 0.84, 0.215],
-    fL: [-0.1, 0.05, 0.02], fR: [0.1, 0.05, 0.02]
-  };
-  var LIFE_SIT = {
-    body: [0, 0.24, 0.08, 0.5], head: [0, 0.5, 0.12], ant: [0, 0.74, 0.12], tip: [0, 0.84, 0.12],
-    badge: [0, 0.28, 0.22], collar: [0, 0.38, 0.1],
-    eyeL: [-0.08, 0.52, 0.28], eyeR: [0.08, 0.52, 0.28],
-    pL: [-0.08, 0.52, 0.315], pR: [0.08, 0.52, 0.315],
-    fL: [-0.1, 0.18, 0.26], fR: [0.1, 0.18, 0.26]
-  };
-
   function applyLifePose(bot, agent, t) {
-    var parts = bot.userData.parts;
-    var sit = agent.anim === 'sit' || agent.anim === 'meeting';
-    var pose = sit ? LIFE_SIT : LIFE_STAND;
-    if (parts) {
-      Object.keys(pose).forEach(function (key) {
-        var mesh = parts[key];
-        var v = pose[key];
-        if (!mesh || !v) return;
-        mesh.position.set(v[0], v[1], v[2]);
-        if (key === 'body') mesh.rotation.x = v.length > 3 ? v[3] : 0;
-      });
+    if (window.HQLook && bot.userData.fashion) {
+      window.HQLook.applyPose(bot, agent, t);
+      return;
     }
-    var phase = bot.userData.phase || 0;
     var baseY = bot.userData.baseY || 0;
     bot.position.x = agent.x;
     bot.position.z = agent.z;
-    if (agent.anim === 'walk' && parts) {
-      var swing = Math.sin(t * 8.5 + phase);
-      parts.fL.position.z = LIFE_STAND.fL[2] + swing * 0.09;
-      parts.fR.position.z = LIFE_STAND.fR[2] - swing * 0.09;
-      parts.fL.position.y = LIFE_STAND.fL[1] + Math.max(0, swing) * 0.05;
-      parts.fR.position.y = LIFE_STAND.fR[1] + Math.max(0, -swing) * 0.05;
-      parts.body.position.y = LIFE_STAND.body[1] + Math.abs(swing) * 0.02;
-      bot.position.y = baseY + Math.abs(swing) * 0.025;
-      bot.rotation.y = agent.yaw;
-    } else if (sit) {
-      bot.position.y = baseY + Math.sin(t * 1.5 + phase) * 0.005;
-      bot.rotation.y = agent.yaw;
-    } else {
-      bot.position.y = baseY + Math.sin(t * 1.3 + phase) * 0.012;
-      bot.rotation.y = agent.yaw + Math.sin(t * 0.55 + phase) * 0.1;
+    bot.position.y = baseY;
+    bot.rotation.y = agent.yaw;
+  }
+
+  function setTowerWash(mode) {
+    if (!runtime3d || !runtime3d.applyWash) return;
+    runtime3d.wash = runtime3d.applyWash(mode, runtime3d.look);
+    if (runtime3d.renderer) runtime3d.renderer.setClearColor(runtime3d.wash === 'day' ? 0xD7D0C4 : 0x07080C, 1);
+    var btn = $('btnWash');
+    if (btn) {
+      btn.textContent = runtime3d.wash === 'day' ? '晝' : '夜';
+      btn.setAttribute('aria-pressed', runtime3d.wash === 'day' ? 'true' : 'false');
     }
   }
 
@@ -2100,16 +2017,17 @@
     var lifeCamTmp = new THREE.Vector3();
     var wrap = $('canvas-wrap');
     var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1C1916);
-    scene.fog = new THREE.FogExp2(0x1C1916, 0.012);
+    scene.background = new THREE.Color(window.HQLook ? 0x07080C : 0x1C1916);
+    scene.fog = new THREE.FogExp2(window.HQLook ? 0x07080C : 0x1C1916, window.HQLook ? 0.016 : 0.012);
 
-    var camera = new THREE.PerspectiveCamera(30, 1, 0.1, 140);
-    var towerMid = (FLOOR_PITCH * 5) / 2;
-    camera.position.set(11.5, towerMid + 1.5, 16.2);
+    var camera = new THREE.PerspectiveCamera(30, 1, 0.1, 180);
+    var towerTopY = window.HQLook ? window.HQLook.floorBaseY(6) + window.HQLook.pitch : FLOOR_PITCH * 5;
+    var towerMid = window.HQLook ? towerTopY * 0.46 : (FLOOR_PITCH * 5) / 2;
+    camera.position.set(window.HQLook ? 16 : 11.5, towerMid + (window.HQLook ? 1.2 : 1.5), window.HQLook ? 26 : 16.2);
 
     var renderer = new THREE.WebGLRenderer({ antialias: !isTouch, alpha: false, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isTouch ? 1.25 : 1.75));
-    renderer.setClearColor(0x1C1916, 1);
+    renderer.setClearColor(window.HQLook ? 0x07080C : 0x1C1916, 1);
     renderer.shadowMap.enabled = !isTouch;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.shadowMap.autoUpdate = true;
@@ -2124,7 +2042,7 @@
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
     controls.minDistance = 6;
-    controls.maxDistance = 32;
+    controls.maxDistance = window.HQLook ? 72 : 32;
     controls.maxPolarAngle = Math.PI * 0.5;
     controls.minPolarAngle = Math.PI * 0.18;
     controls.target.set(-0.55, towerMid, 0);
@@ -2142,40 +2060,53 @@
       }
     });
 
-    // Warm lamp on stone. Key + fill + rim only; no point lights, no bloom.
-    scene.add(new THREE.HemisphereLight(0xEDE6DA, 0x1C1916, 0.14));
-    scene.add(new THREE.AmbientLight(0x3A332C, 0.18));
-
-    var key = new THREE.DirectionalLight(0xF3E6D2, 0.5);
-    key.position.set(8, 16, 10);
-    key.castShadow = !isTouch;
-    if (!isTouch) {
-      key.shadow.mapSize.set(1024, 1024);
-      key.shadow.camera.near = 1;
-      key.shadow.camera.far = 50;
-      key.shadow.camera.left = -20;
-      key.shadow.camera.right = 20;
-      key.shadow.camera.top = 20;
-      key.shadow.camera.bottom = -20;
-      key.shadow.bias = -0.0002;
+    var wash = null;
+    if (window.HQLook) {
+      wash = window.HQLook.createWash(THREE, scene);
+      wash.moon.castShadow = !isTouch;
+      if (!isTouch) {
+        wash.moon.shadow.mapSize.set(1024, 1024);
+        wash.moon.shadow.camera.near = 1;
+        wash.moon.shadow.camera.far = 80;
+        wash.moon.shadow.camera.left = -24;
+        wash.moon.shadow.camera.right = 24;
+        wash.moon.shadow.camera.top = 24;
+        wash.moon.shadow.camera.bottom = -24;
+        wash.moon.shadow.bias = -0.00025;
+      }
+    } else {
+      scene.add(new THREE.HemisphereLight(0xEDE6DA, 0x1C1916, 0.14));
+      scene.add(new THREE.AmbientLight(0x3A332C, 0.18));
+      var key = new THREE.DirectionalLight(0xF3E6D2, 0.5);
+      key.position.set(8, 16, 10);
+      key.castShadow = !isTouch;
+      if (!isTouch) {
+        key.shadow.mapSize.set(1024, 1024);
+        key.shadow.camera.near = 1;
+        key.shadow.camera.far = 50;
+        key.shadow.camera.left = -20;
+        key.shadow.camera.right = 20;
+        key.shadow.camera.top = 20;
+        key.shadow.camera.bottom = -20;
+        key.shadow.bias = -0.0002;
+      }
+      scene.add(key);
+      var fill = new THREE.DirectionalLight(0xB79F80, 0.05);
+      fill.position.set(-12, 8, -6);
+      scene.add(fill);
+      var rim = new THREE.DirectionalLight(0xEDE6DA, 0.07);
+      rim.position.set(0, 6, -14);
+      scene.add(rim);
     }
-    scene.add(key);
-
-    var fill = new THREE.DirectionalLight(0xB79F80, 0.05);
-    fill.position.set(-12, 8, -6);
-    scene.add(fill);
-
-    var rim = new THREE.DirectionalLight(0xEDE6DA, 0.07);
-    rim.position.set(0, 6, -14);
-    scene.add(rim);
 
     // ---- stacked floors: L1 系統 through L6 指揮, all visible at once ----
-    var towerTop = FLOOR_PITCH * 5;
+    var towerTop = towerTopY;
+    var podiumR = window.HQLook ? 5.55 : 3.7;
     var podium = new THREE.Mesh(
-      new THREE.CylinderGeometry(3.7, 4.15, 0.26, 28),
+      new THREE.CylinderGeometry(podiumR, podiumR + 0.45, 0.28, 40),
       new THREE.MeshStandardMaterial({
-        color: 0x24201C, metalness: 0.12, roughness: 0.9,
-        emissive: 0x1C1916, emissiveIntensity: 0.06
+        color: window.HQLook ? 0xE4D8C6 : 0x24201C, metalness: 0.12, roughness: 0.78,
+        emissive: window.HQLook ? 0xF3E6D4 : 0x1C1916, emissiveIntensity: window.HQLook ? 0.1 : 0.06
       })
     );
     podium.position.y = -0.2;
@@ -2246,21 +2177,21 @@
     ZONES.forEach(function (zone) {
       var info = floorInfo(zone);
       var root = new THREE.Group();
-      root.position.set(0, (info.level - 1) * FLOOR_PITCH, 0);
+      root.position.set(0, window.HQLook ? window.HQLook.floorBaseY(info.level) : (info.level - 1) * FLOOR_PITCH, 0);
       root.userData.zoneId = zone.id;
       root.userData.glassMats = [];
       root.userData.goalZ = 0;
       root.userData.goalScale = 1;
 
       var lifeHere = zone.id === 'life' && lifeLayout && window.HQLifeScene;
-      var slabW = lifeHere ? (lifeLayout.floor && lifeLayout.floor.width) || 9.2 : 6.6;
-      var slabD = lifeHere ? (lifeLayout.floor && lifeLayout.floor.depth) || 5.2 : 3.5;
+      var slabW = lifeHere ? (lifeLayout.floor && lifeLayout.floor.width) || 9.2 : (window.HQLook ? 9.35 : 6.6);
+      var slabD = lifeHere ? (lifeLayout.floor && lifeLayout.floor.depth) || 5.2 : (window.HQLook ? 5.45 : 3.5);
       var halfD = slabD / 2;
       var rugMat = new THREE.MeshStandardMaterial({
-        color: 0x24201C,
-        emissive: 0x1C1916,
-        emissiveIntensity: 0.04,
-        roughness: 0.93, metalness: 0.04
+        color: window.HQLook ? 0xE8DFD2 : 0x24201C,
+        emissive: window.HQLook ? 0xFFF1E0 : 0x1C1916,
+        emissiveIntensity: window.HQLook ? 0.12 : 0.04,
+        roughness: window.HQLook ? 0.84 : 0.93, metalness: 0.04
       });
       var slab = new THREE.Mesh(new THREE.BoxGeometry(slabW, 0.18, slabD), rugMat);
       slab.position.y = 0.1;
@@ -2299,18 +2230,30 @@
       });
       root.userData.screenMat = screenMat;
 
-      var spine = new THREE.Mesh(
-        new THREE.BoxGeometry(0.08, FLOOR_PITCH, 0.08),
-        shared.mats.metal
-      );
-      spine.position.set(0, FLOOR_PITCH * 0.5, lifeHere ? (-halfD + 0.18) : -1.45);
-      root.add(spine);
+      if (!window.HQLook) {
+        var spine = new THREE.Mesh(
+          new THREE.BoxGeometry(0.08, FLOOR_PITCH, 0.08),
+          shared.mats.metal
+        );
+        spine.position.set(0, FLOOR_PITCH * 0.5, lifeHere ? (-halfD + 0.18) : -1.45);
+        root.add(spine);
+      }
 
       var label = makeLabel(info.code + '  ' + info.short);
       label.position.set(0, lifeHere ? 0.42 : 0.72, halfD + (lifeHere ? 0.02 : 0.3));
       label.scale.set(lifeHere ? 1.55 : 2.35, lifeHere ? 0.36 : 0.52, 1);
       root.add(label);
       root.userData.labelMat = label.material;
+
+      if (window.HQLook) {
+        if (!shared.look) shared.look = window.HQLook.mats(THREE);
+        var storyH = info.level === 1 ? window.HQLook.lobbyH : window.HQLook.pitch;
+        window.HQLook.addCurtain(THREE, root, shared.look, {
+          storyH: storyH,
+          lobby: info.level === 1,
+          parapet: info.level === 6
+        });
+      }
 
       if (lifeHere) {
         try {
@@ -2343,14 +2286,14 @@
           desk.position.set(x, 0, 0.15);
           root.add(desk);
           var bot = makeCuteBot(zone.color, zone.shape, shared);
-          bot.userData.baseScale = 0.78;
-          bot.scale.setScalar(0.78);
-          bot.position.set(x, 0, 0.95);
+          bot.userData.baseScale = window.HQLook ? 0.72 : 0.78;
+          bot.scale.setScalar(bot.userData.baseScale);
+          bot.position.set(x, window.HQLook ? 0.19 : 0, 0.95);
           bot.userData.zoneId = zone.id;
           bot.userData.staffId = staff.id;
           bot.userData.isBot = true;
           bot.userData.phase = Math.random() * Math.PI * 2;
-          bot.userData.baseY = 0;
+          bot.userData.baseY = window.HQLook ? 0.19 : 0;
           root.add(bot);
           botMeshes.push(bot);
         }
@@ -2522,9 +2465,9 @@
         controls.target.y += (runtime3d.focusY - controls.target.y) * 0.1;
       }
       if (runtime3d.frameLife && !runtime3d.suspendFrame && zoneRoots.life) {
-        lifeTgtTmp.set(0.15, 0.45, -0.05);
+        lifeTgtTmp.set(0.35, 0.85, 0.05);
         zoneRoots.life.localToWorld(lifeTgtTmp);
-        lifeCamTmp.set(5.2, 8.6, 7.8);
+        lifeCamTmp.set(2.6, 2.15, 8.8);
         zoneRoots.life.localToWorld(lifeCamTmp);
         controls.target.lerp(lifeTgtTmp, 0.16);
         camera.position.lerp(lifeCamTmp, 0.16);
@@ -2541,6 +2484,10 @@
       if (lifeSim) lifeSim.step(dt);
       botMeshes.forEach(function (b) {
         if (b.userData.lifeAgent) return;
+        if (b.userData.fashion && window.HQLook) {
+          window.HQLook.applyPose(b, null, t);
+          return;
+        }
         b.position.y = (b.userData.baseY || 0) + Math.sin(t * 0.6 + b.userData.phase) * 0.008;
         b.rotation.y = Math.sin(t * 0.2 + b.userData.phase) * 0.025;
       });
@@ -2584,8 +2531,12 @@
       wasLife: false,
       userSteer: false,
       towerPos: camera.position.clone(),
-      towerTarget: controls.target.clone()
+      towerTarget: controls.target.clone(),
+      wash: 'night',
+      look: shared.look || null,
+      applyWash: wash ? wash.apply : null
     };
+    if (wash && shared.look) wash.apply('night', shared.look);
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () {
         if (runtime3d && runtime3d.paintMeet) runtime3d.paintMeet(runtime3d.meetingTitle || '');
@@ -2696,6 +2647,13 @@
       else closeTopDrawer();
     }
   });
+
+  if ($('btnWash')) {
+    $('btnWash').addEventListener('click', function () {
+      var next = runtime3d && runtime3d.wash === 'day' ? 'night' : 'day';
+      setTowerWash(next);
+    });
+  }
 
   var tryBtn = $('btnTry3d');
   if (tryBtn) {
