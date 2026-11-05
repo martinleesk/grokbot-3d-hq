@@ -16,6 +16,7 @@
   var reportsData = null;
   var reportsActiveId = null;
   var liveData = null;
+  var lifeLayout = null;
   var liveUpdatedStamp = null;
   var livePollTimer = null;
   var liveRelativeTimer = null;
@@ -1137,6 +1138,7 @@
     renderDisclaimer(data.disclaimer);
     renderRiskBoard(data.riskBoard);
     renderInvestSlot();
+    syncLifeFromLive();
     renderFocusBoard(data.focus || []);
     renderCalendarStrip(data.calendar || []);
     renderDeadlineList();
@@ -1337,6 +1339,17 @@
         }).join('') + '</ul>';
       }
     }
+  }
+
+  function loadLifeLayout() {
+    return fetch('floors/life.layout.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('life layout ' + r.status); return r.json(); })
+      .then(function (data) { lifeLayout = data; return data; })
+      .catch(function (err) {
+        console.warn('life layout load failed', err);
+        lifeLayout = null;
+        return null;
+      });
   }
 
   function loadDirectory() {
@@ -1633,15 +1646,15 @@
       plantTop: new THREE.SphereGeometry(0.12, 8, 8)
     };
     var mats = {
-      wood: new THREE.MeshStandardMaterial({ color: 0x4A3F34, metalness: 0.04, roughness: 0.9 }),
-      metal: new THREE.MeshStandardMaterial({ color: 0x3F3830, metalness: 0.48, roughness: 0.46 }),
+      wood: new THREE.MeshStandardMaterial({ color: 0xE7D4BE, metalness: 0.06, roughness: 0.72 }),
+      metal: new THREE.MeshStandardMaterial({ color: 0xD9CBB8, metalness: 0.32, roughness: 0.42 }),
       mug: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, roughness: 0.72 }),
       coffee: new THREE.MeshStandardMaterial({ color: 0x3A2A1C, roughness: 0.9 }),
-      seat: new THREE.MeshStandardMaterial({ color: 0x2E2924, metalness: 0.08, roughness: 0.8 }),
-      chairBack: new THREE.MeshStandardMaterial({ color: 0x24201C, metalness: 0.08, roughness: 0.78 }),
+      seat: new THREE.MeshStandardMaterial({ color: 0xF3EBE1, metalness: 0.04, roughness: 0.72 }),
+      chairBack: new THREE.MeshStandardMaterial({ color: 0xE7DDD2, metalness: 0.04, roughness: 0.7 }),
       shade: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.08, side: THREE.DoubleSide, roughness: 0.8 }),
       bulb: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.16 }),
-      pot: new THREE.MeshStandardMaterial({ color: 0x3F3830, roughness: 0.8, metalness: 0.12 }),
+      pot: new THREE.MeshStandardMaterial({ color: 0xC4A090, roughness: 0.72, metalness: 0.06 }),
       soil: new THREE.MeshStandardMaterial({ color: 0x2A2118, roughness: 1 }),
       leaf: new THREE.MeshStandardMaterial({ color: 0x6A7058, roughness: 0.82, metalness: 0.02 }),
       dark: new THREE.MeshStandardMaterial({ color: 0x1C1916, metalness: 0.16, roughness: 0.72 }),
@@ -1700,20 +1713,37 @@
         b.userData.glow.material.opacity = activeStaff ? 0.18 : 0.07;
       }
     });
-    var mid = (FLOOR_PITCH * 5) / 2;
+    var mid = window.HQLook ? window.HQLook.floorBaseY(6) * 0.46 : (FLOOR_PITCH * 5) / 2;
     Object.keys(zoneRoots).forEach(function (id) {
       var g = zoneRoots[id];
       if (!g || !g.userData.matFloor) return;
       var on = id === zoneId;
-      g.userData.matFloor.color.set(on ? 0x2E2924 : 0x24201C);
-      g.userData.matFloor.emissive.set(on ? 0x3A332C : 0x1C1916);
-      g.userData.matFloor.emissiveIntensity = on ? 0.1 : 0.02;
-      g.userData.goalZ = on ? 0.72 : 0;
-      g.userData.goalScale = on ? 1.035 : 0.985;
+      if (window.HQLook) {
+        g.userData.matFloor.color.set(on ? 0xF0E0CC : 0xE9D7C4);
+        g.userData.matFloor.emissive.set(0xF3E0CC);
+        g.userData.matFloor.emissiveIntensity = on ? 0.1 : 0.06;
+      } else {
+        g.userData.matFloor.color.set(on ? 0x2E2924 : 0x24201C);
+        g.userData.matFloor.emissive.set(on ? 0x3A332C : 0x1C1916);
+        g.userData.matFloor.emissiveIntensity = on ? 0.1 : 0.02;
+      }
+      if (window.HQLook) {
+        g.userData.goalZ = 0;
+        g.userData.goalScale = 1;
+      } else {
+        g.userData.goalZ = on ? (g.userData.lifeOffice ? 4.15 : 0.72) : 0;
+        g.userData.goalScale = on ? (g.userData.lifeOffice ? 1 : 1.035) : (g.userData.lifeOffice ? 0.7 : 0.985);
+      }
       if (g.userData.fasciaMat) {
-        g.userData.fasciaMat.color.set(on ? 0xB79F80 : 0x3F3830);
-        g.userData.fasciaMat.emissive.set(on ? 0xB79F80 : 0x000000);
-        g.userData.fasciaMat.emissiveIntensity = on ? 0.55 : 0;
+        if (window.HQLook) {
+          g.userData.fasciaMat.color.set(0xB79F80);
+          g.userData.fasciaMat.emissive.set(0xB79F80);
+          g.userData.fasciaMat.emissiveIntensity = on ? 0.4 : 0.16;
+        } else {
+          g.userData.fasciaMat.color.set(on ? 0xB79F80 : 0x3F3830);
+          g.userData.fasciaMat.emissive.set(on ? 0xB79F80 : 0x000000);
+          g.userData.fasciaMat.emissiveIntensity = on ? 0.55 : 0;
+        }
       }
       if (g.userData.coveMat) {
         g.userData.coveMat.emissiveIntensity = on ? 0.45 : 0.05;
@@ -1730,85 +1760,80 @@
     if (runtime3d && runtime3d.controls && zoneRoots[zoneId]) {
       var y = zoneRoots[zoneId].position.y + 0.35;
       runtime3d.focusY = mid + (y - mid) * 0.34;
+      runtime3d.suspendFrame = false;
+      runtime3d.frameLife = false;
+      runtime3d.focusY = null;
     }
   }
 
   function makeCuteBot(color, shape, shared) {
-    var group = new THREE.Group();
-    var tint = new THREE.Color(color);
-    var bodyMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(0x8A7968).lerp(tint, 0.18),
-      metalness: 0.06, roughness: 0.78,
-      emissive: new THREE.Color(0x2E2924), emissiveIntensity: 0.04
-    });
-    var accentMat = new THREE.MeshStandardMaterial({
-      color: 0xB79F80, metalness: 0.55, roughness: 0.42,
-      emissive: new THREE.Color(0xB79F80), emissiveIntensity: 0.05
-    });
-    var darkMat = shared.mats.dark;
-    var body;
-    if (THREE.CapsuleGeometry) {
-      body = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.28, 4, 10), bodyMat);
-    } else {
-      body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.55, 12), bodyMat);
+    if (!window.HQLook) {
+      var g = new THREE.Group();
+      g.userData.baseY = 0;
+      g.userData.baseScale = 1;
+      return g;
     }
-    body.position.y = 0.38;
-    body.castShadow = true;
-    group.add(body);
-    var head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 12), bodyMat);
-    head.position.y = 0.82;
-    head.castShadow = true;
-    group.add(head);
-    var ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.16, 6), darkMat);
-    ant.position.y = 1.08;
-    group.add(ant);
-    var tip = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), accentMat);
-    tip.position.y = 1.18;
-    group.add(tip);
-    var badge;
-    if (shape === 'cylinder') badge = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.04, 10), accentMat);
-    else if (shape === 'cone') badge = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.1, 8), accentMat);
-    else if (shape === 'pyramid') badge = new THREE.Mesh(new THREE.TetrahedronGeometry(0.09), accentMat);
-    else if (shape === 'cross') {
-      badge = new THREE.Group();
-      badge.add(new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.04, 0.04), accentMat));
-      badge.add(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.14, 0.04), accentMat));
-    } else if (shape === 'rounded') badge = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), accentMat);
-    else badge = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.04), accentMat);
-    badge.position.set(0, 0.42, 0.2);
-    group.add(badge);
-    var collar = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.035, 6, 16), accentMat);
-    collar.rotation.x = Math.PI / 2;
-    collar.position.y = 0.62;
-    group.add(collar);
-    var eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), shared.mats.eye);
-    var eyeR = eyeL.clone();
-    eyeL.position.set(-0.08, 0.84, 0.18);
-    eyeR.position.set(0.08, 0.84, 0.18);
-    group.add(eyeL); group.add(eyeR);
-    var pL = new THREE.Mesh(new THREE.SphereGeometry(0.022, 6, 6), shared.mats.pupil);
-    var pR = pL.clone();
-    pL.position.set(-0.08, 0.84, 0.215);
-    pR.position.set(0.08, 0.84, 0.215);
-    group.add(pL); group.add(pR);
-    var fL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), shared.mats.foot);
-    var fR = fL.clone();
-    fL.scale.set(1.2, 0.55, 1.3); fR.scale.copy(fL.scale);
-    fL.position.set(-0.1, 0.05, 0.02); fR.position.set(0.1, 0.05, 0.02);
-    group.add(fL); group.add(fR);
-    var glow = new THREE.Mesh(
-      new THREE.RingGeometry(0.34, 0.4, 28),
-      new THREE.MeshBasicMaterial({ color: 0xB79F80, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false })
-    );
-    glow.rotation.x = -Math.PI / 2;
-    glow.position.y = 0.03;
-    glow.visible = false;
-    group.add(glow);
-    group.userData.glow = glow;
-    group.userData.accentLight = null;
-    group.position.y = 0;
-    group.userData.baseY = 0;
-    return group;
+    return window.HQLook.makeAgent(THREE, color, shape, shared);
+  }
+
+  function applyLifePose(bot, agent, t) {
+    if (window.HQLook && bot.userData.fashion) {
+      window.HQLook.applyPose(bot, agent, t);
+      return;
+    }
+    var baseY = bot.userData.baseY || 0;
+    bot.position.x = agent.x;
+    bot.position.z = agent.z;
+    bot.position.y = baseY;
+    bot.rotation.y = agent.yaw;
+  }
+
+  function towerView(topY) {
+    var top = topY || (window.HQLook ? window.HQLook.floorBaseY(6) + window.HQLook.pitch : 12);
+    return {
+      target: new THREE.Vector3(8.2, 6.2, 0.15),
+      pos: new THREE.Vector3(34, Math.max(14, top * 0.95), 50)
+    };
+  }
+
+  function frameTower() {
+    if (!runtime3d || !runtime3d.controls) return;
+    var view = towerView();
+    runtime3d.frameLife = false;
+    runtime3d.wasLife = false;
+    runtime3d.focusY = null;
+    runtime3d.suspendFrame = false;
+    runtime3d.userSteer = false;
+    runtime3d.glide = { pos: view.pos.clone(), target: view.target.clone() };
+    runtime3d.controls.autoRotate = false;
+  }
+
+  function setTowerWash(mode) {
+    if (!runtime3d || !runtime3d.applyWash) return;
+    runtime3d.wash = runtime3d.applyWash(mode, runtime3d.look);
+    var btn = $('btnWash');
+    if (btn) {
+      var day = runtime3d.wash === 'day';
+      btn.textContent = day ? '晝' : '金';
+      btn.title = day ? '日間幕牆，再按轉黃金時刻' : '黃金時刻，再按轉日間';
+      btn.setAttribute('aria-pressed', day ? 'true' : 'false');
+    }
+  }
+
+  function syncLifeFromLive() {
+    if (!runtime3d || !runtime3d.lifeSim || !window.HQLifeSim || !lifeLayout) return;
+    try {
+      var zone = findZone('life');
+      var inferred = window.HQLifeSim.inferLifeRoster(liveData || {}, zone.staff, lifeLayout, Date.now());
+      runtime3d.lifeSim.setIntents(inferred.intents);
+      var title = inferred.meetingTitle || '';
+      if (title !== runtime3d.meetingTitle) {
+        runtime3d.meetingTitle = title;
+        if (runtime3d.paintMeet) runtime3d.paintMeet(title);
+      }
+    } catch (err) {
+      console.warn('life floor sync failed', err);
+    }
   }
 
   function makeDesk(zoneColor, shared) {
@@ -1970,15 +1995,15 @@
   function makeGlassWall(w, h, color) {
     var g = new THREE.Group();
     var glassMat = new THREE.MeshStandardMaterial({
-      color: 0x2E2924, transparent: true, opacity: 0.16,
-      metalness: 0.2, roughness: 0.46,
-      emissive: 0x1C1916, emissiveIntensity: 0.02,
-      side: THREE.DoubleSide
+      color: 0xF4FBFF, transparent: true, opacity: 0.14,
+      metalness: 0.04, roughness: 0.12,
+      emissive: 0xFFF6EA, emissiveIntensity: 0.06,
+      side: THREE.DoubleSide, depthWrite: false
     });
     var pane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), glassMat);
     pane.position.y = h / 2;
     g.add(pane);
-    var frameMat = new THREE.MeshStandardMaterial({ color: 0x3F3830, metalness: 0.45, roughness: 0.48 });
+    var frameMat = new THREE.MeshStandardMaterial({ color: 0xCDB89A, metalness: 0.35, roughness: 0.42, emissive: 0xCDB89A, emissiveIntensity: 0.08 });
     var topF = new THREE.Mesh(new THREE.BoxGeometry(w + 0.08, 0.06, 0.06), frameMat);
     topF.position.y = h;
     g.add(topF);
@@ -1987,7 +2012,7 @@
     g.add(botF);
     var stripe = new THREE.Mesh(
       new THREE.BoxGeometry(w + 0.08, 0.05, 0.07),
-      new THREE.MeshStandardMaterial({ color: 0x3F3830, emissive: 0xB79F80, emissiveIntensity: 0.06 })
+      new THREE.MeshStandardMaterial({ color: 0xE8D3B4, emissive: 0xB79F80, emissiveIntensity: 0.16 })
     );
     stripe.position.y = h * 0.55;
     g.add(stripe);
@@ -2005,24 +2030,32 @@
     screenMats = [];
 
     var shared = createSharedPool();
+    var lifePaint = null;
+    var lifeBots = {};
+    var lifeSim = null;
+    var lifeTitle = '';
+    var lifeTgtTmp = new THREE.Vector3();
+    var lifeCamTmp = new THREE.Vector3();
     var wrap = $('canvas-wrap');
     var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1C1916);
-    scene.fog = new THREE.FogExp2(0x1C1916, 0.012);
+    scene.background = new THREE.Color(window.HQLook ? 0x6EB4EA : 0x1C1916);
+    scene.fog = new THREE.FogExp2(window.HQLook ? 0xD5E6F4 : 0x1C1916, window.HQLook ? 0.0028 : 0.012);
 
-    var camera = new THREE.PerspectiveCamera(30, 1, 0.1, 140);
-    var towerMid = (FLOOR_PITCH * 5) / 2;
-    camera.position.set(11.5, towerMid + 1.5, 16.2);
+    var camera = new THREE.PerspectiveCamera(window.HQLook ? 44 : 30, 1, 0.1, 280);
+    var towerTopY = window.HQLook ? window.HQLook.floorBaseY(6) + window.HQLook.pitch : FLOOR_PITCH * 5;
+    var towerMid = window.HQLook ? towerTopY * 0.46 : (FLOOR_PITCH * 5) / 2;
+    var overview = towerView(towerTopY);
+    camera.position.copy(overview.pos);
 
     var renderer = new THREE.WebGLRenderer({ antialias: !isTouch, alpha: false, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isTouch ? 1.25 : 1.75));
-    renderer.setClearColor(0x1C1916, 1);
+    renderer.setClearColor(window.HQLook ? 0x6EB4EA : 0x1C1916, 1);
     renderer.shadowMap.enabled = !isTouch;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.shadowMap.autoUpdate = true;
     if (renderer.toneMapping !== undefined) {
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 0.94;
+      renderer.toneMappingExposure = window.HQLook ? 0.84 : 0.94;
     }
     if (renderer.outputEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
     wrap.appendChild(renderer.domElement);
@@ -2030,65 +2063,90 @@
     var controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    controls.minDistance = 10;
-    controls.maxDistance = 32;
-    controls.maxPolarAngle = Math.PI * 0.5;
-    controls.minPolarAngle = Math.PI * 0.18;
-    controls.target.set(-0.55, towerMid, 0);
+    controls.minDistance = window.HQLook ? 1.8 : 2.5;
+    controls.maxDistance = window.HQLook ? 260 : 80;
+    controls.zoomSpeed = window.HQLook ? 1.35 : 1;
+    controls.maxPolarAngle = window.HQLook ? Math.PI * 0.92 : Math.PI * 0.5;
+    controls.minPolarAngle = window.HQLook ? 0.02 : Math.PI * 0.12;
+    controls.minAzimuthAngle = -Infinity;
+    controls.maxAzimuthAngle = Infinity;
+    controls.target.copy(overview.target);
     controls.enablePan = !isTouch;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.35;
     if (THREE.TOUCH) {
       controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
     }
-    controls.addEventListener('start', function () { controls.autoRotate = false; });
+    controls.addEventListener('start', function () {
+      controls.autoRotate = false;
+      if (runtime3d) {
+        runtime3d.userSteer = true;
+        runtime3d.suspendFrame = true;
+        runtime3d.glide = null;
+      }
+    });
 
-    // Warm lamp on stone. Key + fill + rim only; no point lights, no bloom.
-    scene.add(new THREE.HemisphereLight(0xEDE6DA, 0x1C1916, 0.14));
-    scene.add(new THREE.AmbientLight(0x3A332C, 0.18));
-
-    var key = new THREE.DirectionalLight(0xF3E6D2, 0.5);
-    key.position.set(8, 16, 10);
-    key.castShadow = !isTouch;
-    if (!isTouch) {
-      key.shadow.mapSize.set(1024, 1024);
-      key.shadow.camera.near = 1;
-      key.shadow.camera.far = 50;
-      key.shadow.camera.left = -20;
-      key.shadow.camera.right = 20;
-      key.shadow.camera.top = 20;
-      key.shadow.camera.bottom = -20;
-      key.shadow.bias = -0.0002;
+    var wash = null;
+    if (window.HQLook) {
+      wash = window.HQLook.createWash(THREE, scene, renderer);
+      wash.moon.castShadow = !isTouch;
+      if (!isTouch) {
+        wash.moon.shadow.mapSize.set(1024, 1024);
+        wash.moon.shadow.camera.near = 1;
+        wash.moon.shadow.camera.far = 80;
+        wash.moon.shadow.camera.left = -24;
+        wash.moon.shadow.camera.right = 24;
+        wash.moon.shadow.camera.top = 24;
+        wash.moon.shadow.camera.bottom = -24;
+        wash.moon.shadow.bias = -0.00025;
+      }
+    } else {
+      scene.add(new THREE.HemisphereLight(0xEDE6DA, 0x1C1916, 0.14));
+      scene.add(new THREE.AmbientLight(0x3A332C, 0.18));
+      var key = new THREE.DirectionalLight(0xF3E6D2, 0.5);
+      key.position.set(8, 16, 10);
+      key.castShadow = !isTouch;
+      if (!isTouch) {
+        key.shadow.mapSize.set(1024, 1024);
+        key.shadow.camera.near = 1;
+        key.shadow.camera.far = 50;
+        key.shadow.camera.left = -20;
+        key.shadow.camera.right = 20;
+        key.shadow.camera.top = 20;
+        key.shadow.camera.bottom = -20;
+        key.shadow.bias = -0.0002;
+      }
+      scene.add(key);
+      var fill = new THREE.DirectionalLight(0xB79F80, 0.05);
+      fill.position.set(-12, 8, -6);
+      scene.add(fill);
+      var rim = new THREE.DirectionalLight(0xEDE6DA, 0.07);
+      rim.position.set(0, 6, -14);
+      scene.add(rim);
     }
-    scene.add(key);
-
-    var fill = new THREE.DirectionalLight(0xB79F80, 0.05);
-    fill.position.set(-12, 8, -6);
-    scene.add(fill);
-
-    var rim = new THREE.DirectionalLight(0xEDE6DA, 0.07);
-    rim.position.set(0, 6, -14);
-    scene.add(rim);
 
     // ---- stacked floors: L1 系統 through L6 指揮, all visible at once ----
-    var towerTop = FLOOR_PITCH * 5;
+    var towerTop = towerTopY;
+    var podiumR = window.HQLook ? 5.55 : 3.7;
     var podium = new THREE.Mesh(
-      new THREE.CylinderGeometry(3.7, 4.15, 0.26, 28),
+      new THREE.CylinderGeometry(podiumR, podiumR + 0.45, 0.28, 40),
       new THREE.MeshStandardMaterial({
-        color: 0x24201C, metalness: 0.12, roughness: 0.9,
-        emissive: 0x1C1916, emissiveIntensity: 0.06
+        color: window.HQLook ? 0xF3E6D4 : 0x24201C, metalness: window.HQLook ? 0.2 : 0.12, roughness: window.HQLook ? 0.46 : 0.78,
+        emissive: window.HQLook ? 0xFFF4E8 : 0x1C1916, emissiveIntensity: window.HQLook ? 0.14 : 0.06
       })
     );
     podium.position.y = -0.2;
     podium.receiveShadow = true;
     scene.add(podium);
 
-    var cityGlow = new THREE.Mesh(
-      new THREE.PlaneGeometry(26, 14),
-      new THREE.MeshBasicMaterial({ color: 0x1C1916, transparent: true, opacity: 0.2, depthWrite: false })
-    );
-    cityGlow.position.set(0, towerMid, -7.2);
-    scene.add(cityGlow);
+    if (!window.HQLook) {
+      var cityGlow = new THREE.Mesh(
+        new THREE.PlaneGeometry(26, 14),
+        new THREE.MeshBasicMaterial({ color: 0x1C1916, transparent: true, opacity: 0.2, depthWrite: false })
+      );
+      cityGlow.position.set(0, towerMid, -7.2);
+      scene.add(cityGlow);
+    }
 
     var emblem = new THREE.Mesh(
       new THREE.TorusGeometry(0.42, 0.07, 10, 28),
@@ -2143,23 +2201,28 @@
 
     var office = new THREE.Group();
     scene.add(office);
+    var floorLayouts = {};
 
     ZONES.forEach(function (zone) {
       var info = floorInfo(zone);
       var root = new THREE.Group();
-      root.position.set(0, (info.level - 1) * FLOOR_PITCH, 0);
+      root.position.set(0, window.HQLook ? window.HQLook.floorBaseY(info.level) : (info.level - 1) * FLOOR_PITCH, 0);
       root.userData.zoneId = zone.id;
       root.userData.glassMats = [];
       root.userData.goalZ = 0;
       root.userData.goalScale = 1;
 
+      var lifeHere = zone.id === 'life' && lifeLayout && window.HQLifeScene;
+      var slabW = lifeHere ? (lifeLayout.floor && lifeLayout.floor.width) || 9.2 : (window.HQLook ? 9.35 : 6.6);
+      var slabD = lifeHere ? (lifeLayout.floor && lifeLayout.floor.depth) || 5.2 : (window.HQLook ? 5.45 : 3.5);
+      var halfD = slabD / 2;
       var rugMat = new THREE.MeshStandardMaterial({
-        color: 0x24201C,
-        emissive: 0x1C1916,
-        emissiveIntensity: 0.04,
-        roughness: 0.93, metalness: 0.04
+        color: window.HQLook ? 0xE9D7C4 : 0x24201C,
+        emissive: window.HQLook ? 0xF3E0CC : 0x1C1916,
+        emissiveIntensity: window.HQLook ? 0.06 : 0.04,
+        roughness: window.HQLook ? 0.55 : 0.93, metalness: window.HQLook ? 0.16 : 0.04
       });
-      var slab = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.18, 3.5), rugMat);
+      var slab = new THREE.Mesh(new THREE.BoxGeometry(slabW, 0.18, slabD), rugMat);
       slab.position.y = 0.1;
       slab.receiveShadow = true;
       slab.userData.isZone = true;
@@ -2168,25 +2231,28 @@
       root.userData.matFloor = rugMat;
 
       var fasciaMat = new THREE.MeshStandardMaterial({
-        color: 0x3F3830, emissive: 0x000000, emissiveIntensity: 0,
-        metalness: 0.62, roughness: 0.4
+        color: window.HQLook ? 0xE8D3B4 : 0x3F3830,
+        emissive: window.HQLook ? 0xCDB89A : 0x000000,
+        emissiveIntensity: window.HQLook ? 0.22 : 0,
+        metalness: window.HQLook ? 0.34 : 0.62, roughness: 0.42
       });
-      var fascia = new THREE.Mesh(new THREE.BoxGeometry(6.62, 0.06, 0.045), fasciaMat);
-      fascia.position.set(0, 0.19, 1.745);
+      var fascia = new THREE.Mesh(new THREE.BoxGeometry(slabW + 0.02, 0.06, 0.045), fasciaMat);
+      fascia.position.set(0, 0.19, halfD - 0.005);
       fascia.userData.isZone = true;
       fascia.userData.zoneId = zone.id;
       root.add(fascia);
-      var inlay = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.014, 0.09), fasciaMat);
-      inlay.position.set(0, 0.198, 1.62);
+      var inlay = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.2, slabW - 0.4), 0.014, 0.09), fasciaMat);
+      inlay.position.set(0, 0.198, halfD - 0.13);
       root.add(inlay);
       root.userData.fasciaMat = fasciaMat;
 
       var coveMat = new THREE.MeshStandardMaterial({
-        color: 0x3F3830, emissive: 0xB79F80, emissiveIntensity: 0.04,
-        metalness: 0.3, roughness: 0.58
+        color: window.HQLook ? 0xF3E6D2 : 0x3F3830,
+        emissive: 0xB79F80, emissiveIntensity: window.HQLook ? 0.16 : 0.04,
+        metalness: 0.3, roughness: 0.5
       });
-      var cove = new THREE.Mesh(new THREE.BoxGeometry(6.35, 0.01, 0.025), coveMat);
-      cove.position.set(0, 0.198, 1.7);
+      var cove = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.2, slabW - 0.25), 0.01, 0.025), coveMat);
+      cove.position.set(0, 0.198, halfD - 0.05);
       root.add(cove);
       root.userData.coveMat = coveMat;
 
@@ -2196,42 +2262,190 @@
       });
       root.userData.screenMat = screenMat;
 
-      var spine = new THREE.Mesh(
-        new THREE.BoxGeometry(0.08, FLOOR_PITCH, 0.08),
-        shared.mats.metal
-      );
-      spine.position.set(0, FLOOR_PITCH * 0.5, -1.45);
-      root.add(spine);
+      if (!window.HQLook) {
+        var spine = new THREE.Mesh(
+          new THREE.BoxGeometry(0.08, FLOOR_PITCH, 0.08),
+          shared.mats.metal
+        );
+        spine.position.set(0, FLOOR_PITCH * 0.5, lifeHere ? (-halfD + 0.18) : -1.45);
+        root.add(spine);
+      }
 
       var label = makeLabel(info.code + '  ' + info.short);
-      label.position.set(0, 0.72, 2.05);
-      label.scale.set(2.35, 0.52, 1);
+      label.position.set(0, lifeHere ? 0.42 : 0.72, halfD + (lifeHere ? 0.02 : 0.3));
+      label.scale.set(lifeHere ? 1.55 : 2.35, lifeHere ? 0.36 : 0.52, 1);
       root.add(label);
       root.userData.labelMat = label.material;
 
-      var shown = Math.min(zone.staff.length, 3);
-      for (var idx = 0; idx < shown; idx++) {
-        var staff = zone.staff[idx];
-        var desk = makeCompactDesk(screenMat);
-        var x = (idx - (shown - 1) / 2) * 1.85;
-        desk.position.set(x, 0, 0.15);
-        root.add(desk);
-        var bot = makeCuteBot(zone.color, zone.shape, shared);
-        bot.userData.baseScale = 0.78;
-        bot.scale.setScalar(0.78);
-        bot.position.set(x, 0, 0.95);
-        bot.userData.zoneId = zone.id;
-        bot.userData.staffId = staff.id;
-        bot.userData.isBot = true;
-        bot.userData.phase = Math.random() * Math.PI * 2;
-        bot.userData.baseY = 0;
-        root.add(bot);
-        botMeshes.push(bot);
+      if (window.HQLook) {
+        if (!shared.look) shared.look = window.HQLook.mats(THREE);
+        var storyH = info.level === 1 ? window.HQLook.lobbyH : window.HQLook.pitch;
+        window.HQLook.addCurtain(THREE, root, shared.look, {
+          storyH: storyH,
+          lobby: info.level === 1,
+          parapet: info.level === 6
+        });
+      }
+
+      if (lifeHere) {
+        try {
+          var builtLife = window.HQLifeScene.build({
+            THREE: THREE,
+            root: root,
+            zone: zone,
+            layout: lifeLayout,
+            shared: shared,
+            surfaceY: 0.19,
+            screenMat: screenMat,
+            makeCuteBot: makeCuteBot,
+            makePlant: makePlant,
+            makeGlassWall: makeGlassWall,
+            botMeshes: botMeshes
+          });
+          root.userData.lifeOffice = true;
+          lifePaint = builtLife && builtLife.paint;
+          floorLayouts.life = lifeLayout;
+          if (window.HQOffice) {
+            window.HQOffice.dress({
+              THREE: THREE,
+              root: root,
+              zone: zone,
+              shared: shared,
+              surfaceY: 0.19,
+              makePlant: makePlant,
+              layout: {
+                lamps: [{ x: -1.6, z: 0.05 }, { x: 0.35, z: -0.2 }, { x: 1.05, z: 0.85 }],
+                art: { x: -0.15, z: 2.32, yaw: Math.PI },
+                greenWall: { x: 0.35, z: -2.32, yaw: 0 }
+              },
+              extraPlants: [{ x: 3.9, z: 1.45 }]
+            });
+          }
+        } catch (errLife) {
+          console.warn('life office build failed', errLife);
+          root.userData.lifeOffice = false;
+        }
+      }
+      if (!root.userData.lifeOffice && window.HQOffice && window.HQCampus) {
+        try {
+          var madeLayout = window.HQCampus.layoutFor(zone.id, zone.staff.map(function (s) { return s.id; }));
+          floorLayouts[zone.id] = madeLayout;
+          window.HQOffice.build({
+            THREE: THREE,
+            root: root,
+            zone: zone,
+            layout: madeLayout,
+            shared: shared,
+            surfaceY: 0.19,
+            makeCuteBot: makeCuteBot,
+            makePlant: makePlant,
+            makeGlassWall: makeGlassWall,
+            botMeshes: botMeshes
+          });
+          root.userData.lifeOffice = true;
+        } catch (errOffice) {
+          console.warn('office build failed', zone.id, errOffice);
+          floorLayouts[zone.id] = null;
+        }
+      }
+      if (!root.userData.lifeOffice) {
+        var shown = Math.min(zone.staff.length, 3);
+        for (var idx = 0; idx < shown; idx++) {
+          var staff = zone.staff[idx];
+          var desk = makeCompactDesk(screenMat);
+          var x = (idx - (shown - 1) / 2) * 1.85;
+          desk.position.set(x, 0, 0.15);
+          root.add(desk);
+          var bot = makeCuteBot(zone.color, zone.shape, shared);
+          bot.userData.baseScale = window.HQLook ? 0.82 : 0.78;
+          bot.scale.setScalar(bot.userData.baseScale);
+          bot.position.set(x, window.HQLook ? 0.19 : 0, 0.95);
+          bot.userData.zoneId = zone.id;
+          bot.userData.staffId = staff.id;
+          bot.userData.isBot = true;
+          bot.userData.phase = Math.random() * Math.PI * 2;
+          bot.userData.baseY = window.HQLook ? 0.19 : 0;
+          root.add(bot);
+          botMeshes.push(bot);
+        }
       }
 
       office.add(root);
       zoneRoots[zone.id] = root;
     });
+
+    var staffBots = {};
+    botMeshes.forEach(function (b) {
+      if (b.userData.lifeAgent) {
+        lifeBots[b.userData.staffId] = b;
+        b.userData.campusAgent = true;
+      }
+      if (b.userData.staffId) staffBots[b.userData.staffId] = b;
+    });
+    if (lifePaint && window.HQLifeSim && lifeLayout && zoneRoots.life && zoneRoots.life.userData.lifeOffice) {
+      try {
+        var inferredLife = window.HQLifeSim.inferLifeRoster(liveData || {}, findZone('life').staff, lifeLayout, Date.now());
+        lifeSim = window.HQLifeSim.createSim(lifeLayout, inferredLife.intents);
+        lifeTitle = inferredLife.meetingTitle || '';
+        lifePaint(lifeTitle);
+        lifeSim.agents.forEach(function (a) {
+          var bot = lifeBots[a.staffId];
+          if (bot) applyLifePose(bot, a, 0);
+        });
+      } catch (errSim) {
+        console.warn('life sim failed', errSim);
+        lifeSim = null;
+      }
+    }
+
+    var campusView = null;
+    var director = null;
+    if (window.HQCampus && window.HQLifeSim && window.HQLook) {
+      try {
+        var levelY = {};
+        ZONES.forEach(function (z) {
+          if (zoneRoots[z.id]) levelY[z.id] = zoneRoots[z.id].position.y + 0.19;
+        });
+        var bridgeY = levelY.travel || (window.HQLook.floorBaseY(3) + 0.19);
+        if (window.HQCampusScene && shared.look) {
+          campusView = window.HQCampusScene.build({
+            THREE: THREE,
+            scene: scene,
+            look: shared.look,
+            mats: shared.mats,
+            shared: shared,
+            bridgeY: bridgeY,
+            topY: towerTopY,
+            makePlant: makePlant,
+            makeBot: makeCuteBot
+          });
+          (campusView.wingBots || []).forEach(function (b) { botMeshes.push(b); });
+        }
+        var directorFloors = [];
+        ZONES.forEach(function (z) {
+          var layout = floorLayouts[z.id];
+          if (!layout) return;
+          directorFloors.push({
+            id: z.id,
+            layout: layout,
+            staff: z.staff,
+            sim: z.id === 'life' ? lifeSim : null
+          });
+        });
+        if (directorFloors.length) {
+          director = window.HQCampus.createDirector({
+            Life: window.HQLifeSim,
+            floors: directorFloors,
+            levelY: levelY,
+            bridgeY: bridgeY,
+            getLive: function () { return liveData || {}; }
+          });
+        }
+      } catch (errCampus) {
+        console.warn('campus build failed', errCampus);
+        director = null;
+      }
+    }
 
     function makeLabel(text) {
       var canvas = document.createElement('canvas');
@@ -2359,7 +2573,9 @@
     function animate() {
       if (!alive) return;
       runtime3d.raf = requestAnimationFrame(animate);
-      var t = clock.getElapsedTime();
+      var dt = clock.getDelta();
+      if (dt > 0.05) dt = 0.05;
+      var t = clock.elapsedTime;
       Object.keys(zoneRoots).forEach(function (id) {
         var g = zoneRoots[id];
         if (!g || g.userData.goalZ == null) return;
@@ -2370,14 +2586,72 @@
           g.userData.screenMat.emissiveIntensity = 0.12 + 0.015 * Math.sin(t * 0.7);
         }
       });
-      if (runtime3d.focusY != null) {
+      if (runtime3d.focusY != null && !runtime3d.frameLife && !runtime3d.wasLife) {
         controls.target.y += (runtime3d.focusY - controls.target.y) * 0.1;
       }
+      if (runtime3d.frameLife && !runtime3d.suspendFrame && zoneRoots.life) {
+        lifeTgtTmp.set(0.35, 0.85, 0.05);
+        zoneRoots.life.localToWorld(lifeTgtTmp);
+        lifeCamTmp.set(2.6, 2.15, 8.8);
+        zoneRoots.life.localToWorld(lifeCamTmp);
+        controls.target.lerp(lifeTgtTmp, 0.16);
+        camera.position.lerp(lifeCamTmp, 0.16);
+        runtime3d.wasLife = true;
+      } else if (runtime3d.wasLife && !runtime3d.suspendFrame && !runtime3d.frameLife && runtime3d.towerTarget) {
+        controls.target.lerp(runtime3d.towerTarget, 0.08);
+        camera.position.lerp(runtime3d.towerPos, 0.08);
+        if (controls.target.distanceTo(runtime3d.towerTarget) < 0.15) {
+          runtime3d.wasLife = false;
+          if (!runtime3d.userSteer) controls.autoRotate = true;
+        }
+      }
+      if (runtime3d.glide && !runtime3d.suspendFrame) {
+        controls.target.lerp(runtime3d.glide.target, 0.12);
+        camera.position.lerp(runtime3d.glide.pos, 0.12);
+        if (camera.position.distanceTo(runtime3d.glide.pos) < 0.4) {
+          runtime3d.glide = null;
+          if (!runtime3d.userSteer) controls.autoRotate = true;
+        }
+      }
       controls.update();
+      if (director) {
+        director.step(dt);
+        director.poses().forEach(function (p) {
+          var bot = staffBots[p.staffId];
+          if (!bot) return;
+          var parent = p.riding ? scene : zoneRoots[p.floorId];
+          if (parent && bot.parent !== parent) parent.attach(bot);
+          applyLifePose(bot, { x: p.x, z: p.z, yaw: p.yaw || 0, anim: p.anim || 'idle' }, t);
+          if (p.riding) bot.position.set(p.x, p.y, p.z);
+        });
+        if (campusView && campusView.car) campusView.car.position.y = director.carY() - 0.1;
+        var openDoors = director.openFloors();
+        Object.keys(zoneRoots).forEach(function (id) {
+          var doors = zoneRoots[id].userData.liftDoors;
+          if (!doors || !doors.left) return;
+          var spread = openDoors[id] ? 0.38 : 0.14;
+          doors.left.position.z += ((-spread) - doors.left.position.z) * 0.2;
+          doors.right.position.z += (spread - doors.right.position.z) * 0.2;
+        });
+      } else if (lifeSim) {
+        lifeSim.step(dt);
+        lifeSim.agents.forEach(function (a) {
+          var bot = lifeBots[a.staffId];
+          if (bot) applyLifePose(bot, a, t);
+        });
+      }
       botMeshes.forEach(function (b) {
+        if (b.userData.campusAgent || b.userData.lifeAgent) return;
+        if (b.userData.fashion && window.HQLook) {
+          window.HQLook.applyPose(b, null, t);
+          return;
+        }
         b.position.y = (b.userData.baseY || 0) + Math.sin(t * 0.6 + b.userData.phase) * 0.008;
         b.rotation.y = Math.sin(t * 0.2 + b.userData.phase) * 0.025;
       });
+      if (campusView && campusView.water) {
+        campusView.water.position.y = -0.3 + Math.sin(t * 1.1) * 0.015;
+      }
       floating.forEach(function (s) {
         s.position.y = 1.55 + Math.sin(t * 0.5 + s.userData.phase) * 0.015;
       });
@@ -2402,8 +2676,29 @@
       raf: 0,
       onResize: resize,
       onOrient: onOrient,
-      kill: function () { alive = false; }
+      kill: function () { alive = false; },
+      lifeSim: lifeSim,
+      lifeBots: lifeBots,
+      paintMeet: lifePaint,
+      meetingTitle: lifeTitle,
+      frameLife: false,
+      suspendFrame: false,
+      wasLife: false,
+      userSteer: false,
+      towerPos: camera.position.clone(),
+      towerTarget: controls.target.clone(),
+      director: director,
+      glide: null,
+      wash: 'day',
+      look: shared.look || null,
+      applyWash: wash ? wash.apply : null
     };
+    if (wash && shared.look) setTowerWash('day');
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        if (runtime3d && runtime3d.paintMeet) runtime3d.paintMeet(runtime3d.meetingTitle || '');
+      });
+    }
     animate();
 
     selectZone(selectedZone || 'cmd');
@@ -2510,6 +2805,17 @@
     }
   });
 
+  if ($('btnFrame')) {
+    $('btnFrame').addEventListener('click', function () { frameTower(); });
+  }
+
+  if ($('btnWash')) {
+    $('btnWash').addEventListener('click', function () {
+      var next = runtime3d && runtime3d.wash === 'day' ? 'gold' : 'day';
+      setTowerWash(next);
+    });
+  }
+
   var tryBtn = $('btnTry3d');
   if (tryBtn) {
     tryBtn.addEventListener('click', function () {
@@ -2520,7 +2826,7 @@
 
   buildFloorRail();
 
-  loadDirectory().then(function () {
+  Promise.all([loadDirectory(), loadLifeLayout()]).then(function () {
     var hosted = location.protocol === 'https:' || location.protocol === 'http:';
     /* Tower fits the framed stage, including the short mobile stage. 返回平面 stays in the dock. */
     if (hosted) {
