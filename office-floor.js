@@ -23,19 +23,19 @@
     if (shared.officeKit) return shared.officeKit;
     var g = pack(THREE);
     var green = new THREE.MeshStandardMaterial({
-      color: 0x7E9A72, roughness: 0.78, metalness: 0.02,
-      emissive: 0x8EAE78, emissiveIntensity: 0.08
+      color: 0x3E9A48, roughness: 0.66, metalness: 0.02,
+      emissive: 0x4AAA50, emissiveIntensity: 0.18
     });
     var glass = new THREE.MeshStandardMaterial({
-      color: 0xF7F3EC, transparent: true, opacity: 0.18,
-      roughness: 0.14, metalness: 0.04,
-      emissive: 0xFFF1E0, emissiveIntensity: 0.05,
+      color: 0xE4F2FA, transparent: true, opacity: 0.22,
+      roughness: 0.12, metalness: 0.06,
+      emissive: 0xE8F6FF, emissiveIntensity: 0.05,
       side: THREE.DoubleSide, depthWrite: false
     });
     var door = new THREE.MeshStandardMaterial({
-      color: 0xF6E7D4, transparent: true, opacity: 0.42,
-      roughness: 0.2, metalness: 0.08,
-      emissive: 0xFFE6C8, emissiveIntensity: 0.08,
+      color: 0xF0D4B0, transparent: true, opacity: 0.46,
+      roughness: 0.18, metalness: 0.1,
+      emissive: 0xF0C888, emissiveIntensity: 0.1,
       side: THREE.DoubleSide
     });
     shared.officeKit = { g: g, green: green, glass: glass, door: door, arts: {} };
@@ -103,9 +103,9 @@
     ctx.fillStyle = zone.color || '#C4A36A';
     ctx.fillRect(0, 0, 256, 10);
     ctx.fillRect(0, 150, 256, 10);
-    ctx.fillStyle = '#6E8F7C';
+    ctx.fillStyle = '#5A9A68';
     ctx.fillRect(28, 36, 70, 88);
-    ctx.fillStyle = '#E7C8B0';
+    ctx.fillStyle = '#E8B888';
     ctx.fillRect(112, 48, 110, 64);
     ctx.fillStyle = '#3A322C';
     ctx.font = '500 28px sans-serif';
