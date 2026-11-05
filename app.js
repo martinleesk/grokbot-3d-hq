@@ -2063,10 +2063,11 @@
     var controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    controls.minDistance = window.HQLook ? 30 : 6;
-    controls.maxDistance = window.HQLook ? 120 : 32;
-    controls.maxPolarAngle = window.HQLook ? Math.PI * 0.49 : Math.PI * 0.5;
-    controls.minPolarAngle = window.HQLook ? 0.04 : Math.PI * 0.18;
+    controls.minDistance = window.HQLook ? 1.8 : 2.5;
+    controls.maxDistance = window.HQLook ? 260 : 80;
+    controls.zoomSpeed = window.HQLook ? 1.35 : 1;
+    controls.maxPolarAngle = window.HQLook ? Math.PI * 0.92 : Math.PI * 0.5;
+    controls.minPolarAngle = window.HQLook ? 0.02 : Math.PI * 0.12;
     controls.minAzimuthAngle = -Infinity;
     controls.maxAzimuthAngle = Infinity;
     controls.target.copy(overview.target);
