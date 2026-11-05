@@ -124,10 +124,10 @@
     (meet.walls || []).forEach(function (w) {
       var wall = makeGlassWall(w.w, w.h || 1.08);
       if (wall.userData.glassMat) {
-        wall.userData.glassMat.color.setHex(0xF7F3EC);
-        wall.userData.glassMat.opacity = 0.16;
-        wall.userData.glassMat.emissive.setHex(0xFFF1E0);
-        wall.userData.glassMat.emissiveIntensity = 0.08;
+        wall.userData.glassMat.color.setHex(0xD4ECF8);
+        wall.userData.glassMat.opacity = 0.22;
+        wall.userData.glassMat.emissive.setHex(0xE8F6FF);
+        wall.userData.glassMat.emissiveIntensity = 0.06;
         wall.userData.glassMat.depthWrite = false;
         wall.userData.glassMat.roughness = 0.18;
       }
@@ -210,7 +210,7 @@
         ctx.clearRect(0, 0, 512, 256);
         ctx.fillStyle = '#3A322C';
         ctx.fillRect(0, 0, 512, 256);
-        ctx.strokeStyle = '#B79F80';
+        ctx.strokeStyle = '#C47E1E';
         ctx.lineWidth = 6;
         ctx.strokeRect(18, 18, 476, 220);
         var text = title ? String(title) : '';

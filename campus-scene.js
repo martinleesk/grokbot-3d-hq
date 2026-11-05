@@ -1,7 +1,7 @@
 /* East wing, glass skybridge, elevator shaft, plaza trees and water.
    Bright shell — gold lines, clear glass, warm stone. No dark void. */
 (function (root) {
-  var LEAF = [0x6E9A62, 0x8EAE78, 0x5E8A68, 0xA3C48A];
+  var LEAF = [0x2E8A3E, 0x4AAA48, 0x1E7A40, 0x6EBE5C];
 
   function tree(THREE, mats, x, z, scale) {
     var g = new THREE.Group();
@@ -17,9 +17,9 @@
       new THREE.SphereGeometry(0.55 * s, 10, 8),
       new THREE.MeshStandardMaterial({
         color: LEAF[(x * 3 + z) & 3],
-        roughness: 0.82,
-        emissive: 0x6E9A62,
-        emissiveIntensity: 0.05
+        roughness: 0.74,
+        emissive: 0x3E9A44,
+        emissiveIntensity: 0.26
       })
     );
     canopy.position.y = 0.95 * s;
@@ -37,8 +37,8 @@
     var slab = new THREE.Mesh(
       new THREE.BoxGeometry(w - 0.2, 0.16, d - 0.2),
       new THREE.MeshStandardMaterial({
-        color: 0xE9D7C4, roughness: 0.55, metalness: 0.12,
-        emissive: 0xF3E0CC, emissiveIntensity: 0.06
+        color: 0xE4B45C, roughness: 0.46, metalness: 0.08,
+        emissive: 0xE8B050, emissiveIntensity: 0.16
       })
     );
     slab.position.y = y + 0.08;
@@ -106,8 +106,8 @@
     }
 
     var pathMat = new THREE.MeshStandardMaterial({
-      color: 0xE7D3BC, roughness: 0.62, metalness: 0.08,
-      emissive: 0xF0DCC8, emissiveIntensity: 0.04
+      color: 0xDCC4A8, roughness: 0.58, metalness: 0.08,
+      emissive: 0xE8D0B4, emissiveIntensity: 0.05
     });
     var path = new THREE.Mesh(new THREE.BoxGeometry(9.2, 0.04, 1.35), pathMat);
     path.position.set(9.7, -0.32, 1.15);
@@ -120,7 +120,7 @@
     [[8.4, 2.4, 2.2, 0.28], [12.8, -3.6, 1.6, 0.32], [6.8, -5.2, 2.4, 0.26]].forEach(function (h) {
       var hedge = new THREE.Mesh(
         new THREE.BoxGeometry(h[2], h[3], 0.42),
-        new THREE.MeshStandardMaterial({ color: 0x6E9A62, roughness: 0.86, emissive: 0x7E9A72, emissiveIntensity: 0.05 })
+        new THREE.MeshStandardMaterial({ color: 0x248A38, roughness: 0.66, emissive: 0x3E9A44, emissiveIntensity: 0.24 })
       );
       hedge.position.set(h[0], -0.16, h[1]);
       scene.add(hedge);
@@ -129,9 +129,9 @@
     var water = new THREE.Mesh(
       new THREE.CircleGeometry(2.15, 28),
       new THREE.MeshStandardMaterial({
-        color: 0xB7D7E4, transparent: true, opacity: 0.72,
-        roughness: 0.18, metalness: 0.12,
-        emissive: 0xD5EEF6, emissiveIntensity: 0.08
+        color: 0x5EB8D4, transparent: true, opacity: 0.82,
+        roughness: 0.14, metalness: 0.08,
+        emissive: 0x7ED0E8, emissiveIntensity: 0.16
       })
     );
     water.rotation.x = -Math.PI / 2;
@@ -149,8 +149,8 @@
     var deck = new THREE.Mesh(
       new THREE.BoxGeometry(9.5, 0.08, 1.45),
       new THREE.MeshStandardMaterial({
-        color: 0xF0E2D0, roughness: 0.5, metalness: 0.1,
-        emissive: 0xF6E6D4, emissiveIntensity: 0.05
+        color: 0xE4B050, roughness: 0.42, metalness: 0.08,
+        emissive: 0xE8B040, emissiveIntensity: 0.18
       })
     );
     deck.position.set(9.65, deckY, 0.05);
@@ -219,9 +219,9 @@
     var shaftGlass = new THREE.Mesh(
       new THREE.PlaneGeometry(0.62, shaftH * 0.92),
       new THREE.MeshStandardMaterial({
-        color: 0xE7F4FB, transparent: true, opacity: 0.14,
-        roughness: 0.08, metalness: 0.06,
-        emissive: 0xFFF6EA, emissiveIntensity: 0.04,
+        color: 0xB5DCF4, transparent: true, opacity: 0.26,
+        roughness: 0.08, metalness: 0.02,
+        emissive: 0xD4EEFC, emissiveIntensity: 0.04,
         side: THREE.DoubleSide, depthWrite: false
       })
     );
@@ -236,8 +236,8 @@
     var pad = new THREE.Mesh(
       new THREE.BoxGeometry(0.62, 0.06, 0.62),
       new THREE.MeshStandardMaterial({
-        color: 0xF3E6D4, metalness: 0.2, roughness: 0.4,
-        emissive: 0xFFE6C4, emissiveIntensity: 0.16
+        color: 0xE8C070, metalness: 0.16, roughness: 0.4,
+        emissive: 0xE8B050, emissiveIntensity: 0.24
       })
     );
     car.add(pad);

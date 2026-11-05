@@ -1,10 +1,14 @@
 /* Shell A curtain wall + cute mascot figures.
    Thin gold frames, full-height bright glass, daylight or golden hour.
+   Day colors are a small chroma step: richer gold and glass, clearer cloth.
+   The horizon is cooler and quieter than the stone so the tower wins.
    Figures are original rounded meshes, not a third-party avatar service. */
 (function (root) {
-  var BRASS = 0xB79F80;
-  var DAY_SKY = 0x6EB4EA;
-  var DAY_HAZE = 0xD5E6F4;
+  var BRASS = 0xC47E1E;
+  var DAY_SKY = 0x4C8ED0;
+  var DAY_HAZE = 0xC5D4E4;
+  var DAY_HORIZON = 0xA9C6E2;
+  var DAY_GROUND = 0xC5D0D4;
   var GOLD_SKY = 0xF0B48A;
   var GOLD_HAZE = 0xF8D7B8;
 
@@ -22,35 +26,35 @@
   function mats(THREE) {
     return {
       brass: new THREE.MeshStandardMaterial({
-        color: 0xC4A36A, metalness: 0.55, roughness: 0.32,
-        emissive: 0xC4A36A, emissiveIntensity: 0.1
+        color: 0xC47E1E, metalness: 0.28, roughness: 0.4,
+        emissive: 0xC47E1E, emissiveIntensity: 0.36
       }),
       band: new THREE.MeshStandardMaterial({
-        color: 0xE7D3B8, metalness: 0.16, roughness: 0.55,
-        emissive: 0xF0DCC4, emissiveIntensity: 0.05
+        color: 0xE4B45C, metalness: 0.1, roughness: 0.46,
+        emissive: 0xE8B050, emissiveIntensity: 0.2
       }),
       glass: new THREE.MeshPhysicalMaterial({
-        color: 0xE4F2FB, transparent: true, opacity: 0.16,
-        metalness: 0.06, roughness: 0.08,
+        color: 0xB5DCF4, transparent: true, opacity: 0.26,
+        metalness: 0.02, roughness: 0.08,
         transmission: 0.0,
-        emissive: 0xFFF6EA, emissiveIntensity: 0.03,
+        emissive: 0xD4EEFC, emissiveIntensity: 0.04,
         side: THREE.DoubleSide, depthWrite: false
       }),
       glow: new THREE.MeshBasicMaterial({
-        color: 0xFFE7CC, transparent: true, opacity: 0.1,
+        color: 0xFFE0B0, transparent: true, opacity: 0.14,
         depthWrite: false, side: THREE.DoubleSide
       }),
       interior: new THREE.MeshStandardMaterial({
         color: 0xF4E6D6, roughness: 0.82, metalness: 0.02,
-        emissive: 0xFFE8D0, emissiveIntensity: 0.1
+        emissive: 0xFFE8D0, emissiveIntensity: 0.12
       }),
       skin: new THREE.MeshStandardMaterial({ color: 0xF6D0C0, roughness: 0.58, metalness: 0.02 }),
       belly: new THREE.MeshStandardMaterial({ color: 0xFFF7F1, roughness: 0.62, metalness: 0.02 }),
-      shoe: new THREE.MeshStandardMaterial({ color: 0xC4A484, roughness: 0.48, metalness: 0.12 }),
+      shoe: new THREE.MeshStandardMaterial({ color: 0xB07048, roughness: 0.48, metalness: 0.08 }),
       eyeWhite: new THREE.MeshBasicMaterial({ color: 0xFFFBFA }),
       pupil: new THREE.MeshBasicMaterial({ color: 0x3A2C28 }),
       catchLt: new THREE.MeshBasicMaterial({ color: 0xFFFFFF }),
-      blush: new THREE.MeshBasicMaterial({ color: 0xE8A090, transparent: true, opacity: 0.55 }),
+      blush: new THREE.MeshBasicMaterial({ color: 0xF09890, transparent: true, opacity: 0.62 }),
       mouth: new THREE.MeshBasicMaterial({ color: 0xC47B78 })
     };
   }
@@ -147,28 +151,29 @@
   function badgeMat(THREE, color) {
     var c = new THREE.Color(color);
     return new THREE.MeshStandardMaterial({
-      color: c, emissive: c, emissiveIntensity: 0.35,
+      color: c, emissive: c, emissiveIntensity: 0.48,
       metalness: 0.45, roughness: 0.4
     });
   }
 
-  /* Polished fashion-HQ mascots. Pastel cloth, not crayon primaries. */
+  /* Fashion-HQ mascots. Clearer cloth than the dusty set, still not crayon primaries.
+     Emissive is raised a little so ACES daylight does not wash the shirts out. */
   var MASCOT_LOOKS = [
-    { cloth: 0xD4897A, trim: 0xA85A52, hair: 0x4A2C28 },
-    { cloth: 0xC4A15A, trim: 0x8C7040, hair: 0x3A2A1C },
-    { cloth: 0x6E9A84, trim: 0x3E6A56, hair: 0x2C2824 },
-    { cloth: 0xA888C0, trim: 0x6E5088, hair: 0x2A2030 },
-    { cloth: 0xD4A24A, trim: 0x8C6828, hair: 0x5A3418 },
-    { cloth: 0x6E98B4, trim: 0x3E6880, hair: 0x1E2834 },
-    { cloth: 0xD47884, trim: 0xA04858, hair: 0x5A3028 },
-    { cloth: 0xB7A08A, trim: 0x7A6858, hair: 0x3A2C24 }
+    { cloth: 0xE06858, trim: 0xC4483C, hair: 0x4A2C28 },
+    { cloth: 0xD08020, trim: 0xA86818, hair: 0x3A2A1C },
+    { cloth: 0x2E9A68, trim: 0x1E704C, hair: 0x2C2824 },
+    { cloth: 0xA060C0, trim: 0x7840A0, hair: 0x2A2030 },
+    { cloth: 0xE89818, trim: 0xB07010, hair: 0x5A3418 },
+    { cloth: 0x3A84C0, trim: 0x246494, hair: 0x1E2834 },
+    { cloth: 0xD44870, trim: 0xB03058, hair: 0x5A3028 },
+    { cloth: 0xC07848, trim: 0x8A5030, hair: 0x3A2C24 }
   ];
 
   function clothMat(THREE, hex) {
     var c = new THREE.Color(hex);
     return new THREE.MeshStandardMaterial({
-      color: c, roughness: 0.58, metalness: 0.04,
-      emissive: c, emissiveIntensity: 0.02
+      color: c, roughness: 0.48, metalness: 0.02,
+      emissive: c, emissiveIntensity: 0.16
     });
   }
 
@@ -478,7 +483,8 @@
     var n = geo.attributes.position.count;
     geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
     var mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
-      vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false
+      vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false,
+      toneMapped: false
     }));
     mesh.frustumCulled = false;
     mesh.renderOrder = -1;
@@ -510,8 +516,8 @@
     scene.userData.sky = sky;
 
     var plazaMat = new THREE.MeshStandardMaterial({
-      color: 0xE4CDB6, metalness: 0.24, roughness: 0.42,
-      emissive: 0xF0D8C0, emissiveIntensity: 0.04
+      color: 0xC4B4A2, metalness: 0.08, roughness: 0.62,
+      emissive: 0xD4C4B2, emissiveIntensity: 0.02
     });
     var plaza = new THREE.Mesh(new THREE.CircleGeometry(96, 72), plazaMat);
     plaza.rotation.x = -Math.PI / 2;
@@ -519,8 +525,8 @@
     plaza.receiveShadow = true;
     scene.add(plaza);
     var innerMat = new THREE.MeshStandardMaterial({
-      color: 0xF0DCC8, metalness: 0.34, roughness: 0.32,
-      emissive: 0xF6E6D4, emissiveIntensity: 0.05
+      color: 0xD2B898, metalness: 0.12, roughness: 0.48,
+      emissive: 0xE0C4A4, emissiveIntensity: 0.04
     });
     var inner = new THREE.Mesh(new THREE.CircleGeometry(9.2, 48), innerMat);
     inner.rotation.x = -Math.PI / 2;
@@ -560,48 +566,50 @@
       scene.background.set(clear);
       if (scene.fog) {
         scene.fog.color.set(haze);
-        scene.fog.density = gold ? 0.0035 : 0.0028;
+        scene.fog.density = gold ? 0.0035 : 0.0022;
       }
       if (renderer) renderer.setClearColor(clear, 1);
       if (renderer && renderer.toneMappingExposure != null) {
-        renderer.toneMappingExposure = gold ? 0.86 : 0.84;
+        renderer.toneMappingExposure = gold ? 0.86 : 0.78;
       }
-      paintSky(THREE, sky, gold ? 0xE8895C : 0x6EB4EA, gold ? 0xF8DCC4 : 0xF6E0C4, gold ? 0xE4C4A4 : 0xE7D0B6);
-      hemi.color.set(gold ? 0xFFC89A : 0xD7EBFA);
-      hemi.groundColor.set(gold ? 0xE2B48C : 0xE4C8A8);
-      hemi.intensity = gold ? 0.4 : 0.42;
+      paintSky(THREE, sky, gold ? 0xE8895C : DAY_SKY, gold ? 0xF8DCC4 : DAY_HORIZON, gold ? 0xE4C4A4 : DAY_GROUND);
+      hemi.color.set(gold ? 0xFFC89A : 0xC5DFF6);
+      hemi.groundColor.set(gold ? 0xE2B48C : 0xCDB8A0);
+      hemi.intensity = gold ? 0.4 : 0.34;
       amb.color.set(gold ? 0xFFD8B4 : 0xFFF1E2);
-      amb.intensity = gold ? 0.16 : 0.16;
-      moon.color.set(gold ? 0xFFB070 : 0xFFF4E4);
-      moon.intensity = gold ? 0.7 : 0.72;
+      amb.intensity = gold ? 0.16 : 0.12;
+      moon.color.set(gold ? 0xFFB070 : 0xFFF6E8);
+      moon.intensity = gold ? 0.7 : 0.58;
       moon.position.set(gold ? 18 : 12, gold ? 11 : 24, gold ? 10 : 14);
       upwash.color.set(gold ? 0xFFD0A4 : 0xFFF1E0);
-      upwash.intensity = gold ? 0.28 : 0.16;
+      upwash.intensity = gold ? 0.28 : 0.12;
       rim.color.set(gold ? 0xFFC89A : 0xD5E6F6);
-      rim.intensity = gold ? 0.22 : 0.14;
-      plazaMat.color.set(gold ? 0xE8C4A0 : 0xE4CDB6);
-      plazaMat.emissive.set(gold ? 0xF0C8A4 : 0xF0D8C0);
-      innerMat.color.set(gold ? 0xF0D0B0 : 0xF0DCC8);
+      rim.intensity = gold ? 0.22 : 0.18;
+      plazaMat.color.set(gold ? 0xE8C4A0 : 0xC4B4A2);
+      plazaMat.emissive.set(gold ? 0xF0C8A4 : 0xD4C4B2);
+      innerMat.color.set(gold ? 0xF0D0B0 : 0xD2B898);
       if (look) {
-        look.glass.color.set(gold ? 0xFFE8D0 : 0xE4F2FB);
-        look.glass.opacity = gold ? 0.16 : 0.16;
-        look.glass.emissive.set(gold ? 0xFFD8B0 : 0xFFF6EA);
-        look.glass.emissiveIntensity = 0.03;
+        look.glass.color.set(gold ? 0xFFD8B0 : 0xB5DCF4);
+        look.glass.opacity = gold ? 0.22 : 0.26;
+        look.glass.emissive.set(gold ? 0xFFD0A0 : 0xD4EEFC);
+        look.glass.emissiveIntensity = 0.04;
         look.glass.roughness = 0.08;
-        look.glass.metalness = 0.06;
-        look.brass.color.set(gold ? 0xD4A85A : 0xC4A36A);
-        look.brass.emissive.set(gold ? 0xD4A85A : 0xC4A36A);
-        look.brass.emissiveIntensity = gold ? 0.16 : 0.1;
-        look.band.color.set(gold ? 0xF0D2B0 : 0xE7D3B8);
-        look.band.emissive.set(gold ? 0xF0C8A0 : 0xF0DCC4);
-        look.band.emissiveIntensity = 0.05;
-        look.glow.color.set(gold ? 0xFFD0A0 : 0xFFE7CC);
-        look.glow.opacity = gold ? 0.14 : 0.1;
+        look.glass.metalness = 0.02;
+        look.brass.color.set(gold ? 0xD99228 : 0xC47E1E);
+        look.brass.emissive.set(gold ? 0xD99228 : 0xC47E1E);
+        look.brass.emissiveIntensity = gold ? 0.32 : 0.36;
+        look.brass.metalness = 0.28;
+        look.brass.roughness = 0.4;
+        look.band.color.set(gold ? 0xF0C070 : 0xE4B45C);
+        look.band.emissive.set(gold ? 0xF0C080 : 0xE8B050);
+        look.band.emissiveIntensity = gold ? 0.16 : 0.2;
+        look.glow.color.set(gold ? 0xFFD0A0 : 0xFFE0B0);
+        look.glow.opacity = gold ? 0.16 : 0.14;
         look.interior.color.set(gold ? 0xF6D8C0 : 0xF4E6D6);
         look.interior.emissive.set(gold ? 0xFFD0A8 : 0xFFE8D0);
-        look.interior.emissiveIntensity = gold ? 0.14 : 0.1;
+        look.interior.emissiveIntensity = gold ? 0.16 : 0.12;
       }
-      setEnv(THREE, renderer, scene, gold ? 0xE8895C : 0x6EB4EA, gold ? 0xF8DCC4 : 0xF6E0C4);
+      setEnv(THREE, renderer, scene, gold ? 0xE8895C : DAY_SKY, gold ? 0xF8DCC4 : DAY_HORIZON);
       return gold ? 'gold' : 'day';
     }
     return { hemi: hemi, moon: moon, apply: apply };
