@@ -1791,6 +1791,11 @@ html, body {
 #stage, #fallback, #canvas-wrap, #canvas-wrap canvas {
   background: #1C1916;
 }
+body.mode-3d #stage,
+body.mode-3d #canvas-wrap,
+body.mode-3d #canvas-wrap canvas {
+  background: #6EB4EA;
+}
 #stage {
   border-color: #3F3830;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38);

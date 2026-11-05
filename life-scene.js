@@ -106,14 +106,14 @@
       }
       if (!staff || !seat || !makeCuteBot) return;
       var bot = makeCuteBot(zone.color, zone.shape, shared);
-      bot.userData.baseScale = 0.84;
+      bot.userData.baseScale = 0.9;
       bot.userData.baseY = surfaceY;
       bot.userData.zoneId = zone.id;
       bot.userData.staffId = staff.id;
       bot.userData.isBot = true;
       bot.userData.lifeAgent = true;
       bot.userData.phase = Math.random() * Math.PI * 2;
-      bot.scale.setScalar(0.84);
+      bot.scale.setScalar(0.9);
       bot.position.set(seat.x, surfaceY, seat.z);
       bot.rotation.y = seat.yaw || 0;
       root.add(bot);
@@ -124,10 +124,10 @@
     (meet.walls || []).forEach(function (w) {
       var wall = makeGlassWall(w.w, w.h || 1.08);
       if (wall.userData.glassMat) {
-        wall.userData.glassMat.color.setHex(0xD9CBB8);
-        wall.userData.glassMat.opacity = 0.22;
-        wall.userData.glassMat.emissive.setHex(0xB79F80);
-        wall.userData.glassMat.emissiveIntensity = 0.05;
+        wall.userData.glassMat.color.setHex(0xF7F3EC);
+        wall.userData.glassMat.opacity = 0.16;
+        wall.userData.glassMat.emissive.setHex(0xFFF1E0);
+        wall.userData.glassMat.emissiveIntensity = 0.08;
         wall.userData.glassMat.depthWrite = false;
         wall.userData.glassMat.roughness = 0.18;
       }
@@ -208,7 +208,7 @@
       root.add(grp);
       paint = function (title) {
         ctx.clearRect(0, 0, 512, 256);
-        ctx.fillStyle = '#1C1916';
+        ctx.fillStyle = '#3A322C';
         ctx.fillRect(0, 0, 512, 256);
         ctx.strokeStyle = '#B79F80';
         ctx.lineWidth = 6;
