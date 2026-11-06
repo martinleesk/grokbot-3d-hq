@@ -2,12 +2,12 @@
   "kind": "PAPER_PORTFOLIO_STUB",
   "is_demo": true,
   "label": "DEMO / paper · 本金 US$10,000",
-  "as_of": "2026-11-07T00:41:17+08:00",
+  "as_of": "2026-11-07T00:44:13+08:00",
   "currency": "USD",
   "starting_capital": 10000,
-  "equity": 10000,
-  "peak_equity": 10000,
-  "cash": 9810.0,
+  "equity": 10000.0,
+  "peak_equity": 10000.0,
+  "cash": 9620.0077,
   "day_pnl_pct": 0.0,
   "drawdown_pct": 0.0,
   "order_risk_pct": 0.0,
@@ -22,10 +22,12 @@
       "value": 0.0
     }
   ],
-  "notes": "paper stub only · 本金 US$10,000（2026-11-07 重設）· 模擬 ≠ 實盤 · 真倉自動 OFF · 單筆風控 ≤1%（自動縮 qty）",
-  "invested_notional": 190.0,
+  "notes": "paper stub only · 本金 US$10,000 · 市場宇宙高賣低買 · 模擬 ≠ 實盤 · 真倉自動 OFF · 單筆風控 ≤1%",
+  "invested_notional": 379.9923,
   "open_positions": {
     "SPCX": 0.7685,
-    "ORCL": 0.8249
+    "ORCL": 0.8249,
+    "CRM": 0.4385,
+    "NFLX": 1.4768
   }
 }

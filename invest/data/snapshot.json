@@ -1,24 +1,411 @@
 {
-  "kind": "SHEET_WATCHLIST_SNAPSHOT",
+  "kind": "MARKET_WATCHLIST_SNAPSHOT",
   "is_demo": true,
-  "label": "DEMO / Sheet-like embedded snapshot",
-  "as_of": "2026-11-06T12:57:00+08:00",
-  "source": "Google Sheet「個人投資策劃與資產追蹤表」Dashboard embed · DEMO · 價格可能延遲",
-  "fx_usd_hkd": 7.8358,
-  "nav_hkd": 16760.07,
-  "day_pnl_hkd": -633.86,
-  "day_pnl_pct_portfolio": -3.64,
-  "notes": "OPINION／DEMO only · 模擬 ≠ 實盤 · 唔構成投資建議 · 真倉自動 OFF · 無 broker API",
+  "label": "DEMO / broad liquid market snapshot",
+  "as_of": "2026-11-07T00:44:00+08:00",
+  "stamp_hkt": "2026-11-07 00:44:00 HKT（Asia/Hong_Kong）",
+  "source": "yfinance · DEMO · 價格可能延遲 · OPINION only",
+  "universe_requested": 44,
+  "universe_ok": 44,
+  "failed_tickers": [],
+  "notes": "OPINION／DEMO only · 模擬 ≠ 實盤 · 唔構成投資建議 · 真倉自動 OFF · 無 broker API · market-wide 唔限個人持倉",
   "symbols": [
-    {"symbol": "02800.HK", "kind": "ETF", "account": "HSBC", "price": 24.66, "currency": "HKD", "day_pct": -1.12, "weight_pct": 45.9, "tradable_paper": true},
-    {"symbol": "QQQ", "kind": "ETF", "account": "Tiger", "price": 647.05, "currency": "USD", "day_pct": -6.49, "weight_pct": 11.8, "tradable_paper": true},
-    {"symbol": "VOO", "kind": "ETF", "account": "Tiger", "price": 673.97, "currency": "USD", "day_pct": -4.37, "weight_pct": 11.1, "tradable_paper": true},
-    {"symbol": "SPCX", "kind": "Stock", "account": "Tiger", "price": 123.62, "currency": "USD", "day_pct": -9.05, "weight_pct": 10.9, "tradable_paper": true},
-    {"symbol": "ORCL", "kind": "Stock", "account": "Tiger", "price": 115.16, "currency": "USD", "day_pct": -6.93, "weight_pct": 9.4, "tradable_paper": true},
-    {"symbol": "01211.HK", "kind": "ETF", "account": "HSBC", "price": 73.90, "currency": "HKD", "day_pct": -2.38, "weight_pct": 4.4, "tradable_paper": true},
-    {"symbol": "00005.HK", "kind": "Stock", "account": "Futu 1061", "price": 138.60, "currency": "HKD", "day_pct": -1.77, "weight_pct": 1.7, "tradable_paper": true},
-    {"symbol": "SDIV", "kind": "ETF", "account": "Futu 8035", "price": 22.14, "currency": "USD", "day_pct": -1.60, "weight_pct": 1.0, "tradable_paper": true},
-    {"symbol": "00939.HK", "kind": "Stock", "account": "Futu 1061", "price": 10.52, "currency": "HKD", "day_pct": 0.38, "weight_pct": 0.1, "tradable_paper": true},
-    {"symbol": "RSSS", "kind": "Stock", "account": "SoFi", "price": 1.82, "currency": "USD", "day_pct": -2.15, "weight_pct": 0.1, "tradable_paper": true}
-  ]
+    {
+      "symbol": "SPY",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 739.97,
+      "currency": "USD",
+      "day_pct": 0.9509,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "QQQ",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 660.195,
+      "currency": "USD",
+      "day_pct": 2.0315,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "IWM",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 273.55,
+      "currency": "USD",
+      "day_pct": 0.9484,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "DIA",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 514.8,
+      "currency": "USD",
+      "day_pct": 0.1031,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "XLK",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 165.73,
+      "currency": "USD",
+      "day_pct": 2.0631,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "XLF",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 57.5,
+      "currency": "USD",
+      "day_pct": 0.0,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "XLE",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 62.35,
+      "currency": "USD",
+      "day_pct": 1.1683,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "XLV",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 185.0,
+      "currency": "USD",
+      "day_pct": 0.0487,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "XLI",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 163.225,
+      "currency": "USD",
+      "day_pct": 0.4647,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "GLD",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 371.855,
+      "currency": "USD",
+      "day_pct": -0.9681,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "TLT",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 82.04,
+      "currency": "USD",
+      "day_pct": 0.1343,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "HYG",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 77.275,
+      "currency": "USD",
+      "day_pct": -0.0065,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "EEM",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 59.56,
+      "currency": "USD",
+      "day_pct": 2.6012,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "NVDA",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 188.344,
+      "currency": "USD",
+      "day_pct": 3.7136,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "AAPL",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 344.42,
+      "currency": "USD",
+      "day_pct": 0.0726,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "MSFT",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 536.26,
+      "currency": "USD",
+      "day_pct": 0.0616,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "AMZN",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 263.21,
+      "currency": "USD",
+      "day_pct": 1.1529,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "META",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 621.31,
+      "currency": "USD",
+      "day_pct": 2.6823,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "GOOGL",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 287.62,
+      "currency": "USD",
+      "day_pct": 1.7872,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "TSLA",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 360.8323,
+      "currency": "USD",
+      "day_pct": 4.9877,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "AMD",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 442.725,
+      "currency": "USD",
+      "day_pct": 9.477,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "AVGO",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 296.2725,
+      "currency": "USD",
+      "day_pct": 1.6268,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "JPM",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 338.03,
+      "currency": "USD",
+      "day_pct": 0.2045,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "XOM",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 166.52,
+      "currency": "USD",
+      "day_pct": 0.7381,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "COST",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 1059.275,
+      "currency": "USD",
+      "day_pct": -0.5926,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "NFLX",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 64.33,
+      "currency": "USD",
+      "day_pct": -1.8761,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "CRM",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 216.63,
+      "currency": "USD",
+      "day_pct": -2.5988,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "ORCL",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 116.05,
+      "currency": "USD",
+      "day_pct": 0.7728,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "SDIV",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 22.09,
+      "currency": "USD",
+      "day_pct": -0.2258,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "RSSS",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 1.79,
+      "currency": "USD",
+      "day_pct": -1.6484,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "SPCX",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 131.1946,
+      "currency": "USD",
+      "day_pct": 6.1273,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "VOO",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 680.19,
+      "currency": "USD",
+      "day_pct": 0.9229,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "2800.HK",
+      "kind": "ETF",
+      "account": "MARKET",
+      "price": 24.94,
+      "currency": "HKD",
+      "day_pct": 3.9167,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "0700.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 430.4,
+      "currency": "HKD",
+      "day_pct": 7.1713,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "9988.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 109.1,
+      "currency": "HKD",
+      "day_pct": 8.4493,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "3690.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 80.3,
+      "currency": "HKD",
+      "day_pct": 6.7819,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "1810.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 31.3,
+      "currency": "HKD",
+      "day_pct": 8.8317,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "0005.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 141.1,
+      "currency": "HKD",
+      "day_pct": 3.5217,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "0941.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 81.3,
+      "currency": "HKD",
+      "day_pct": 0.9938,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "1299.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 78.85,
+      "currency": "HKD",
+      "day_pct": 2.4691,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "0388.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 394.6,
+      "currency": "HKD",
+      "day_pct": 2.7604,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "1211.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 75.7,
+      "currency": "HKD",
+      "day_pct": 4.7026,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "1398.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 7.935,
+      "currency": "HKD",
+      "day_pct": 1.4706,
+      "tradable_paper": true
+    },
+    {
+      "symbol": "2318.HK",
+      "kind": "Stock",
+      "account": "MARKET",
+      "price": 53.45,
+      "currency": "HKD",
+      "day_pct": 2.8874,
+      "tradable_paper": true
+    }
+  ],
+  "live_auto": "OFF"
 }

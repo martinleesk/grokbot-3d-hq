@@ -1,13 +1,13 @@
 {
   "kind": "PAPER_ORDERS_LEDGER",
   "is_demo": true,
-  "label": "DEMO / paper ledger · 本金 US$10,000",
+  "label": "DEMO / paper ledger · 本金 US$10,000 · 市場宇宙",
   "account": "PAPER",
   "live_auto": "OFF",
   "starting_capital": 10000,
   "currency": "USD",
   "created_at": "2026-11-07T00:41:10+08:00",
-  "updated_at": "2026-11-07T00:41:10+08:00",
+  "updated_at": "2026-11-07T00:44:06+08:00",
   "orders": [
     {
       "order_id": "5ebb1f42-5492-4791-aa21-c71769f7ee87",
@@ -64,7 +64,63 @@
       "note": "DEMO paper fill · 模擬 ≠ 實盤 · 無 broker API · 真倉自動 OFF",
       "status": "FILLED_DEMO",
       "fill_kind": "DEMO_PAPER"
+    },
+    {
+      "order_id": "1697e93d-d10b-4e38-8039-2cae940083c7",
+      "ts": "2026-11-07T00:44:06+08:00",
+      "side": "buy",
+      "symbol": "CRM",
+      "qty": 0.4385,
+      "order_type": "market",
+      "price": 216.63,
+      "limit_price": null,
+      "notional": 94.992255,
+      "currency": "USD",
+      "account": "PAPER",
+      "is_demo": true,
+      "live_auto": "OFF",
+      "order_risk_pct": 0.949923,
+      "risk_status": "OK",
+      "risk_reasons": [],
+      "risk_limits": {
+        "single_order_max_pct": 1.0,
+        "day_pnl_kill_pct": -3.0,
+        "drawdown_halt_pct": -10.0,
+        "leverage": "OFF"
+      },
+      "stub_equity": 10000.0,
+      "note": "DEMO paper fill · 模擬 ≠ 實盤 · 無 broker API · 真倉自動 OFF",
+      "status": "FILLED_DEMO",
+      "fill_kind": "DEMO_PAPER"
+    },
+    {
+      "order_id": "4a8f84f9-d1f5-4df4-970a-5f5faf35f93b",
+      "ts": "2026-11-07T00:44:06+08:00",
+      "side": "buy",
+      "symbol": "NFLX",
+      "qty": 1.4768,
+      "order_type": "market",
+      "price": 64.33,
+      "limit_price": null,
+      "notional": 95.002544,
+      "currency": "USD",
+      "account": "PAPER",
+      "is_demo": true,
+      "live_auto": "OFF",
+      "order_risk_pct": 0.950025,
+      "risk_status": "OK",
+      "risk_reasons": [],
+      "risk_limits": {
+        "single_order_max_pct": 1.0,
+        "day_pnl_kill_pct": -3.0,
+        "drawdown_halt_pct": -10.0,
+        "leverage": "OFF"
+      },
+      "stub_equity": 10000.0,
+      "note": "DEMO paper fill · 模擬 ≠ 實盤 · 無 broker API · 真倉自動 OFF",
+      "status": "FILLED_DEMO",
+      "fill_kind": "DEMO_PAPER"
     }
   ],
-  "notes": "reset 2026-11-07 for US$10k DEMO · prior ledger archived under fixtures/archive/ · 真倉自動 OFF"
+  "notes": "market-wide 高賣低買 · 真倉自動 OFF · 模擬 ≠ 實盤"
 }
