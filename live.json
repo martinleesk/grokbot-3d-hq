@@ -114,6 +114,11 @@
       "at": "08:08"
     },
     {
+      "zone": "invest",
+      "text": "財富狀況設施可開個人財富看板（Sheet DEMO，唔係紙上帳）",
+      "at": "17:11"
+    },
+    {
       "zone": "sys",
       "text": "HQ PR #8 三層中心已 squash merge；原型 hq 跑通",
       "at": "昨夜"
@@ -201,5 +206,10 @@
       "opportunities": "模擬帳",
       "alerts": "未接真倉"
     }
+  },
+  "wealth": {
+    "dashboardUrl": "wealth/",
+    "dashboardTitle": "個人財富狀況",
+    "note": "Sheet DEMO 持倉看板 · 紙上交易喺投資平台"
   }
 }

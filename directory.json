@@ -68,6 +68,15 @@
       "url": "https://martinleesk.github.io/grokbot-3d-hq/invest/"
     },
     {
+      "category": "財務",
+      "title": "個人財富狀況",
+      "canvas_id": "wealth-board",
+      "updated": "2026-11-06",
+      "staffIds": ["wealth"],
+      "zoneIds": ["invest"],
+      "url": "wealth/"
+    },
+    {
       "category": "旅遊",
       "title": "澳洲之旅回顧",
       "canvas_id": "8321c0c1-9b0a-466c-9d78-60a932a4ff08",

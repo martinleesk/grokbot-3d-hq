@@ -58,6 +58,7 @@
       <div class="center-strip" id="centerStrip" aria-label="社區設施">
         <div class="center-kicker">社區設施</div>
         <button type="button" class="center-line" data-zone="invest" data-staff="invest-platform"><span class="cn">投資平台</span><span class="cs">DEMO 監控中</span></button>
+        <button type="button" class="center-line" data-zone="invest" data-staff="wealth"><span class="cn">財富狀況</span><span class="cs">Sheet DEMO</span></button>
         <button type="button" class="center-line" data-zone="sys" data-staff="shared-db"><span class="cn">共用資料庫</span><span class="cs">Postgres 就緒</span></button>
         <button type="button" class="center-line" data-zone="invest" data-staff="analytics"><span class="cn">數據分析中心</span><span class="cs">分析板已交</span></button>
         <button type="button" class="center-line" data-zone="content" data-staff="lab"><span class="cn">研創中心</span><span class="cs">研創待原型題目</span></button>
@@ -76,6 +77,7 @@
       <button type="button" class="floor-btn" data-place="sec" data-id="life"><span class="floor-code">屋</span><span class="floor-short">秘書</span></button>
       <button type="button" class="floor-btn" data-place="finance" data-id="life"><span class="floor-code">屋</span><span class="floor-short">財務</span></button>
       <button type="button" class="floor-btn" data-place="invest-platform" data-id="invest" title="投資平台"><span class="floor-code">設施</span><span class="floor-short">平台</span></button>
+      <button type="button" class="floor-btn" data-place="wealth" data-id="invest" title="財富狀況"><span class="floor-code">設施</span><span class="floor-short">財富</span></button>
       <button type="button" class="floor-btn" data-place="travel" data-id="travel"><span class="floor-code">屋</span><span class="floor-short">旅遊</span></button>
       <button type="button" class="floor-btn" data-place="hall" data-id="hall"><span class="floor-code">堂</span><span class="floor-short">會堂</span></button>
     </nav>
@@ -153,6 +155,7 @@
       </div>
       <div class="panel-body" id="detailPanelBody">
         <div class="invest-slot" id="investSlot" hidden aria-live="polite" aria-label="投資狀態"></div>
+        <a class="invest-board-link" id="wealthDetailLink" hidden target="_blank" rel="noopener"></a>
         <div class="detail-head">
           <div class="bot-chip" id="detailAvatar">B</div>
           <div>

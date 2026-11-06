@@ -7,7 +7,7 @@ The live HQ is a warm cartoon town. The stacked tower is no longer the primary v
 ## 點樣用 / How to look around
 
 - 打開 `index.html`（GitHub Pages 直接伺服呢個靜態網站，唔使 build）。
-- 全景係小鎮：北邊社區設施係 **投資平台**、**共用資料庫**、**數據分析中心**、**研創中心**，同埋大家一齊開工嘅 **會議廳**。呢四座係大型設施，平頂、大過屋，唔會叫「屋」。
+- 全景係小鎮：北邊社區設施係 **投資平台**、**財富狀況**、**共用資料庫**、**數據分析中心**、**研創中心**，同埋大家一齊開工嘅 **會議廳**。呢幾座係大型設施，平頂、大過屋，唔會叫「屋」。**財富狀況** 喺研創中心前面嘅草坪，金頂、平頂、大過屋，同藍色投資平台分開。點開會開 [`/wealth/`](wealth/)。
 - 八間屋：Boss Bot、工作秘書、財務管家、投資顧問（顧問屋）、生活管家、旅遊規劃師、新聞小編、System Auditor。一代理人一屋，屋主企喺門口。
 - 其餘同事企喺相關屋前或設施崗位（分析台、投資後院、生活屋前、新聞後院、研創前地），唔再預設泊喺巷口。投資街／生活巷／內容巷只係偶爾行過去對一對。
 - 右上角 **而家做緊** 列出每人而家做緊咩（跟 live.json 焦點或狀態）。拉近啲會見到頭上短標同對話泡。
@@ -18,9 +18,9 @@ The live HQ is a warm cartoon town. The stacked tower is no longer the primary v
 - **晝 / 金** 係日間同黃金時刻。
 - 如果部機冇 WebGL，會留喺同一張平面小鎮，點屋一樣開室內卡。
 
-Open the static site (GitHub Pages serves this folder; there is no build). The north green is the civic block: the investment platform, database, analytics, lab, and the meeting hall. Those four facilities are larger flat-roofed buildings, not houses. Eight houses remain, one per core agent, including the advisor's own house. Everyone else stands at a related porch or facility desk, not in the side lanes. The **而家做緊** list (top right) shows each person's current work from `live.json`. Click a person to step inside. The wall card states the pose and which `live.json` field it came from. **全景** or **返回小鎮** steps back outside. **晝 / 金** switches daylight and golden hour.
+Open the static site (GitHub Pages serves this folder; there is no build). The north green is the civic block: the investment platform, the wealth hall, database, analytics, lab, and the meeting hall. Those facilities are larger flat-roofed buildings, not houses. The gold **財富狀況** hall sits on the lawn between the lab and the north path, larger than the houses, and opens [`/wealth/`](wealth/). Eight houses remain, one per core agent, including the advisor's own house. Everyone else stands at a related porch or facility desk, not in the side lanes. The **而家做緊** list (top right) shows each person's current work from `live.json`. Click a person to step inside. The wall card states the pose and which `live.json` field it came from. **全景** or **返回小鎮** steps back outside. **晝 / 金** switches daylight and golden hour.
 
-The monitor board is a standalone cream page at [https://martinleesk.github.io/grokbot-3d-hq/invest/](https://martinleesk.github.io/grokbot-3d-hq/invest/). **投資平台** on the town opens that page.
+The monitor board is a standalone cream page at [https://martinleesk.github.io/grokbot-3d-hq/invest/](https://martinleesk.github.io/grokbot-3d-hq/invest/). **投資平台** on the town opens that page. The wealth board is [https://martinleesk.github.io/grokbot-3d-hq/wealth/](https://martinleesk.github.io/grokbot-3d-hq/wealth/). **財富狀況** opens that page.
 
 ## live.json 點樣驅動室內 / What drives the room
 
@@ -75,5 +75,13 @@ Outdoor motion is scheduled and local: a neighbor chat, a short patrol, a desk e
 `live.invest` 唔使有。有 `dashboardUrl`（https，或者相對 `invest/`）時，投資區詳情、**投資平台**、數據分析中心同投資顧問室內都會顯示「進入投資平台」，開新分頁。平面地圖喺投資平台同顧問屋下面都有一粒。標題用 `dashboardTitle`，冇就用「個人投資台 · 投資平台」。`paper.label` 要寫 **SIMULATED**，呢度唔報真倉價。Canvas 網址唔會開。
 
 `live.invest` is optional. A https `dashboardUrl` — or a relative `invest/` path — shows 「進入投資平台」 on the invest detail, inside **投資平台**, the analytics center, and the advisor's room. The flat map puts the same link on the platform and under the advisor house. The link opens the standalone page in a new tab, not Cursor Canvas. `paper.label` stays **SIMULATED**; this view does not show live prices.
+
+### 財富看板 / Wealth board
+
+獨立頁：[`/wealth/`](wealth/)（`wealth/index.html`）。奶油全屏，總覽 **Sheet DEMO 持倉**。最新 `invest/data/snapshot.json` 如果只係市場報價、冇 NAV／權重，看板用 `wealth/data/sheet-holdings.json`（上次已發布個人快照），並寫明時間。ZA Invest、保誠、強積金同現金如果快照未列，就唔顯示金額。Mox 標已關閉。紙上 US$10,000 另外一格，連結去 [`/invest/`](invest/)，唔會計入 Sheet NAV。
+
+`live.wealth.dashboardUrl` 可選。冇就開相對路徑 `wealth/`。點 **財富狀況** 建築物、社區設施列、頂欄「財富」，或者平面地圖上嗰座金頂設施，都會開新分頁。代理人仍然只得自己嘅屋。
+
+The wealth page is [`/wealth/`](wealth/). It charts the published Sheet DEMO book. If `invest/data/snapshot.json` is only a market watchlist, the page uses `wealth/data/sheet-holdings.json` and says so. Sleeves missing from that snapshot (ZA Invest, Prudential, MPF, cash) stay unlabeled with amounts. Mox is marked closed. The US$10,000 paper account is a separate card that links to [`/invest/`](invest/) and is not added to Sheet NAV. Clicking the gold **財富狀況** facility opens the page. Agents still only have houses.
 
 `node town.test.js` checks the morning brief, workplace posts (not lane parking), activity labels, and that outdoor chats stay tied to real status text. At 08:10 HKT people are at their desks or idle, at 12:00 the secretary is in the DOM block, and at 20:00 Boss is out for a private plan rather than typing at a desk.

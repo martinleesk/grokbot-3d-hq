@@ -27,6 +27,7 @@ var roster = [
   { id: 'retire', name: '退休大計', role: '退休', status: '規劃中', zoneId: 'invest' },
   { id: 'home', name: '買樓大計', role: '置業', status: '規劃中', zoneId: 'invest' },
   { id: 'invest-platform', name: '投資平台', role: '監控板', status: 'DEMO 監控中', zoneId: 'invest', center: true },
+  { id: 'wealth', name: '財富狀況', role: '財富看板', status: 'Sheet DEMO', zoneId: 'invest', center: true },
   { id: 'analytics', name: '數據分析中心', role: '分析板', status: '分析板已交', zoneId: 'invest', center: true },
   { id: 'life', name: '生活管家', role: '日常', status: '運作中', zoneId: 'life' },
   { id: 'finance', name: '財務管家', role: '收支', status: '運作中', zoneId: 'life' },
@@ -85,11 +86,36 @@ assert(got('analytics').headline.indexOf('分析板已交') >= 0, 'analytics hea
 assert(got('shared-db').headline.indexOf('Postgres') >= 0, 'database headline uses its status');
 assert(got('lab').anim === 'sit', 'lab sits with its topic');
 assert(Town.HOUSES.length >= 5 && Town.HOUSES.length <= 8, 'house wave is 5–8');
-assert(Town.PUBLIC.length === 5, 'four facilities plus the hall');
+assert(Town.PUBLIC.length === 6, 'five facilities plus the hall');
 var platform = Town.publicById('invest-platform');
+var wealthHall = Town.publicById('wealth');
 var advisorHouse = Town.houseByStaff('advisor');
 assert(platform && platform.kind === 'center' && platform.label === '投資平台', 'platform is a civic center');
 assert(platform.w > advisorHouse.w && platform.h > advisorHouse.h, 'platform is larger than the advisor house');
+assert(wealthHall && wealthHall.kind === 'center' && wealthHall.label === '財富狀況', 'wealth is a civic center');
+assert(wealthHall.w > advisorHouse.w && wealthHall.h > platform.h, 'wealth hall is a large facility');
+assert(wealthHall.roof !== platform.roof, 'wealth roof is distinct from the invest platform');
+assert(!Town.houseByStaff('wealth'), 'wealth is not an agent house');
+assert(String(wealthHall.label).indexOf('屋') < 0, 'wealth label is not a house');
+assert(got('wealth').place === 'wealth' && got('wealth').center, 'wealth attendant stands at the facility');
+assert(Town.homeTitle('wealth') === '財富狀況', 'wealth keeps the facility name');
+(function () {
+  var boxes = Town.buildingBoxes().filter(function (b) { return b.id !== 'pond'; });
+  for (var i = 0; i < boxes.length; i++) {
+    for (var j = i + 1; j < boxes.length; j++) {
+      var a = boxes[i];
+      var b = boxes[j];
+      var hit = a.minX < b.maxX && a.maxX > b.minX && a.minZ < b.maxZ && a.maxZ > b.minZ;
+      assert(!hit, 'buildings overlap: ' + a.id + ' / ' + b.id);
+    }
+  }
+  [[wealthHall.x - wealthHall.w / 2, wealthHall.z - wealthHall.d / 2],
+    [wealthHall.x + wealthHall.w / 2, wealthHall.z - wealthHall.d / 2],
+    [wealthHall.x - wealthHall.w / 2, wealthHall.z + wealthHall.d / 2],
+    [wealthHall.x + wealthHall.w / 2, wealthHall.z + wealthHall.d / 2]].forEach(function (c) {
+    assert(Math.sqrt(c[0] * c[0] + c[1] * c[1]) < 18.2, 'wealth stays on the lawn');
+  });
+})();
 assert(advisorHouse && Town.homeTitle('advisor') === '顧問屋', 'advisor keeps a house, not 投資屋');
 assert(Town.homeTitle('analytics') === '數據分析中心', 'analytics keeps the facility name');
 assert(Town.homeTitle('shared-db') === '共用資料庫' && Town.homeTitle('lab') === '研創中心', 'other facilities keep their names');
@@ -287,6 +313,15 @@ assert(Town.investBoard({}) === null, 'missing invest hides the board');
 assert(Town.investBoard({ invest: { dashboardUrl: 'http://example.com/x' } }) === null, 'http is not enough');
 assert(Town.investBoard({ invest: { dashboardUrl: 'javascript:alert(1)' } }) === null, 'javascript urls are dropped');
 assert(Town.investBoard({ invest: { dashboardUrl: 'invest/' } }).url === 'invest/', 'relative invest path is accepted');
+var wealthBoard = Town.wealthBoard(live);
+assert(wealthBoard && wealthBoard.url === 'wealth/', 'live wealth board url');
+assert(wealthBoard.title === '個人財富狀況', 'wealth title');
+assert(wealthBoard.label === '進入財富看板', 'wealth label');
+assert(Town.showsWealthBoard('wealth') && !Town.showsWealthBoard('advisor') && !Town.showsWealthBoard('invest-platform'), 'only the wealth hall shows the wealth board');
+assert(Town.wealthBoard({}).url === 'wealth/', 'wealth board defaults without live.wealth');
+assert(Town.wealthBoard({ wealth: { dashboardUrl: 'javascript:alert(1)' } }).url === 'wealth/', 'bad wealth urls fall back');
+assert(Town.wealthBoard({ wealth: { dashboardUrl: 'https://cursor.com/canvas/x' } }).url === 'wealth/', 'canvas wealth urls fall back to the pages board');
+assert(Town.wealthBoard({ wealth: { dashboardUrl: 'https://martinleesk.github.io/grokbot-3d-hq/wealth/' } }).url.indexOf('/wealth/') >= 0, 'https wealth path is accepted');
 var canvasBoard = Town.investBoard({ invest: { dashboard: { url: 'https://cursor.com/canvas/x', title: '板' } } });
 assert(canvasBoard.title === '板' && canvasBoard.url === 'https://martinleesk.github.io/grokbot-3d-hq/invest/', 'canvas urls fall back to the pages board');
 var investHtml = fs.readFileSync(path.join(__dirname, 'invest/index.html'), 'utf8');
@@ -300,13 +335,43 @@ assert(!/cursor\.com\/canvas|grok\/canvas/.test(investHtml + investCss + investJ
 assert(htmlSrc.indexOf('data-place="invest-platform"') >= 0, 'rail opens the platform');
 var rail = htmlSrc.split('id="floorRail"')[1].split('</nav>')[0];
 assert(rail.split('invest-platform')[1].split('</button>')[0].indexOf('屋') < 0, 'platform rail button is not a house');
+assert(rail.indexOf('data-place="wealth"') >= 0, 'rail opens wealth');
+assert(rail.split('data-place="wealth"')[1].split('</button>')[0].indexOf('屋') < 0, 'wealth rail button is not a house');
+assert(rail.split('data-place="wealth"')[1].split('</button>')[0].indexOf('財富') >= 0, 'wealth rail says 財富');
+assert(appSrc.indexOf('openWealthBoard') >= 0, 'town click opens the wealth board');
+assert(sceneSrc.indexOf("opensWealth") >= 0, '3d wealth click does not enter the house');
 assert(cssSrc.indexOf('clip-path: none') >= 0, 'facility roofs on the flat map are not house gables');
 var snap = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/snapshot.json'), 'utf8'));
 var book = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/ledger.json'), 'utf8'));
 var stub = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/stub.json'), 'utf8'));
 assert(snap.is_demo && book.is_demo && stub.is_demo, 'invest seed is demo');
 assert(book.live_auto === 'OFF' && stub.leverage_on === false, 'seed keeps live auto and leverage off');
-assert(snap.symbols.length === 10 && snap.nav_hkd === 16760.07, 'snapshot holdings are the sheet demo');
+assert(snap.kind === 'MARKET_WATCHLIST_SNAPSHOT' && snap.symbols.length === 44 && snap.nav_hkd == null, 'invest snapshot is the market watchlist');
+var sheet = JSON.parse(fs.readFileSync(path.join(__dirname, 'wealth/data/sheet-holdings.json'), 'utf8'));
+assert(sheet.kind === 'SHEET_WATCHLIST_SNAPSHOT' && sheet.is_demo && sheet.symbols.length === 10 && sheet.nav_hkd === 16760.07, 'wealth page keeps the published sheet holdings');
+var Wealth = require('./wealth/wealth.js');
+var picked = Wealth.pickSheet(snap, sheet);
+assert(picked.marketOnly && picked.book === sheet, 'market watchlist does not replace the sheet book');
+var summed = Wealth.summarize(sheet);
+assert(Math.abs(summed.invested - 16156.70748) < 0.02, 'invested value is nav times listed weight');
+assert(summed.cashListed === false, 'sheet snapshot does not invent cash');
+assert(summed.brokers.length === 5, 'five brokers in the sheet book');
+assert(summed.positions[0].symbol === '02800.HK', 'largest holding stays 02800');
+var byd = summed.positions.filter(function (p) { return p.symbol === '01211.HK'; })[0];
+assert(byd && byd.kindLabel === '股票', '01211 is counted as a stock');
+Wealth.UNLISTED.forEach(function (sleeve) {
+  assert(sleeve.value == null && sleeve.amount == null, 'unlisted sleeve has no invented amount: ' + sleeve.name);
+});
+assert(Wealth.pickSheet(sheet, sheet).marketOnly === false, 'a real sheet snapshot is used directly');
+var wealthHtml = fs.readFileSync(path.join(__dirname, 'wealth/index.html'), 'utf8');
+var wealthCss = fs.readFileSync(path.join(__dirname, 'wealth/wealth.css'), 'utf8');
+var wealthJs = fs.readFileSync(path.join(__dirname, 'wealth/wealth.js'), 'utf8');
+assert(/color-scheme:\s*only light/.test(wealthHtml) && /color-scheme:\s*only light/.test(wealthCss), 'wealth page locks light');
+assert(wealthHtml.indexOf('href="../"') >= 0 && wealthHtml.indexOf('返回小鎮') >= 0, 'wealth page links back to the town');
+assert(wealthHtml.indexOf('個人財富狀況') >= 0 && wealthHtml.indexOf('投資平台') >= 0, 'wealth title and invest link');
+assert(wealthHtml.indexOf('100vw') < 0 && wealthCss.indexOf('100vw') < 0 && wealthCss.indexOf('100vmax') < 0, 'wealth layout avoids viewport hacks');
+assert(/prefers-reduced-motion/.test(wealthCss), 'wealth page respects reduced motion');
+assert(wealthJs.indexOf('快照未列') >= 0 && wealthJs.indexOf('紙上 DEMO') >= 0, 'wealth copy separates sheet and paper');
 
 require('./town-scene.js');
 assert(typeof global.HQTownView.boot === 'function', 'town scene still boots');

@@ -3,13 +3,14 @@
    Outdoor posts, short chats, patrols, and lane visits come from HQTown.frameAt.
    Clicking a person still opens the simple indoor room. */
 (function (root) {
-  var OVERVIEW_POS = { x: 16.8, y: 14.6, z: 18.6 };
-  var OVERVIEW_TGT = { x: 0.4, y: 0.5, z: 0.15 };
+  var OVERVIEW_POS = { x: 17.4, y: 14.6, z: 18.2 };
+  var OVERVIEW_TGT = { x: 1.6, y: 0.5, z: 0.15 };
   var CLOTH = {
     boss: 0xE7B23C, sec: 0xF28B82, finance: 0xE09A4A, life: 0xE88AA8,
     advisor: 0x6AA6D8, travel: 0x6FBFB3, news: 0xB89AD8, auditor: 0x8FB36A,
     health: 0xF2C14B, mind: 0xC9A4E0, learn: 0x8EC8E3, meet: 0xE7A08C,
     'shared-db': 0x7EB0E0, analytics: 0x67C4B2, lab: 0xE89A6A, 'invest-platform': 0x3E92D0,
+    wealth: 0xE2A31A,
     byd: 0xE25B4A, '2800': 0x3E7D4F, qqq: 0x4C6EF5, voo: 0x3D5A80,
     newsroom: 0xC9B3E8
   };
@@ -427,6 +428,24 @@
       flask.position.set(0.15, spec.h + 0.48, 0);
       g.add(flask);
     }
+    if (spec.id === 'wealth') {
+      var coin = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.34, 0.34, 0.1, 24),
+        std(THREE, 0xF2C14B, { metalness: 0.28, roughness: 0.38, emissive: 0xFFE7A8, emissiveIntensity: 0.22 })
+      );
+      coin.position.set(-0.82, spec.h + 0.42, 0.28);
+      coin.castShadow = true;
+      g.add(coin);
+      var disc = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.08, 24), std(THREE, 0xFFFBF6, { roughness: 0.45 }));
+      disc.position.set(0.72, spec.h + 0.4, -0.05);
+      g.add(disc);
+      [[0x3E92D0, -0.12, 0.08], [0xE08A28, 0.1, 0.02], [0x2EAA96, 0.02, -0.12]].forEach(function (slice) {
+        var wedge = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.06, 0.16), std(THREE, slice[0]));
+        wedge.position.set(0.72 + slice[1], spec.h + 0.48, -0.05 + slice[2]);
+        g.add(wedge);
+      });
+      door.material = std(THREE, 0xE2A31A, { roughness: 0.45 });
+    }
     if (spec.id === 'invest-platform') {
       var quote = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.42, 0.08), std(THREE, 0xFFFBF6, { roughness: 0.4 }));
       quote.position.set(0, spec.h + 0.48, spec.d * 0.2);
@@ -449,7 +468,7 @@
       bg: 'rgba(255,251,246,0.96)',
       border: '#F0C9A0'
     });
-    label.position.set(0, spec.h + (spec.id === 'invest-platform' ? 1.22 : 0.95), spec.d / 2);
+    label.position.set(0, spec.h + (spec.id === 'invest-platform' || spec.id === 'wealth' ? 1.22 : 0.95), spec.d / 2);
     g.add(label);
     g.userData.spec = spec;
     tag(g, {
@@ -639,6 +658,7 @@
     path(1.2, 6.4, 0.35, -2.55);
     path(13.5, 2.15, 0.6, -5.15);
     path(6.2, 2.15, -9.6, -5.15);
+    path(2.1, 1.0, 3.75, -3.05);
     path(1.05, 3.2, -7.4, 0.2);
     path(1.05, 2.6, 5.3, 2.7);
 
@@ -649,7 +669,7 @@
 
     [
       [-13.2, -3.2, 1.25], [-14.1, 3.4, 1.05], [-12.4, 7.2, 1.15],
-      [13.4, -4.2, 1.2], [14.2, 2.4, 1], [12.2, 7.4, 1.15],
+      [15.4, -3.4, 1.05], [14.2, 2.4, 1], [12.2, 7.4, 1.15],
       [-2.2, 7.6, 1.05], [3.4, -11.2, 0.9], [-8.8, -11.4, 1.1],
       [0.2, 8.4, 1.2], [7.8, 7.6, 0.95]
     ].forEach(function (t) { outdoor.add(makeTree(THREE, t[0], t[1], t[2])); });
@@ -791,9 +811,13 @@
     function paintBoardLink(act) {
       var link = document.getElementById('townBoardLink');
       if (!link || !Town.fillInvestBoardLink) return;
-      var board = act && Town.showsInvestBoard(act.staffId)
-        ? Town.investBoard(opts.getLive ? opts.getLive() : null)
-        : null;
+      var live = opts.getLive ? opts.getLive() : null;
+      var board = null;
+      if (act && Town.showsWealthBoard && Town.showsWealthBoard(act.staffId) && Town.wealthBoard) {
+        board = Town.wealthBoard(live);
+      } else if (act && Town.showsInvestBoard(act.staffId)) {
+        board = Town.investBoard(live);
+      }
       Town.fillInvestBoardLink(link, board);
     }
     function hideHud() {
@@ -1115,8 +1139,9 @@
       if (moved) return;
       var hit = pick(e);
       if (!hit) return;
+      var opensWealth = hit.staffId === 'wealth' || hit.place === 'wealth';
       if (hit.kind === 'hall') openHall(null);
-      else if (hit.staffId) showStaff(hit.staffId);
+      else if (hit.staffId && !opensWealth) showStaff(hit.staffId);
       if (opts.onPick) opts.onPick(hit);
     }
     renderer.domElement.addEventListener('pointerdown', onDown);
@@ -1374,7 +1399,15 @@
     props['shared-db'] = db;
     props.analytics = analytics;
     props.lab = lab;
+    var wealth = propGroup();
+    var vault = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.08, 20), std(THREE, 0xE2A31A, { metalness: 0.25, roughness: 0.4 }));
+    vault.position.set(1.5, 0.95, -0.5);
+    wealth.add(vault);
+    var sliceA = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.12), std(THREE, 0x3E92D0));
+    sliceA.position.set(1.42, 1.02, -0.46);
+    wealth.add(sliceA);
     props['invest-platform'] = platform;
+    props.wealth = wealth;
     g.userData.props = props;
     return g;
   }
