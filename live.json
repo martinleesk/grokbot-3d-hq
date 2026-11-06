@@ -1,173 +1,81 @@
 {
-  "updated": "2026-11-05 17:10 HKT",
+  "updated": "2026-11-06 08:10 HKT",
   "status": "實時運作中",
-  "disclaimer": "資訊同監察用途 · 唔自動下單 · 非持牌投資建議",
   "auditor": {
     "ok": true,
-    "note": "早報 routine ~08:05 失敗後已補發；Signal House A 風控燈仍在"
-  },
-  "riskBoard": {
-    "updated": "2026-11-05 08:35 HKT",
-    "lights": [
-      {
-        "id": "transfer",
-        "label": "HSBC→Futu 轉倉",
-        "sev": "red",
-        "note": "01211×10／02800×312；11/4 仍未入倉",
-        "owner": "invest"
-      },
-      {
-        "id": "recon",
-        "label": "月結單對數",
-        "sev": "yellow",
-        "note": "十月結單到齊待下載對數",
-        "owner": "finance"
-      },
-      {
-        "id": "mox",
-        "label": "Mox 關戶",
-        "sev": "yellow",
-        "note": "現金已轉 ZA；戶口未關",
-        "owner": "finance"
-      },
-      {
-        "id": "usage",
-        "label": "用量週限",
-        "sev": "yellow",
-        "note": "Super ~86.4%；重置 11/8 13:29 HKT",
-        "owner": "auditor"
-      },
-      {
-        "id": "routines",
-        "label": "例行漏跑",
-        "sev": "yellow",
-        "note": "11/5 早報 routine 失敗後已人手補發",
-        "owner": "auditor"
-      },
-      {
-        "id": "memory",
-        "label": "共用記憶過時",
-        "sev": "yellow",
-        "note": "定期覆核",
-        "owner": "auditor"
-      }
-    ]
-  },
-  "invest": {
-    "mode": "PLAN",
-    "halt": false,
-    "haltReason": "",
-    "paper": {
-      "label": "SIMULATED",
-      "pnl": 0,
-      "currency": "HKD"
-    },
-    "morning": {
-      "opportunities": [],
-      "alerts": [],
-      "handover": ""
-    }
+    "note": "早報 11/6：Mox 已關；HSBC 轉倉信已寄等確認；HQ PR#8／投資台 Phase0 DEMO 已落地"
   },
   "counts": {
-    "wait": 9,
-    "done": 22,
-    "routine": 5
+    "wait": 7,
+    "done": 24,
+    "routine": 7
   },
   "focus": [
     {
       "id": "f1",
-      "title": "HSBC→富途轉倉",
-      "detail": "01211×10／02800×312；仍欠 HSBC 轉出",
+      "title": "今日 DOM＋Elder-Friendly",
+      "detail": "11:30–13:00 DOM；14:00–15:30 Elder-Friendly；無地點連結",
       "sev": "red",
-      "due": "2026-11-15",
-      "staffId": "boss",
-      "zone": "cmd"
-    },
-    {
-      "id": "f2",
-      "title": "Brian Janice Annika",
-      "detail": "今日 15:00–20:00；確認出席",
-      "sev": "red",
-      "due": "2026-11-05",
-      "staffId": "boss",
-      "zone": "life"
-    },
-    {
-      "id": "f3",
-      "title": "新月結單對數",
-      "detail": "富途／老虎／SoFi／Mox 十月結單待對數",
-      "sev": "yellow",
-      "due": "2026-11-07",
-      "staffId": "finance",
-      "zone": "invest"
-    },
-    {
-      "id": "f4",
-      "title": "熊貓／都江堰門票",
-      "detail": "11/17 熊貓上午跟開賣；11/18 都江堰；付款前問",
-      "sev": "yellow",
-      "due": "2026-11-16",
-      "staffId": "travel",
-      "zone": "travel"
-    },
-    {
-      "id": "f5",
-      "title": "HKIC DOM Meeting",
-      "detail": "11/6 11:30–13:00；Elder-Friendly 14:00–15:30",
-      "sev": "yellow",
       "due": "2026-11-06",
       "staffId": "sec",
       "zone": "life"
     },
     {
-      "id": "f6",
-      "title": "Mox 關戶",
-      "detail": "錢已轉 ZA；仍未關戶",
-      "sev": "yellow",
-      "due": "2026-11-15",
-      "staffId": "finance",
+      "id": "f2",
+      "title": "今晚 Tsz Kin",
+      "detail": "19:00–23:00 HKT；確認出席",
+      "sev": "red",
+      "due": "2026-11-06",
+      "staffId": "boss",
       "zone": "life"
     },
     {
-      "id": "f7",
-      "title": "HQ PR #6 merge",
-      "detail": "L4 Live Agent Tower MVP 等 Martin 確認 merge",
+      "id": "f3",
+      "title": "HSBC→富途轉倉",
+      "detail": "申請信已寄；等 HSBC／富途確認入倉（01211×10／02800×312）",
       "sev": "yellow",
-      "due": "2026-11-06",
+      "due": "2026-11-15",
       "staffId": "boss",
-      "zone": "cmd"
-    },
-    {
-      "id": "f8",
-      "title": "共用資料庫",
-      "detail": "Postgres 就緒",
-      "sev": "green",
-      "staffId": "shared-db",
-      "zone": "sys"
-    },
-    {
-      "id": "f9",
-      "title": "數據分析中心",
-      "detail": "分析板已交",
-      "sev": "green",
-      "staffId": "analytics",
       "zone": "invest"
     },
     {
-      "id": "f10",
-      "title": "研創中心",
-      "detail": "研創待原型題目",
+      "id": "f4",
+      "title": "HSBC 投資結單",
+      "detail": "05/11/26 eStatement 11/5 到——下載對數",
+      "sev": "yellow",
+      "due": "2026-11-08",
+      "staffId": "finance",
+      "zone": "invest"
+    },
+    {
+      "id": "f5",
+      "title": "11/10 Phlebotomy＋問 HR",
+      "detail": "11:00 Phlebotomy；14:00 茶水會；HLISS／停 5% 供款",
+      "sev": "yellow",
+      "due": "2026-11-10",
+      "staffId": "sec",
+      "zone": "life"
+    },
+    {
+      "id": "f6",
+      "title": "成都行（9 日後）",
+      "detail": "熊貓已付；都江堰待取；變臉你自訂 11/17",
+      "sev": "yellow",
+      "due": "2026-11-15",
+      "staffId": "travel",
+      "zone": "travel"
+    },
+    {
+      "id": "f7",
+      "title": "投資台 Phase 0",
+      "detail": "DEMO applied；監控板已交；真倉未入",
       "sev": "green",
-      "staffId": "lab",
-      "zone": "content"
+      "due": "2026-11-13",
+      "staffId": "invest",
+      "zone": "invest"
     }
   ],
   "calendar": [
-    {
-      "when": "11/05 15:00",
-      "title": "Brian Janice Annika",
-      "where": "私人"
-    },
     {
       "when": "11/06 11:30",
       "title": "HKIC DOM Meeting",
@@ -182,96 +90,100 @@
       "when": "11/06 19:00",
       "title": "Tsz Kin",
       "where": "私人"
-    },
-    {
-      "when": "11/10 11:00",
-      "title": "HKIC Phlebotomy",
-      "where": "工作"
-    },
-    {
-      "when": "11/11 09:30",
-      "title": "QMH CND & HR",
-      "where": "工作"
     }
   ],
   "events": [
     {
-      "zone": "sys",
-      "text": "共用資料庫：Postgres 就緒（martin_shared）",
-      "at": "17:10"
-    },
-    {
-      "zone": "invest",
-      "text": "數據分析中心：分析板已交",
-      "at": "17:10"
-    },
-    {
-      "zone": "content",
-      "text": "研創中心：研創待原型題目（掛內容翼）",
-      "at": "17:10"
-    },
-    {
       "zone": "cmd",
-      "text": "總管早報 11/5 補發（routine 失敗後）；Page 已更新",
-      "at": "08:35"
-    },
-    {
-      "zone": "sys",
-      "text": "用量 Super 週限 ~86.4%；重置 11/8 13:29 HKT",
-      "at": "08:33"
-    },
-    {
-      "zone": "sys",
-      "text": "HQ PR #5 靜奢暖金 merged；PR #6 L4 Tower open 等 merge",
-      "at": "08:33"
-    },
-    {
-      "zone": "content",
-      "text": "quiet-zone PR #19 訊號牌已上 main；試玩 raw.githack signal/",
-      "at": "08:33"
+      "text": "總管早報 11/6 已寫入 Page 並同步 LIVE／usage",
+      "at": "08:10"
     },
     {
       "zone": "life",
-      "text": "今日 15:00 Brian；明日 DOM＋Elder-Friendly＋Tsz Kin",
-      "at": "08:35"
+      "text": "Mox／Mox Invest 關戶電郵確認（11/5）",
+      "at": "19:34"
     },
     {
       "zone": "invest",
-      "text": "HSBC→富途仍卡；十月結單待對數；ORCL/騰訊晶片租賃傳聞（FT，待核）",
-      "at": "08:35"
+      "text": "HSBC→富途轉倉申請信已寄；等券商 update",
+      "at": "00:06"
+    },
+    {
+      "zone": "invest",
+      "text": "投資台 Phase0 DEMO applied＋監控板已交",
+      "at": "08:08"
+    },
+    {
+      "zone": "sys",
+      "text": "HQ PR #8 三層中心已 squash merge；原型 hq 跑通",
+      "at": "昨夜"
     },
     {
       "zone": "travel",
-      "text": "熊貓／都江堰門票跟進；成都 11 月霧／濕滑提醒",
-      "at": "08:35"
+      "text": "都江堰票號 1SJPJBP8SKWTX 待取；熊貓已付",
+      "at": "11/5"
+    },
+    {
+      "zone": "content",
+      "text": "新聞：恒指約 24,796（+877）；黃之鋒判監 10 年",
+      "at": "21:00"
+    },
+    {
+      "zone": "sys",
+      "text": "用量 Ultra 週限 2.3%；重置 11/8 13:29 HKT",
+      "at": "08:09"
     }
   ],
   "usage": {
-    "pctUsed": 86.4,
-    "grokBotPctOfLimit": null,
+    "pctUsed": 2.3,
+    "grokBotPctOfLimit": 2.3,
     "sharedWithOtherApps": true,
-    "plan": "Super",
+    "plan": "Ultra",
     "resetAt": "2026-11-08T13:29:00+08:00",
-    "resetLabel": "週日 11/8 13:29 HKT（約 3 日後）",
-    "note": "額外用量來自 additional usage credits；見 Settings > Usage & Billing。CheckSubscriptionUsage 未分拆 Grok Bot 佔比。",
+    "resetLabel": "週日 11/8 13:29 HKT（約 2 日後）",
+    "note": "額外用量來自 additional usage credits；見 Settings > Usage & Billing。本次報告無 per-bot 佔比明細。",
     "top": [],
-    "updated": "2026-11-05 08:33 HKT"
+    "updated": "2026-11-06 08:09 HKT"
   },
-  "decisions": [
-    {
-      "id": "d1",
-      "title": "Merge HQ PR #6？",
-      "detail": "L4 Live Agent Tower MVP（開放辦公室＋玻璃會議室）",
-      "url": "https://github.com/martinleesk/grokbot-3d-hq/pull/6"
-    }
-  ],
-  "campus": {
-    "meetings": [
+  "decisions": [],
+  "disclaimer": "資訊同監察用途 · 唔自動下單 · 非持牌投資建議",
+  "riskBoard": {
+    "updated": "2026-11-06 08:10 HKT",
+    "lights": [
       {
-        "id": "cross-brief",
-        "title": "跨樓早會",
-        "targetFloor": "cmd",
-        "staffIds": ["boss", "life", "advisor"]
+        "id": "transfer",
+        "label": "HSBC→Futu 轉倉",
+        "sev": "yellow",
+        "note": "申請信已寄；等確認入倉（01211×10／02800×312）",
+        "owner": "invest"
+      },
+      {
+        "id": "recon",
+        "label": "月結單對數",
+        "sev": "yellow",
+        "note": "HSBC 投資 eStatement 05/11/26 新到待下載",
+        "owner": "finance"
+      },
+      {
+        "id": "mox",
+        "label": "Mox 關戶",
+        "sev": "green",
+        "note": "Mox／Mox Invest 已關閉（電郵確認）",
+        "owner": "finance"
+      },
+      {
+        "id": "routines",
+        "label": "例行漏跑",
+        "sev": "green",
+        "note": "早報 11/6 正常；投資台監控板 routine 新建",
+        "owner": "auditor"
+      },
+      {
+        "id": "memory",
+        "label": "共用記憶過時",
+        "sev": "green",
+        "note": "Mox 關戶／轉倉申請已寫入 shared_journal",
+        "owner": "auditor"
       }
     ]
   }
