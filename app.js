@@ -182,6 +182,18 @@
   }
 
   /* ---------- Toast ---------- */
+  function setHint(text) {
+    var hint = $('hint');
+    if (!hint) return;
+    hint.textContent = text;
+    hint.title = text;
+  }
+  function cameraHint(threeD) {
+    if (!threeD) return '而家做緊同今日焦點可以收合 · 可轉立體小鎮';
+    if (isTouch) return '單指旋轉 · 雙指拖曳平移同縮放 · 點人入屋';
+    return '左拖旋轉 · Shift+左拖或右拖平移 · 滾輪縮放 · 點人入屋';
+  }
+
   function toast(msg) {
     var stack = $('toastStack');
     if (!stack) return;
@@ -1350,18 +1362,41 @@
     if ($('changelogBackdrop')) $('changelogBackdrop').hidden = true;
   }
 
-  /* ---------- Phase A drawers (default closed; 今日焦點 stays open) ---------- */
+  /* ---------- Drawers + HUD collapse (same .collapsed / localStorage) ---------- */
   var DRAWER_IDS = ['leftPanel', 'detailPanel', 'feedPanel', 'usageDrawer', 'riskDrawer'];
-  function applyCollapse(panelId, open) {
+  var HUD_IDS = ['focusPanel', 'townDuty', 'townIndoor', 'townCaption'];
+  function hudDefaultOpen(panelId) {
+    if (panelId === 'townDuty') return false;
+    if (panelId === 'focusPanel') {
+      try { return window.matchMedia('(min-width: 821px)').matches; }
+      catch (e) { return true; }
+    }
+    return true;
+  }
+  function applyCollapse(panelId, open, persist) {
     var panel = $(panelId);
     if (!panel) return;
+    var hud = HUD_IDS.indexOf(panelId) >= 0;
     panel.classList.toggle('collapsed', !open);
-    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
-    savePanelState(panelId, open);
+    if (hud) panel.removeAttribute('aria-hidden');
+    else panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (persist !== false) savePanelState(panelId, open);
     document.querySelectorAll('.dock-btn[data-drawer="' + panelId + '"], .ribbon-chip[data-drawer="' + panelId + '"]').forEach(function (btn) {
       btn.classList.toggle('active', !!open);
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
+    document.querySelectorAll('[data-collapse="' + panelId + '"]').forEach(function (btn) {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.title = open ? '收合' : '展開';
+    });
+    if (panelId === 'focusPanel') {
+      document.documentElement.classList.toggle('focus-collapsed', !open);
+      if (runtime3d && runtime3d.onResize) {
+        requestAnimationFrame(function () {
+          if (runtime3d && runtime3d.onResize) runtime3d.onResize();
+        });
+      }
+    }
     if (panelId === 'feedPanel' && open) {
       var badge = $('feedBadge');
       if (badge) badge.hidden = true;
@@ -1384,7 +1419,10 @@
   }
   function initCollapse() {
     DRAWER_IDS.forEach(function (id) {
-      applyCollapse(id, loadPanelState(id, false));
+      applyCollapse(id, loadPanelState(id, false), false);
+    });
+    HUD_IDS.forEach(function (id) {
+      if ($(id)) applyCollapse(id, loadPanelState(id, hudDefaultOpen(id)), false);
     });
     document.querySelectorAll('[data-drawer]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -1395,6 +1433,19 @@
         if (willOpen) closeDrawers(id);
         applyCollapse(id, willOpen);
       });
+    });
+    document.addEventListener('click', function (e) {
+      var node = e.target;
+      var btn = null;
+      while (node && node !== document) {
+        if (node.getAttribute && node.hasAttribute('data-collapse')) { btn = node; break; }
+        node = node.parentNode;
+      }
+      if (!btn) return;
+      var id = btn.getAttribute('data-collapse');
+      var panel = $(id);
+      if (!panel) return;
+      applyCollapse(id, panel.classList.contains('collapsed'));
     });
   }
 
@@ -1650,9 +1701,10 @@
       status: act.status || '',
       source: window.HQTown.sourceLabel(act.source)
     } : window.HQTown.hudLines(act);
+    var title = $('townIndoorTitle');
+    if (title) title.textContent = lines.who || lines.kicker || '室內';
     copy.innerHTML =
       '<div class="kicker">' + escHtml(lines.kicker) + '</div>' +
-      '<h3>' + escHtml(lines.who) + '</h3>' +
       '<p class="anim">' + escHtml(lines.anim) + '</p>' +
       '<p class="doing">' + escHtml(lines.doing) + '</p>' +
       '<p class="detail">' + escHtml(lines.detail) + '</p>' +
@@ -1728,11 +1780,12 @@
 
   function renderTownDuty() {
     var el = $('townDuty');
-    if (!el || !window.HQTown) return;
+    var body = $('townDutyBody');
+    if (!el || !body || !window.HQTown) return;
     var inferred = activityNow();
     if (!inferred) return;
     var board = window.HQTown.dutyBoard(inferred);
-    var html = '<h2>而家做緊</h2>';
+    var html = '';
     board.forEach(function (group) {
       html += '<section class="town-duty-group"><h3>' + escHtml(group.title) + '</h3>';
       group.people.forEach(function (person) {
@@ -1742,8 +1795,8 @@
       });
       html += '</section>';
     });
-    el.innerHTML = html;
-    el.querySelectorAll('button[data-staff]').forEach(function (btn) {
+    body.innerHTML = html;
+    body.querySelectorAll('button[data-staff]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var hit = findStaffAnywhere(btn.getAttribute('data-staff'));
         if (hit) selectZone(hit.zone.id, hit.staff.id, { toast: true, openDrawer: true });
@@ -1812,11 +1865,20 @@
     indoor.className = 'town-indoor';
     indoor.id = 'townIndoor';
     indoor.hidden = true;
-    indoor.innerHTML = '<button type="button" class="town-back-2d" id="townBack2d">返回小鎮</button><div class="town-indoor-copy" id="townIndoorCopy"></div>';
+    indoor.innerHTML =
+      '<div class="panel-toolbar">' +
+        '<button type="button" class="town-back-2d" id="townBack2d">返回小鎮</button>' +
+        '<button type="button" class="panel-toggle" data-collapse="townIndoor" aria-expanded="true" aria-controls="townIndoorCopy">' +
+          '<span class="town-indoor-title" id="townIndoorTitle">室內</span>' +
+          '<span class="collapse-chevron" aria-hidden="true">›</span>' +
+        '</button>' +
+      '</div>' +
+      '<div class="panel-body town-indoor-copy" id="townIndoorCopy"></div>';
     map.appendChild(indoor);
     root.appendChild(map);
     var back = $('townBack2d');
     if (back) back.addEventListener('click', closeTownCard);
+    applyCollapse('townIndoor', loadPanelState('townIndoor', true), false);
     if (keep) showTownCard(keep);
   }
 
@@ -1911,8 +1973,7 @@
       btn.classList.remove('hidden');
       btn.textContent = '立體小鎮';
     }
-    var hint = $('hint');
-    if (hint) hint.textContent = '右上角睇每人做緊咩 · 可轉立體小鎮';
+    setHint(cameraHint(false));
     if (reason) pushFeed({ zone: 'sys', text: '平面小鎮：' + reason });
     build2D();
     renderTownDuty();
@@ -2004,8 +2065,7 @@
       $('bootError').hidden = true;
       var btn = $('btnTry3d');
       if (btn) btn.textContent = '平面地圖';
-      var hint = $('hint');
-      if (hint) hint.textContent = '右上角睇緊做緊咩 · 點人入室內';
+      setHint(cameraHint(true));
       mode = '3d';
       if (runtime3d && window.HQTownView) window.HQTownView.sync(liveData || {});
       if (runtime3d) runtime3d.skipEnter = true;

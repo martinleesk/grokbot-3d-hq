@@ -49,7 +49,10 @@
 
   <aside class="panel focus-panel" id="focusPanel">
     <div class="panel-toolbar">
-      <div class="panel-label" style="margin:0">今日焦點</div>
+      <button type="button" class="panel-toggle" data-collapse="focusPanel" aria-expanded="true" aria-controls="focusPanelBody">
+        <span class="panel-label">今日焦點</span>
+        <span class="collapse-chevron" aria-hidden="true">›</span>
+      </button>
     </div>
     <div class="panel-body" id="focusPanelBody">
       <div class="center-strip" id="centerStrip" aria-label="共用基建">
@@ -75,18 +78,35 @@
       <button type="button" class="floor-btn" data-place="travel" data-id="travel"><span class="floor-code">屋</span><span class="floor-short">旅遊</span></button>
       <button type="button" class="floor-btn" data-place="hall" data-id="hall"><span class="floor-code">堂</span><span class="floor-short">會堂</span></button>
     </nav>
-    <aside id="townDuty" class="town-duty" hidden aria-label="而家做緊咩"></aside>
+    <aside id="townDuty" class="town-duty collapsed" hidden aria-label="而家做緊">
+      <div class="panel-toolbar">
+        <button type="button" class="panel-toggle" data-collapse="townDuty" aria-expanded="false" aria-controls="townDutyBody">
+          <span class="panel-label">而家做緊</span>
+          <span class="collapse-chevron" aria-hidden="true">›</span>
+        </button>
+      </div>
+      <div class="panel-body" id="townDutyBody"></div>
+    </aside>
     <div id="townHud" class="town-hud" hidden>
       <button type="button" id="townBack">返回小鎮</button>
-      <div class="town-caption">
-        <div class="town-kicker" id="townKicker">室內</div>
-        <h2 id="townWho"></h2>
-        <p class="town-anim" id="townAnim"></p>
-        <p class="town-doing" id="townDoing"></p>
-        <p class="town-detail" id="townDetail"></p>
-        <p class="town-status" id="townStatus"></p>
-        <p class="town-source" id="townSource"></p>
-        <a class="town-board-link" id="townBoardLink" hidden target="_blank" rel="noopener"></a>
+      <div class="town-caption" id="townCaption">
+        <div class="panel-toolbar">
+          <button type="button" class="panel-toggle" data-collapse="townCaption" aria-expanded="true" aria-controls="townCaptionBody">
+            <span class="caption-titles">
+              <span class="town-kicker" id="townKicker">室內</span>
+              <h2 id="townWho"></h2>
+            </span>
+            <span class="collapse-chevron" aria-hidden="true">›</span>
+          </button>
+        </div>
+        <div class="panel-body" id="townCaptionBody">
+          <p class="town-anim" id="townAnim"></p>
+          <p class="town-doing" id="townDoing"></p>
+          <p class="town-detail" id="townDetail"></p>
+          <p class="town-status" id="townStatus"></p>
+          <p class="town-source" id="townSource"></p>
+          <a class="town-board-link" id="townBoardLink" hidden target="_blank" rel="noopener"></a>
+        </div>
       </div>
     </div>
     <div id="fallback" aria-label="卡通小鎮">
@@ -104,7 +124,7 @@
     <button type="button" class="dock-btn" data-drawer="leftPanel" aria-expanded="false" aria-controls="leftPanel">職能</button>
     <button type="button" class="dock-btn" data-drawer="detailPanel" aria-expanded="false" aria-controls="detailPanel">詳情</button>
     <button type="button" class="dock-btn" data-drawer="feedPanel" aria-expanded="false" aria-controls="feedPanel">動態 <span class="badge-dot" id="feedBadge" hidden></span></button>
-    <span class="dock-hint" id="hint">右上角睇緊做緊咩 · 點人入室內</span>
+    <span class="dock-hint" id="hint" title="左拖旋轉 · Shift+左拖或右拖平移 · 滾輪縮放">左拖旋轉 · Shift+左拖或右拖平移 · 滾輪縮放</span>
     <button type="button" class="mode-toggle" id="btnTry3d">平面地圖</button>
   </nav>
 
