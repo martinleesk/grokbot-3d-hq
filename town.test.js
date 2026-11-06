@@ -296,6 +296,24 @@ assert(/color-scheme:\s*only light/.test(investHtml) && /color-scheme:\s*only li
 assert(investHtml.indexOf('href="../"') >= 0 && investHtml.indexOf('返回小鎮') >= 0, 'invest page links back to the town');
 assert(investHtml.indexOf('總覽') >= 0 && investHtml.indexOf('交易') >= 0 && investHtml.indexOf('全自動') >= 0 && investHtml.indexOf('持倉') >= 0 && investHtml.indexOf('研究風控') >= 0, 'invest tabs');
 assert(investHtml.indexOf('真倉自動 OFF') >= 0 && investHtml.indexOf('唔構成投資建議') >= 0, 'demo disclaimer stays on the page');
+assert(investHtml.indexOf('個人投資台 · 投資平台') >= 0 && investHtml.indexOf('監控板') < 0, 'invest chrome is 投資平台, not 監控板');
+assert(investHtml.indexOf('id="heroValue"') >= 0 && investHtml.indexOf('id="heroSide"') >= 0, 'paper capital sits beside cash and invested');
+assert(investHtml.indexOf('id="sheetRef"') >= 0, 'sheet NAV has a secondary line');
+assert(investHtml.indexOf('100,000') < 0 && investJs.indexOf('US$100,000') < 0, 'page does not advertise the stale 100k book');
+var subAssign = investJs.split("$('subline').textContent")[1].split(';')[0];
+var warnAssign = investJs.split("$('warn').textContent")[1].split(';')[0];
+var sheetAssign = investJs.split('sheetEl.textContent')[1].split(';')[0];
+var heroFn = investJs.split('function renderHero')[1].split('function positionCards')[0];
+assert(subAssign.indexOf('當日') < 0 && subAssign.indexOf('pct(') < 0 && subAssign.indexOf('nav_hkd') < 0, 'gray header drops day percent and sheet NAV');
+assert(warnAssign.indexOf('真倉自動 OFF') >= 0 && warnAssign.indexOf('當日') >= 0 && warnAssign.indexOf('pct(') >= 0, 'pink strip keeps day percent once');
+assert(investJs.indexOf('day_pnl_hkd') >= 0, 'sheet dollar delta is used when the snapshot has it');
+assert(sheetAssign.indexOf('Sheet 參考') >= 0 && sheetAssign.indexOf('NAV') >= 0 && sheetAssign.indexOf('nav_hkd') >= 0 && sheetAssign.indexOf('當日') < 0 && sheetAssign.indexOf('pct(') < 0, 'sheet NAV stays a reference without day percent');
+assert(heroFn.indexOf('現金') >= 0 && heroFn.indexOf('已投資') >= 0 && heroFn.indexOf('當日') < 0, 'cash and invested sit with capital; day percent stays off the hero');
+assert(investJs.indexOf('starting_capital') >= 0 && investJs.indexOf('stub.equity') >= 0 && investJs.indexOf('invested_notional') >= 0 && investJs.indexOf('open_positions') >= 0, 'paper figures are read from stub.json');
+assert(investJs.indexOf('STUB_EQUITY') < 0, 'risk base is not the stale 100k constant');
+assert(investJs.indexOf('hqInvestPaperFills') >= 0 && investJs.indexOf("live_auto: 'OFF'") >= 0, 'local tickets stay paper');
+assert(investCss.indexOf('100vw') < 0 && investCss.indexOf('100vmax') < 0, 'no viewport-width glow hack');
+assert(/width:\s*100%/.test(investCss) && investCss.indexOf('prefers-reduced-motion') >= 0, 'full-width shell can calm motion');
 assert(!/cursor\.com\/canvas|grok\/canvas/.test(investHtml + investCss + investJs), 'invest page does not load canvas');
 assert(htmlSrc.indexOf('data-place="invest-platform"') >= 0, 'rail opens the platform');
 var rail = htmlSrc.split('id="floorRail"')[1].split('</nav>')[0];
@@ -306,7 +324,10 @@ var book = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/ledger.j
 var stub = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/stub.json'), 'utf8'));
 assert(snap.is_demo && book.is_demo && stub.is_demo, 'invest seed is demo');
 assert(book.live_auto === 'OFF' && stub.leverage_on === false, 'seed keeps live auto and leverage off');
-assert(snap.symbols.length === 10 && snap.nav_hkd === 16760.07, 'snapshot holdings are the sheet demo');
+assert(snap.kind === 'MARKET_WATCHLIST_SNAPSHOT' && snap.symbols.length === 44 && snap.nav_hkd == null, 'snapshot is the market watchlist, not a sheet NAV');
+assert(stub.starting_capital === 10000 && stub.equity === 10000 && stub.currency === 'USD', 'paper trial capital is US$10,000');
+assert(stub.open_positions && Object.keys(stub.open_positions).length === 4, 'open paper positions');
+assert(book.starting_capital === 10000 && book.orders.length === 4, 'ledger is the 10k paper book');
 
 require('./town-scene.js');
 assert(typeof global.HQTownView.boot === 'function', 'town scene still boots');
