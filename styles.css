@@ -1848,6 +1848,133 @@ html, body {
   color: #3A322C;
   font-family: var(--sans);
 }
+/* Cartoon town — primary stage and the flat fallback. */
+body.mode-2d #townHud { display: none !important; }
+.town-hud {
+  position: absolute;
+  z-index: 7;
+  left: 88px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.town-hud[hidden] { display: none !important; }
+.town-hud button,
+.town-back-2d {
+  pointer-events: auto;
+  border: 1px solid #E4C99A;
+  background: #FFFBF6;
+  color: #3A322C;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(90, 50, 20, 0.12);
+}
+.town-caption,
+.town-indoor {
+  background: rgba(255, 251, 246, 0.96);
+  border: 1px solid #E4D3BC;
+  border-radius: 16px;
+  padding: 10px 14px 12px;
+  color: #3A322C;
+  box-shadow: 0 10px 24px rgba(90, 50, 20, 0.12);
+}
+.town-caption { pointer-events: none; max-width: min(560px, 100%); }
+.town-kicker, .town-indoor .kicker {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #A56B42;
+  font-weight: 700;
+}
+.town-caption h2, .town-indoor h3 { margin: 2px 0 4px; font-size: 20px; font-family: var(--serif); }
+.town-anim, .town-indoor .anim { margin: 0; font-weight: 800; color: #C47E1E; }
+.town-doing, .town-indoor .doing { margin: 4px 0 0; font-weight: 700; line-height: 1.4; }
+.town-detail, .town-status, .town-source,
+.town-indoor .detail, .town-indoor .status, .town-indoor .source {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6A5A4E;
+}
+.fb-office.is-town {
+  background: linear-gradient(180deg, #B7E3F8 0%, #D9F3C8 38%, #8FCB6E 100%);
+  border: 2px solid #fff;
+  box-shadow: 0 12px 28px rgba(80, 50, 20, 0.12);
+}
+.fb-office.is-town::before { display: none; }
+.town-map { position: relative; z-index: 1; min-height: 100%; }
+.town-grass { display: flex; flex-direction: column; gap: 12px; padding: 8px 4px 4px; }
+.town-boot { text-align: center; color: #3A322C; font-weight: 700; padding: 48px 0; }
+.town-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.town-plot {
+  width: 108px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: #3A322C;
+}
+.town-plot .roof {
+  display: block;
+  height: 28px;
+  background: #F2B56B;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.town-plot.kind-hall .roof { background: #E36B5C; }
+.town-plot.kind-center .roof { background: #7EB6E0; }
+.town-plot.is-boss .roof { background: #F0C14A; }
+.town-plot .wall {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: -2px;
+  background: #FFF8EE;
+  border: 2px solid #fff;
+  border-radius: 0 0 12px 12px;
+  padding: 6px 6px 8px;
+  box-shadow: 0 8px 14px rgba(80, 50, 20, 0.12);
+}
+.town-plot small { color: #A56B42; font-weight: 700; }
+.town-plot.active .wall { outline: 2px solid #C47E1E; }
+.town-pins { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.town-pin {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #FFF4D8;
+  color: #3A322C;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(80, 50, 20, 0.12);
+}
+.town-indoor { margin-top: 12px; }
+.town-indoor[hidden] { display: none !important; }
+.town-avatar {
+  width: 54px;
+  height: 54px;
+  margin-top: 8px;
+  border-radius: 50% 50% 46% 46%;
+  background: #F6C7B0;
+  position: relative;
+  box-shadow: inset 0 -16px 0 #F2B56B;
+}
+.town-avatar.pose-sit { transform: translateY(6px) scale(0.92); border-radius: 50% 50% 40% 40%; }
+.town-avatar.pose-idle { box-shadow: inset 0 -10px 0 #E7E0D6; }
+.town-avatar.pose-meeting { box-shadow: inset 0 -16px 0 #E36B5C; }
+.town-avatar.away::after { content: "外出"; position: absolute; right: -8px; top: -6px; font-size: 10px; background: #fff; border-radius: 8px; padding: 1px 4px; }
+@media (max-width: 820px) {
+  .town-hud { left: 8px; right: 8px; bottom: 58px; }
+  .town-caption h2 { font-size: 17px; }
+}
+
 #stage, #fallback, #canvas-wrap, #canvas-wrap canvas {
   background: #F7F1E8;
 }

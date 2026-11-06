@@ -1,4 +1,5 @@
-/* East wing, glass skybridge, elevator shaft, plaza trees and water.
+/* UNUSED by index.html — the town map replaced the east wing and tower shell.
+   East wing, glass skybridge, elevator shaft, plaza trees and water.
    Bright shell — gold lines, clear glass, warm stone. No dark void. */
 (function (root) {
   var LEAF = [0x2E8A3E, 0x4AAA48, 0x1E7A40, 0x6EBE5C];
