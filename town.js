@@ -59,7 +59,7 @@
   var INVEST_BOARD_HOMES = { advisor: 1, analytics: 1, 'invest-platform': 1 };
   var WEALTH_BOARD_TITLE = '個人財富狀況';
   var WEALTH_BOARD_LABEL = '進入財富看板';
-  var WEALTH_BOARD_URL = 'wealth/';
+  var WEALTH_BOARD_URL = 'https://martinleesk.github.io/grokbot-3d-hq/wealth/';
   var WEALTH_BOARD_HOMES = { wealth: 1 };
 
   /* Specialists work at a related house or civic center. Lanes are visits, not parking. */

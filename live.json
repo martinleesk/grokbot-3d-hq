@@ -208,7 +208,7 @@
     }
   },
   "wealth": {
-    "dashboardUrl": "wealth/",
+    "dashboardUrl": "https://martinleesk.github.io/grokbot-3d-hq/wealth/",
     "dashboardTitle": "個人財富狀況",
     "note": "Sheet DEMO 持倉看板 · 紙上交易喺投資平台"
   }

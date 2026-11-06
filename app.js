@@ -407,7 +407,7 @@
   function openWealthBoard() {
     var board = window.HQTown && window.HQTown.wealthBoard
       ? window.HQTown.wealthBoard(liveData || {})
-      : { url: 'wealth/', title: '個人財富狀況', label: '進入財富看板' };
+      : { url: 'https://martinleesk.github.io/grokbot-3d-hq/wealth/', title: '個人財富狀況', label: '進入財富看板' };
     if (board && board.url) window.open(board.url, '_blank', 'noopener');
     if (runtime3d) runtime3d.skipEnter = true;
     selectZone('invest', 'wealth', { toast: true, openDrawer: true });
