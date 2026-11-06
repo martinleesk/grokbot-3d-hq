@@ -58,7 +58,7 @@ h1 {
 }
 .kpis {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-top: 14px;
 }
@@ -69,12 +69,39 @@ h1 {
   box-shadow: 0 8px 18px rgba(90, 60, 30, 0.05);
 }
 .kpi { padding: 12px 14px 14px; min-width: 0; }
-.kpi h3, .card h2 {
+.kpi h3, .paper-hero h3, .card h2 {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
   color: #7A7066;
   letter-spacing: 0.04em;
+}
+.paper-hero {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 28px;
+  padding: 16px 18px 18px;
+  background: #FFFBF6;
+  border: 1px solid #B79F80;
+  border-radius: 16px;
+  box-shadow: 0 8px 18px rgba(90, 60, 30, 0.05);
+}
+.paper-main { flex: 1 1 220px; min-width: 0; }
+.paper-stat { flex: 1 1 140px; min-width: 0; }
+.paper-value, .paper-figure {
+  margin: 4px 0 0;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.paper-value { font-size: 40px; line-height: 1.1; }
+.paper-figure { font-size: 26px; line-height: 1.15; }
+.sheet-ref {
+  margin: 8px 2px 0;
+  color: #7A7066;
+  font-size: 12px;
 }
 .card h2 { font-size: 16px; color: #3A322C; letter-spacing: 0; }
 .kpi-value {
@@ -231,10 +258,13 @@ th { color: #7A7066; font-weight: 600; font-size: 12px; }
 @media (max-width: 900px) {
   .kpis { grid-template-columns: repeat(2, 1fr); }
   .grid-3, .grid-2, .split, .desks { grid-template-columns: 1fr; }
+  .paper-value { font-size: 34px; }
 }
 @media (max-width: 520px) {
   h1 { font-size: 22px; }
-  .kpi-value { font-size: 22px; }
+  .kpi-value, .paper-figure { font-size: 22px; }
+  .paper-value { font-size: 32px; }
+  .paper-hero { gap: 12px 16px; padding: 14px; }
   .top { flex-direction: column; }
   .tabs button { padding: 8px 10px; font-size: 13px; }
 }

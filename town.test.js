@@ -296,6 +296,16 @@ assert(/color-scheme:\s*only light/.test(investHtml) && /color-scheme:\s*only li
 assert(investHtml.indexOf('href="../"') >= 0 && investHtml.indexOf('返回小鎮') >= 0, 'invest page links back to the town');
 assert(investHtml.indexOf('總覽') >= 0 && investHtml.indexOf('交易') >= 0 && investHtml.indexOf('全自動') >= 0 && investHtml.indexOf('持倉') >= 0 && investHtml.indexOf('研究風控') >= 0, 'invest tabs');
 assert(investHtml.indexOf('真倉自動 OFF') >= 0 && investHtml.indexOf('唔構成投資建議') >= 0, 'demo disclaimer stays on the page');
+assert(investHtml.indexOf('個人投資台 · 投資平台') >= 0 && investHtml.indexOf('監控板') < 0, 'invest chrome is 投資平台, not 監控板');
+assert(investHtml.indexOf('id="sheetRef"') >= 0, 'sheet NAV has a secondary line');
+assert(investHtml.indexOf('100,000') < 0 && investJs.indexOf('US$100,000') < 0 && investJs.indexOf('STUB_EQUITY') < 0, 'page does not hardcode the old US$100,000 paper capital');
+var subAssign = investJs.split("$('subline').textContent")[1].split(';')[0];
+var warnAssign = investJs.split("$('warn').textContent")[1].split(';')[0];
+var sheetAssign = investJs.split('sheetEl.textContent')[1].split(';')[0];
+assert(subAssign.indexOf('當日') < 0 && subAssign.indexOf('pct(') < 0 && subAssign.indexOf('nav_hkd') < 0, 'header meta is paper context and drops day percent');
+assert(sheetAssign.indexOf('Sheet 參考') >= 0 && sheetAssign.indexOf('NAV') >= 0 && sheetAssign.indexOf('nav_hkd') >= 0 && sheetAssign.indexOf('當日') < 0 && sheetAssign.indexOf('pct(') < 0, 'sheet NAV stays as reference without day percent');
+assert(warnAssign.indexOf('真倉自動 OFF') >= 0 && warnAssign.indexOf('當日') >= 0 && warnAssign.indexOf('day_pnl_hkd') >= 0, 'pink strip keeps day percent, dollar delta, and live-auto copy');
+assert(investJs.indexOf('starting_capital') >= 0 && investJs.indexOf('stub.equity') >= 0 && investJs.indexOf('invested_notional') >= 0, 'paper figures are read from stub.json');
 assert(!/cursor\.com\/canvas|grok\/canvas/.test(investHtml + investCss + investJs), 'invest page does not load canvas');
 assert(htmlSrc.indexOf('data-place="invest-platform"') >= 0, 'rail opens the platform');
 var rail = htmlSrc.split('id="floorRail"')[1].split('</nav>')[0];
@@ -306,6 +316,8 @@ var book = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/ledger.j
 var stub = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/stub.json'), 'utf8'));
 assert(snap.is_demo && book.is_demo && stub.is_demo, 'invest seed is demo');
 assert(book.live_auto === 'OFF' && stub.leverage_on === false, 'seed keeps live auto and leverage off');
+assert(Number(stub.starting_capital) === 10000 && Number(stub.equity) === 10000, 'paper stub capital is US$10,000');
+assert(stub.cash != null && stub.invested_notional != null, 'paper stub includes cash and invested');
 assert(snap.symbols.length === 10 && snap.nav_hkd === 16760.07, 'snapshot holdings are the sheet demo');
 
 require('./town-scene.js');

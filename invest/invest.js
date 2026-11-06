@@ -1,6 +1,5 @@
 /* Standalone DEMO monitor. No broker, no live orders, no canvas host. */
 (function () {
-  var STUB_EQUITY = 100000;
   var LIMITS = { single: 1, day: -3, dd: -10 };
   var KIND_OVERRIDE = { '01211.HK': 'Stock' };
   var KIND_LABEL = { ETF: 'ETF', Stock: '股票', Fund: '基金' };
@@ -33,6 +32,31 @@
     var parts = Math.abs(n).toFixed(d).split('.');
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return (neg ? '−' : '') + 'HK$' + parts.join('.');
+  }
+  function paperCapital() {
+    var start = stub && stub.starting_capital != null ? Number(stub.starting_capital) : NaN;
+    if (start > 0) return start;
+    var equity = stub && stub.equity != null ? Number(stub.equity) : NaN;
+    return equity > 0 ? equity : 0;
+  }
+  function usd(n) {
+    var v = Number(n);
+    if (!isFinite(v)) return '—';
+    var digits = Math.abs(v - Math.round(v)) < 1e-6 ? 0 : 2;
+    var neg = v < 0;
+    var parts = Math.abs(v).toFixed(digits).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    var ccy = String((stub && stub.currency) || 'USD').toUpperCase();
+    var prefix = ccy === 'USD' ? 'US$' : (ccy === 'HKD' ? 'HK$' : ccy + ' ');
+    return (neg ? '−' : '') + prefix + parts.join('.');
+  }
+  function hasNum(key) {
+    return stub && stub[key] != null && isFinite(Number(stub[key]));
+  }
+  function positionNote() {
+    var pos = stub && stub.open_positions;
+    if (!pos || typeof pos !== 'object') return '';
+    return Object.keys(pos).map(function (k) { return k + ' ' + pos[k]; }).join(' · ');
   }
   function pct(n, digits) {
     var d = digits == null ? 2 : digits;
@@ -85,7 +109,9 @@
     return symbols.reduce(function (s, sym) { return s + (Number(sym.weight_pct) || 0); }, 0);
   }
   function riskOf(notional) {
-    return (Number(notional) / STUB_EQUITY) * 100;
+    var base = paperCapital();
+    if (!(base > 0)) return Infinity;
+    return (Number(notional) / base) * 100;
   }
   function stubOk() {
     return stub.order_risk_pct <= LIMITS.single &&
@@ -167,26 +193,49 @@
   function renderHeader() {
     var day = sheetDay();
     var batch = latestBatch(ledger.orders || []);
-    var accounts = {};
-    symbols.forEach(function (s) { accounts[s.account] = 1; });
-    $('subline').textContent = '數據分析板 · Sheet DEMO NAV ' + money(snapshot.nav_hkd, 2) +
-      ' · 當日 ' + pct(day, 2) + ' · ' + fmtTs(batch.ts || ledger.updated_at) + ' HKT';
+    var capital = paperCapital();
+    var equity = stub.equity != null ? Number(stub.equity) : NaN;
+    var hasStart = stub.starting_capital != null && Number(stub.starting_capital) > 0;
+    var hasEq = isFinite(equity);
+    $('subline').textContent = '紙上 DEMO · ' + fmtTs(stub.as_of || batch.ts || ledger.updated_at) + ' HKT';
     var ok = stubOk();
     $('warn').textContent = '真倉自動 OFF · DEMO／PAPER 唔構成投資建議 · 當日 ' + pct(day, 2) +
       '（' + money(snapshot.day_pnl_hkd, 2) + '）· Risk ' + (ok ? 'OK' : 'HALT') +
       ' · 1% / −3% / −10% · 槓桿 OFF';
-    var residual = Math.max(0, 100 - usedWeight());
+    var sheetEl = $('sheetRef');
+    if (sheetEl) {
+      sheetEl.textContent = 'Sheet 參考 · DEMO NAV ' + money(snapshot.nav_hkd, 2) +
+        ' · ' + fmtTs(snapshot.as_of || batch.ts || ledger.updated_at) + ' HKT';
+    }
+    var heading = hasStart && hasEq ? '本金／equity' : (hasStart ? '本金' : 'equity');
+    var note = '紙上交易資本';
+    if (hasStart && hasEq && Math.abs(equity - Number(stub.starting_capital)) > 0.005) {
+      heading = '本金';
+      note = 'equity ' + usd(equity);
+    }
+    var stats = '';
+    if (hasNum('cash')) {
+      stats += '<div class="paper-stat"><h3>現金</h3><p class="paper-figure">' + esc(usd(stub.cash)) + '</p></div>';
+    }
+    if (hasNum('invested_notional')) {
+      var pos = positionNote();
+      stats += '<div class="paper-stat"><h3>已投資</h3><p class="paper-figure">' + esc(usd(stub.invested_notional)) +
+        '</p>' + (pos ? '<p class="kpi-sub">' + esc(pos) + '</p>' : '') + '</div>';
+    }
+    var hero = '<article class="paper-hero"><div class="paper-main"><h3>' + esc(heading) +
+      '</h3><p class="paper-value">' + esc(usd(capital)) + '</p><p class="kpi-sub">' + esc(note) +
+      '</p></div>' + stats + '</article>';
     var cards = [
-      { k: 'NAV · DEMO', v: money(snapshot.nav_hkd, 2), s: symbols.length + ' 隻 · ' + Object.keys(accounts).length + ' 戶 · FX ' + snapshot.fx_usd_hkd, cls: '' },
-      { k: '當日', v: pct(day, 2), s: money(snapshot.day_pnl_hkd, 2), cls: day < 0 ? 'down' : 'ok' },
+      { k: 'Sheet 當日', v: pct(day, 2), s: money(snapshot.day_pnl_hkd, 2), cls: day < 0 ? 'down' : 'ok' },
       { k: 'Risk', v: ok ? 'OK' : 'HALT', s: '單 ' + magPct(stub.order_risk_pct, 1) + ' · 日 ' + pct(stub.day_pnl_pct, 1), cls: ok ? 'ok' : 'down' },
-      { k: '現金', v: '快照未列', s: '餘額約 ' + money(snapshot.nav_hkd * residual / 100, 0) + ' · 唔當持倉', cls: '' },
       { k: '紙上 Auto', v: String(batch.rows.length), s: hktClock(batch.ts) + ' 一批 · 帳本 ' + (ledger.orders || []).length + ' 筆', cls: '' }
     ];
-    $('kpis').innerHTML = cards.map(function (c) {
+    $('kpis').innerHTML = hero + cards.map(function (c) {
       return '<article class="kpi"><h3>' + esc(c.k) + '</h3><p class="kpi-value ' + c.cls + '">' +
         esc(c.v) + '</p><p class="kpi-sub">' + esc(c.s) + '</p></article>';
     }).join('');
+    var gates = document.querySelector('.gates');
+    if (gates) gates.textContent = '閘門 1% / −3% / −10% · 槓桿 OFF · 紙上本金 ' + usd(capital);
   }
 
   function renderOverview() {
@@ -323,7 +372,7 @@
     el.textContent = (q.sym ? q.sym.symbol + ' ' + (q.sym.currency || '') + ' · ' : '') +
       '名義 ' + (q.notional ? q.notional.toFixed(2) : '—') +
       ' · 風險 ' + (q.notional ? q.risk.toFixed(2) : '—') + '% · ' + q.reason +
-      ' · 算法跟紙上帳本（名義 ÷ US$' + STUB_EQUITY.toLocaleString('en-US') + '，未換匯）';
+      ' · 算法跟紙上帳本（名義 ÷ ' + usd(paperCapital()) + '，未換匯）';
     btn.disabled = q.blocked;
   }
   function fillPrice() {
@@ -334,9 +383,10 @@
   function applyPreset(name) {
     var sym = selectedSymbol();
     if (!sym || !(sym.price > 0)) return;
+    var base = paperCapital();
     var notional = sym.price;
-    if (name === 'mid') notional = STUB_EQUITY * 0.004;
-    if (name === 'cap') notional = STUB_EQUITY * 0.0099;
+    if (name === 'mid') notional = base * 0.004;
+    if (name === 'cap') notional = base * 0.0099;
     var qty = name === 'one' ? 1 : notional / sym.price;
     $('qty').value = (Math.round(qty * 10000) / 10000).toString();
     $('price').value = sym.price;
