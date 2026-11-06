@@ -50,6 +50,10 @@
     { id: 'content-lane', text: '內容巷', x: -10.8, z: 4.45 }
   ];
 
+  var INVEST_BOARD_TITLE = '個人投資台 · 監控板';
+  var INVEST_BOARD_LABEL = '開監控板';
+  var INVEST_BOARD_HOMES = { advisor: 1, analytics: 1 };
+
   /* Specialists work at a related house or civic center. Lanes are visits, not parking. */
   var WORK_HOME = {
     byd: 'analytics', '2800': 'analytics', qqq: 'analytics', voo: 'analytics',
@@ -1111,6 +1115,59 @@ function pickCalendar(cals, context, title) {
     };
   }
 
+  function investBoard(live) {
+    var invest = live && live.invest;
+    if (!invest || typeof invest !== 'object' || Array.isArray(invest)) return null;
+    var url = '';
+    if (typeof invest.dashboardUrl === 'string') url = invest.dashboardUrl.trim();
+    else if (invest.dashboard && typeof invest.dashboard === 'object' && !Array.isArray(invest.dashboard) &&
+      typeof invest.dashboard.url === 'string') {
+      url = invest.dashboard.url.trim();
+    }
+    if (!/^https:\/\/\S+$/i.test(url)) return null;
+    var title = '';
+    if (typeof invest.dashboardTitle === 'string') title = invest.dashboardTitle.trim();
+    else if (invest.dashboard && typeof invest.dashboard === 'object' && !Array.isArray(invest.dashboard) &&
+      typeof invest.dashboard.title === 'string') {
+      title = invest.dashboard.title.trim();
+    }
+    if (!title) title = INVEST_BOARD_TITLE;
+    return { url: url, title: title, label: INVEST_BOARD_LABEL };
+  }
+
+  function showsInvestBoard(staffId) {
+    return !!INVEST_BOARD_HOMES[staffId];
+  }
+
+  function investPaperLabel(paper) {
+    if (!paper || typeof paper !== 'object' || Array.isArray(paper)) return '';
+    var label = typeof paper.label === 'string' ? paper.label.trim() : '';
+    return label || 'SIMULATED';
+  }
+
+  function fillInvestBoardLink(el, board) {
+    if (!el) return;
+    while (el.firstChild) el.removeChild(el.firstChild);
+    if (!board || !board.url) {
+      el.hidden = true;
+      el.removeAttribute('href');
+      return;
+    }
+    el.hidden = false;
+    el.setAttribute('href', board.url);
+    el.setAttribute('target', '_blank');
+    el.setAttribute('rel', 'noopener');
+    var title = board.title || INVEST_BOARD_TITLE;
+    el.title = title;
+    el.setAttribute('aria-label', title);
+    var name = el.ownerDocument.createElement('span');
+    name.textContent = title;
+    var go = el.ownerDocument.createElement('b');
+    go.textContent = board.label || INVEST_BOARD_LABEL;
+    el.appendChild(name);
+    el.appendChild(go);
+  }
+
   function sourceLabel(source) {
     if (source === 'schedule') return '依據 live.json 今日行程';
     if (source === 'live.agents') return '依據 live.json agents';
@@ -1226,6 +1283,10 @@ function pickCalendar(cals, context, title) {
     buildingBoxes: buildingBoxes,
     homeTitle: homeTitle,
     clipText: clipText,
-    speak: speak
+    speak: speak,
+    investBoard: investBoard,
+    showsInvestBoard: showsInvestBoard,
+    investPaperLabel: investPaperLabel,
+    fillInvestBoardLink: fillInvestBoardLink
   };
 });

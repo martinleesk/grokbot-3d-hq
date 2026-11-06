@@ -240,6 +240,22 @@ assert(sceneSrc.indexOf('frameAt') >= 0, 'scene places the town from frameAt');
 assert(sceneSrc.indexOf('outdoorLabel') >= 0, 'scene paints activity labels');
 assert(sceneSrc.indexOf('bubble') >= 0, 'scene shows speech bubbles');
 assert(sceneSrc.indexOf("place === 'pin'") >= 0, 'indoor stall still only marks a real overflow pin');
+
+var board = Town.investBoard(live);
+assert(board && board.url.indexOf('24a6c6b7-3134-40e5-ae4d-81bea5c123cb') >= 0, 'live invest board url');
+assert(board.title === '個人投資台 · 監控板', 'board title');
+assert(board.label === '開監控板', 'board label');
+assert(live.invest.mode === 'PAPER' && live.invest.halt === false, 'paper mode, not halted');
+assert(live.invest.paper.label === 'SIMULATED', 'paper label says SIMULATED');
+assert(Town.investPaperLabel(live.invest.paper) === 'SIMULATED', 'renderer label is SIMULATED');
+assert(live.invest.morning.handover && live.invest.morning.handover.length < 40, 'morning handover stays short');
+assert(Town.showsInvestBoard('advisor') && Town.showsInvestBoard('analytics'), 'advisor and analytics show the board');
+assert(!Town.showsInvestBoard('boss') && !Town.showsInvestBoard('byd'), 'other rooms do not get the indoor board link');
+assert(Town.investBoard({}) === null, 'missing invest hides the board');
+assert(Town.investBoard({ invest: { dashboardUrl: 'http://example.com/x' } }) === null, 'http is not enough');
+assert(Town.investBoard({ invest: { dashboardUrl: 'javascript:alert(1)' } }) === null, 'javascript urls are dropped');
+assert(Town.investBoard({ invest: { dashboard: { url: 'https://cursor.com/canvas/x', title: '板' } } }).title === '板', 'dashboard object is accepted');
+
 require('./town-scene.js');
 assert(typeof global.HQTownView.boot === 'function', 'town scene still boots');
 

@@ -931,7 +931,12 @@
       if (paper) {
         var pnlNum = asFiniteNum(paper.pnl);
         var pnlText = pnlNum == null ? '—' : formatInvestPnl(pnlNum, investCurrency(paper.currency));
-        html += '<p class="invest-paper"><span class="invest-sim">SIMULATED</span>' +
+        var simLabel = (window.HQTown && window.HQTown.investPaperLabel)
+          ? window.HQTown.investPaperLabel(paper) : 'SIMULATED';
+        var paperNote = (typeof paper.note === 'string') ? paper.note.trim() : '';
+        html += '<p class="invest-paper"><span class="invest-sim"' +
+          (paperNote ? ' title="' + escHtml(paperNote) + '"' : '') + '>' +
+          escHtml(simLabel) + '</span>' +
           '<span class="invest-pnl">盈虧 ' + escHtml(pnlText) + '</span></p>';
       }
       if (morning) html += '<p class="invest-morning">' + escHtml(morning) + '</p>';
@@ -949,6 +954,12 @@
       }
       slot.className = 'invest-slot' + (halted ? ' is-halt' : '');
       slot.innerHTML = html;
+      if (window.HQTown && window.HQTown.investBoard && window.HQTown.fillInvestBoardLink) {
+        var boardLink = document.createElement('a');
+        boardLink.className = 'invest-board-link';
+        window.HQTown.fillInvestBoardLink(boardLink, window.HQTown.investBoard(liveData));
+        if (!boardLink.hidden) slot.appendChild(boardLink);
+      }
       slot.hidden = false;
     } catch (err) {
       console.warn('invest slot failed', err);
@@ -1594,6 +1605,21 @@
   /* ---------- 2D town map (WebGL fallback; same houses and halls) ---------- */
   var townCardId = null;
 
+  function appendInvestBoardChip(cell, staffId) {
+    if (!cell || !window.HQTown || !window.HQTown.showsInvestBoard(staffId)) return;
+    var board = window.HQTown.investBoard(liveData || {});
+    if (!board) return;
+    var a = document.createElement('a');
+    a.className = 'town-board-chip';
+    a.href = board.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.title = board.title;
+    a.setAttribute('aria-label', board.title);
+    a.textContent = board.label;
+    cell.appendChild(a);
+  }
+
   function activityNow() {
     if (!window.HQTown) return null;
     return window.HQTown.infer(liveData || {}, window.HQTown.rosterFromZones(ZONES), Date.now());
@@ -1633,6 +1659,12 @@
       '<p class="status">' + escHtml(lines.status) + '</p>' +
       '<p class="source">' + escHtml(lines.source) + '</p>' +
       '<div class="town-avatar pose-' + escHtml(act.anim || 'idle') + (act.away ? ' away' : '') + '" aria-hidden="true"></div>';
+    if (window.HQTown.showsInvestBoard && window.HQTown.showsInvestBoard(id)) {
+      var indoorLink = document.createElement('a');
+      indoorLink.className = 'town-board-link';
+      window.HQTown.fillInvestBoardLink(indoorLink, window.HQTown.investBoard(liveData || {}));
+      if (!indoorLink.hidden) copy.appendChild(indoorLink);
+    }
     panel.hidden = false;
     document.querySelectorAll('.town-plot').forEach(function (el) {
       var on = (id === 'hall' && el.dataset.place === 'hall') || el.dataset.staff === id;
@@ -1749,20 +1781,23 @@
     window.HQTown.PUBLIC.forEach(function (spec) {
       var id = spec.kind === 'hall' ? 'hall' : spec.staffId;
       var kind = spec.kind === 'hall' ? 'hall' : 'center';
-      civic.appendChild(townCell(
+      var cell = townCell(
         townPlot(id, spec.label, kind, inferred),
         kind === 'center' ? crews[spec.staffId] : null
-      ));
+      );
+      civic.appendChild(cell);
     });
     grass.appendChild(civic);
     var homes = document.createElement('div');
     homes.className = 'town-row';
     window.HQTown.HOUSES.forEach(function (spec) {
       var person = findStaffAnywhere(spec.staffId);
-      homes.appendChild(townCell(
+      var cell = townCell(
         townPlot(spec.staffId, person ? person.staff.name : spec.staffId, 'house', inferred),
         crews[spec.staffId]
-      ));
+      );
+      appendInvestBoardChip(cell, spec.staffId);
+      homes.appendChild(cell);
     });
     grass.appendChild(homes);
     var overflow = window.HQTown.pinsFor(roster);
