@@ -24,7 +24,7 @@ The monitor board is a standalone cream page at [https://martinleesk.github.io/g
 
 ## live.json 點樣驅動室內 / What drives the room
 
-`live.json` 朝早照舊推送。小鎮只係讀，唔要求新欄先至跑得。投資監控板係可選：有 `invest.dashboardUrl` 先顯示「進入投資平台」。位址係本站 `/invest/`。如果寫咗 Cursor Canvas 網址，小鎮會改開獨立頁。
+`live.json` 朝早照舊推送。小鎮只係讀，唔要求新欄先至跑得。投資平台頁係可選：有 `invest.dashboardUrl` 先顯示「進入投資平台」。位址係本站 `/invest/`。如果寫咗 Cursor Canvas 網址，小鎮會改開獨立頁。
 
 Morning brief pushes keep working. The town only reads `live.json` and still runs without the optional blocks below. The monitor link appears only when `invest.dashboardUrl` is set. It points at this site's `/invest/` page. A Cursor Canvas URL is rewritten to that page.
 
@@ -68,9 +68,9 @@ Outdoor motion is scheduled and local: a neighbor chat, a short patrol, a desk e
 - `campus.meetings` still means “these people are in a meeting”. On the town they sit in the shared hall. `targetFloor` is accepted and not used for a floor. A `when` counts from 10 minutes before until 90 minutes after; omit `when` for a standing meeting.
 - `town.meetings` is the same list, namespaced for the town. It overrides a campus title for the same person.
 
-### 投資監控板 / Monitor board
+### 投資平台 / Invest platform
 
-獨立頁：<https://martinleesk.github.io/grokbot-3d-hq/invest/>（`invest/index.html`）。奶油底、鎖定淺色，DEMO 快照同紙上成交都喺呢頁，唔接券商，真倉自動 OFF。頁頂 **返回小鎮** 去小鎮根目錄。
+獨立頁：<https://martinleesk.github.io/grokbot-3d-hq/invest/>（`invest/index.html`）。標題「個人投資台 · 投資平台」。奶油底、鎖定淺色、鋪滿視窗。主角係紙上 DEMO 本金 US$10,000（`invest/data/stub.json` 嘅 `starting_capital`），現金同已投資排喺旁邊。快照若有 Sheet NAV，以細字「Sheet 參考」顯示。真倉自動 OFF。頁頂 **返回小鎮** 去小鎮根目錄。
 
 `live.invest` 唔使有。有 `dashboardUrl`（https，或者相對 `invest/`）時，投資區詳情、**投資平台**、數據分析中心同投資顧問室內都會顯示「進入投資平台」，開新分頁。平面地圖喺投資平台同顧問屋下面都有一粒。標題用 `dashboardTitle`，冇就用「個人投資台 · 投資平台」。`paper.label` 要寫 **SIMULATED**，呢度唔報真倉價。Canvas 網址唔會開。
 
