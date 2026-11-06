@@ -2001,12 +2001,20 @@ body.mode-2d #townHud { display: none !important; }
   background: linear-gradient(180deg, #B7E3F8 0%, #D9F3C8 38%, #8FCB6E 100%);
   border: 2px solid #fff;
   box-shadow: 0 12px 28px rgba(80, 50, 20, 0.12);
+  overflow: auto;
+  height: auto;
+  min-height: 100%;
+  /* Keep the north facilities clear of the collapsed 「而家做緊」 chip. */
+  padding-right: 132px;
+}
+@media (max-width: 800px) {
+  .fb-office.is-town { padding-right: 14px; }
 }
 .fb-office.is-town::before { display: none; }
-.town-map { position: relative; z-index: 1; min-height: 100%; }
-.town-grass { display: flex; flex-direction: column; gap: 12px; padding: 8px 4px 4px; }
+.town-map { position: relative; z-index: 1; min-height: 100%; width: 100%; max-width: 100%; }
+.town-grass { display: flex; flex-direction: column; gap: 12px; padding: 8px 4px 4px; width: 100%; max-width: 100%; min-width: 0; }
 .town-boot { text-align: center; color: #3A322C; font-weight: 700; padding: 48px 0; }
-.town-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.town-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 100%; max-width: 100%; min-width: 0; }
 .town-plot {
   width: 108px;
   border: 0;
@@ -2022,8 +2030,17 @@ body.mode-2d #townHud { display: none !important; }
   background: #F2B56B;
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
-.town-plot.kind-hall .roof { background: #E36B5C; }
-.town-plot.kind-center .roof { background: #7EB6E0; }
+.town-plot.kind-hall .roof { background: #E36B5C; height: 16px; clip-path: none; border-radius: 8px 8px 0 0; }
+.town-plot.kind-center .roof { background: #7EB6E0; height: 16px; clip-path: none; border-radius: 8px 8px 0 0; }
+.town-plot.kind-center,
+.town-plot.kind-hall { width: 136px; }
+.town-plot.is-platform { width: 156px; }
+.town-plot.is-platform .roof { background: #3E92D0; height: 18px; }
+.town-plot[data-staff="shared-db"] .roof { background: #3E86C4; }
+.town-plot[data-staff="analytics"] .roof { background: #2EAA96; }
+.town-plot[data-staff="lab"] .roof { background: #E07A3A; }
+.town-plot.kind-center b,
+.town-plot.kind-hall b { font-size: 13px; line-height: 1.25; }
 .town-plot.is-boss .roof { background: #F0C14A; }
 .town-plot .wall {
   display: flex;

@@ -9,7 +9,7 @@
     boss: 0xE7B23C, sec: 0xF28B82, finance: 0xE09A4A, life: 0xE88AA8,
     advisor: 0x6AA6D8, travel: 0x6FBFB3, news: 0xB89AD8, auditor: 0x8FB36A,
     health: 0xF2C14B, mind: 0xC9A4E0, learn: 0x8EC8E3, meet: 0xE7A08C,
-    'shared-db': 0x7EB0E0, analytics: 0x67C4B2, lab: 0xE89A6A,
+    'shared-db': 0x7EB0E0, analytics: 0x67C4B2, lab: 0xE89A6A, 'invest-platform': 0x3E92D0,
     byd: 0xE25B4A, '2800': 0x3E7D4F, qqq: 0x4C6EF5, voo: 0x3D5A80,
     newsroom: 0xC9B3E8
   };
@@ -427,14 +427,29 @@
       flask.position.set(0.15, spec.h + 0.48, 0);
       g.add(flask);
     }
-    var label = makeLabel(THREE, spec.label, {
-      sw: spec.kind === 'hall' ? 2.4 : 2.15,
+    if (spec.id === 'invest-platform') {
+      var quote = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.42, 0.08), std(THREE, 0xFFFBF6, { roughness: 0.4 }));
+      quote.position.set(0, spec.h + 0.48, spec.d * 0.2);
+      g.add(quote);
+      var brass = new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.08, 0.1), std(THREE, 0xB79F80, { metalness: 0.2, roughness: 0.4 }));
+      brass.position.set(0, spec.h + 0.72, spec.d * 0.2);
+      g.add(brass);
+      [0.28, 0.46, 0.36].forEach(function (ht, i) {
+        var bar = new THREE.Mesh(new THREE.BoxGeometry(0.12, ht, 0.1), std(THREE, [0x3E92D0, 0xE2A31A, 0xA56B62][i]));
+        bar.position.set(-0.28 + i * 0.28, spec.h + 0.2 + ht / 2, -0.12);
+        g.add(bar);
+      });
+    }
+    var labelText = spec.label || '';
+    var longLabel = labelText.length >= 5;
+    var label = makeLabel(THREE, labelText, {
+      sw: spec.kind === 'hall' ? 2.4 : (longLabel ? 2.9 : 2.2),
       sh: 0.55,
-      px: 56,
+      px: longLabel ? 44 : 56,
       bg: 'rgba(255,251,246,0.96)',
       border: '#F0C9A0'
     });
-    label.position.set(0, spec.h + 0.95, spec.d / 2);
+    label.position.set(0, spec.h + (spec.id === 'invest-platform' ? 1.22 : 0.95), spec.d / 2);
     g.add(label);
     g.userData.spec = spec;
     tag(g, {
@@ -623,6 +638,7 @@
     path(20.5, 1.25, 0.2, 1.55);
     path(1.2, 6.4, 0.35, -2.55);
     path(13.5, 2.15, 0.6, -5.15);
+    path(6.2, 2.15, -9.6, -5.15);
     path(1.05, 3.2, -7.4, 0.2);
     path(1.05, 2.6, 5.3, 2.7);
 
@@ -935,7 +951,7 @@
       room.visible = false;
       hallRoom.visible = false;
       centerRoom.visible = true;
-      ['shared-db', 'analytics', 'lab'].forEach(function (id) {
+      Object.keys(centerRoom.userData.props).forEach(function (id) {
         centerRoom.userData.props[id].visible = id === act.staffId;
       });
       paintBoard(centerRoom.userData.board, boardLines(act));
@@ -1348,9 +1364,17 @@
     var flask = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), std(THREE, 0xB7E4C7, { emissive: 0xD8F3DC, emissiveIntensity: 0.4 }));
     flask.position.set(1.6, 0.85, -0.5);
     lab.add(flask);
+    var platform = propGroup();
+    var sign = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.48, 0.06), std(THREE, 0xFFFBF6));
+    sign.position.set(1.5, 0.95, -0.55);
+    platform.add(sign);
+    var stripe = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.08, 0.04), std(THREE, 0x3E92D0));
+    stripe.position.set(1.5, 1.02, -0.5);
+    platform.add(stripe);
     props['shared-db'] = db;
     props.analytics = analytics;
     props.lab = lab;
+    props['invest-platform'] = platform;
     g.userData.props = props;
     return g;
   }

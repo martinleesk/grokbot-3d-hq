@@ -10,9 +10,10 @@ window.HQ_DATA = {
     },
     {
       id: 'invest', level: 5, short: '投資', name: '投資區', en: 'Invest', color: '#8C7B68', shape: 'cylinder',
-      desc: '投資顧問與資產追蹤：股票、ETF、基金與人生財務大計。數據分析中心喺小鎮公所，只報狀態。',
+      desc: '投資顧問有自己嘅屋。投資平台同數據分析中心係社區設施：股票、ETF 同人生財務大計只報 DEMO 狀態。',
       staff: [
         { id: 'advisor', name: '投資顧問', role: '組合分析與配置建議', status: '監察中' },
+        { id: 'invest-platform', name: '投資平台', mark: '平台', role: '社區設施 · 個人投資台 DEMO 監控板', status: 'DEMO 監控中', center: true },
         { id: 'byd', name: '比亞迪', role: '個股追蹤 · BYD', status: '更新中' },
         { id: '2800', name: '盈富', role: '港股 ETF · 2800', status: '監察中' },
         { id: 'qqq', name: 'QQQ', role: '納斯達克 100 ETF', status: '監察中' },
@@ -90,6 +91,9 @@ window.HQ_DATA = {
     ],
     advisor: [
       { id: 'advisor-brief', text: '本週組合風險儀表板更新' }
+    ],
+    'invest-platform': [
+      { id: 'platform-demo', text: '監控板係 DEMO，真倉自動保持 OFF' }
     ],
     social: [
       { id: 'social-cal', text: '11 月旅遊攻略內容日曆排程確認' }

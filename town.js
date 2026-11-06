@@ -27,9 +27,11 @@
     { staffId: 'auditor', zoneId: 'sys', x: 5.35, z: 4.15, w: 1.88, d: 1.72, h: 1.4, roof: 0x6A9A48, wall: 0xF6FBF2 }
   ];
 
+  /* Civic facilities are centers, not agent houses. 投資平台 matches that footprint. */
   var PUBLIC = [
+    { id: 'invest-platform', staffId: 'invest-platform', zoneId: 'invest', kind: 'center', x: -10.75, z: -7.55, w: 3.35, d: 2.25, h: 1.86, roof: 0x3E92D0, wall: 0xF4F8FC, label: '投資平台' },
     { id: 'shared-db', staffId: 'shared-db', zoneId: 'sys', kind: 'center', x: -6.3, z: -7.55, w: 2.9, d: 2.15, h: 1.72, roof: 0x3E86C4, wall: 0xF4F8FC, label: '共用資料庫' },
-    { id: 'analytics', staffId: 'analytics', zoneId: 'invest', kind: 'center', x: -1.55, z: -7.65, w: 3.05, d: 2.15, h: 1.76, roof: 0x2EAA96, wall: 0xF3FBFA, label: '數據分析' },
+    { id: 'analytics', staffId: 'analytics', zoneId: 'invest', kind: 'center', x: -1.55, z: -7.65, w: 3.05, d: 2.15, h: 1.76, roof: 0x2EAA96, wall: 0xF3FBFA, label: '數據分析中心' },
     { id: 'lab', staffId: 'lab', zoneId: 'content', kind: 'center', x: 3.05, z: -7.5, w: 2.75, d: 2.1, h: 1.7, roof: 0xE07A3A, wall: 0xFFF6F0, label: '研創中心' },
     { id: 'hall', staffId: null, zoneId: 'cmd', kind: 'hall', x: 8.15, z: -6.55, w: 4.5, d: 2.7, h: 2.05, roof: 0xD45348, wall: 0xFFF6EE, label: '會議廳' }
   ];
@@ -50,9 +52,10 @@
     { id: 'content-lane', text: '內容巷', x: -10.8, z: 4.45 }
   ];
 
-  var INVEST_BOARD_TITLE = '個人投資台 · 監控板';
-  var INVEST_BOARD_LABEL = '開監控板';
-  var INVEST_BOARD_HOMES = { advisor: 1, analytics: 1 };
+  var INVEST_BOARD_TITLE = '個人投資台 · 投資平台';
+  var INVEST_BOARD_LABEL = '進入投資平台';
+  var INVEST_BOARD_URL = 'https://martinleesk.github.io/grokbot-3d-hq/invest/';
+  var INVEST_BOARD_HOMES = { advisor: 1, analytics: 1, 'invest-platform': 1 };
 
   /* Specialists work at a related house or civic center. Lanes are visits, not parking. */
   var WORK_HOME = {
@@ -98,7 +101,7 @@
 
   var HOME_LABEL = {
     boss: '總管屋', sec: '秘書屋', finance: '財務屋', life: '生活屋',
-    advisor: '投資屋', travel: '旅遊屋', news: '新聞屋', auditor: '稽核屋'
+    advisor: '顧問屋', travel: '旅遊屋', news: '新聞屋', auditor: '稽核屋'
   };
 
   var COURT_MARKS = [
@@ -451,7 +454,13 @@ function pickCalendar(cals, context, title) {
   function dutyBoard(inferred) {
     inferred = inferred || { list: [] };
     var groups = {};
-    var order = ['hall', 'analytics', 'lab', 'shared-db'];
+    var order = [];
+    PUBLIC.forEach(function (p) {
+      if (p.kind === 'hall') order.push(p.id);
+    });
+    PUBLIC.forEach(function (p) {
+      if (p.kind === 'center' && p.staffId) order.push(p.staffId);
+    });
     HOUSES.forEach(function (h) { order.push(h.staffId); });
     order.push('pin');
     function group(key) {
@@ -1115,16 +1124,31 @@ function pickCalendar(cals, context, title) {
     };
   }
 
+  function isCanvasBoardUrl(url) {
+    return /cursor\.com\/canvas/i.test(String(url || ''));
+  }
+
+  function acceptBoardUrl(url) {
+    var s = String(url || '').trim();
+    if (!s || isCanvasBoardUrl(s) || /[\s<>"']/.test(s)) return '';
+    if (/^https:\/\/\S+$/i.test(s)) return s;
+    if (/^(\.\/)?invest\/(index\.html)?$/.test(s)) return s;
+    if (/^\/grokbot-3d-hq\/invest\/(index\.html)?$/.test(s)) return s;
+    return '';
+  }
+
   function investBoard(live) {
     var invest = live && live.invest;
     if (!invest || typeof invest !== 'object' || Array.isArray(invest)) return null;
-    var url = '';
-    if (typeof invest.dashboardUrl === 'string') url = invest.dashboardUrl.trim();
+    var raw = '';
+    if (typeof invest.dashboardUrl === 'string') raw = invest.dashboardUrl.trim();
     else if (invest.dashboard && typeof invest.dashboard === 'object' && !Array.isArray(invest.dashboard) &&
       typeof invest.dashboard.url === 'string') {
-      url = invest.dashboard.url.trim();
+      raw = invest.dashboard.url.trim();
     }
-    if (!/^https:\/\/\S+$/i.test(url)) return null;
+    var url = acceptBoardUrl(raw);
+    if (!url && isCanvasBoardUrl(raw)) url = INVEST_BOARD_URL;
+    if (!url) return null;
     var title = '';
     if (typeof invest.dashboardTitle === 'string') title = invest.dashboardTitle.trim();
     else if (invest.dashboard && typeof invest.dashboard === 'object' && !Array.isArray(invest.dashboard) &&
@@ -1184,7 +1208,7 @@ function pickCalendar(cals, context, title) {
     if (act.place === 'hall' || act.anim === 'meeting') kicker = '會議廳';
     else if (act.place === 'yard') kicker = '崗位 · ' + homeTitle(act.homeId);
     else if (act.place === 'pin') kicker = '街口暫放';
-    else if (act.center) kicker = '共用公所';
+    else if (act.center) kicker = '社區設施';
     else if (act.away) kicker = '門口';
     return {
       kicker: kicker,

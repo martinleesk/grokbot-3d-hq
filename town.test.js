@@ -26,6 +26,7 @@ var roster = [
   { id: 'passive', name: '被動收入', role: '股息', status: '規劃中', zoneId: 'invest' },
   { id: 'retire', name: '退休大計', role: '退休', status: '規劃中', zoneId: 'invest' },
   { id: 'home', name: '買樓大計', role: '置業', status: '規劃中', zoneId: 'invest' },
+  { id: 'invest-platform', name: '投資平台', role: '監控板', status: 'DEMO 監控中', zoneId: 'invest', center: true },
   { id: 'analytics', name: '數據分析中心', role: '分析板', status: '分析板已交', zoneId: 'invest', center: true },
   { id: 'life', name: '生活管家', role: '日常', status: '運作中', zoneId: 'life' },
   { id: 'finance', name: '財務管家', role: '收支', status: '運作中', zoneId: 'life' },
@@ -84,7 +85,19 @@ assert(got('analytics').headline.indexOf('分析板已交') >= 0, 'analytics hea
 assert(got('shared-db').headline.indexOf('Postgres') >= 0, 'database headline uses its status');
 assert(got('lab').anim === 'sit', 'lab sits with its topic');
 assert(Town.HOUSES.length >= 5 && Town.HOUSES.length <= 8, 'house wave is 5–8');
-assert(Town.PUBLIC.length === 4, 'three centers plus the hall');
+assert(Town.PUBLIC.length === 5, 'four facilities plus the hall');
+var platform = Town.publicById('invest-platform');
+var advisorHouse = Town.houseByStaff('advisor');
+assert(platform && platform.kind === 'center' && platform.label === '投資平台', 'platform is a civic center');
+assert(platform.w > advisorHouse.w && platform.h > advisorHouse.h, 'platform is larger than the advisor house');
+assert(advisorHouse && Town.homeTitle('advisor') === '顧問屋', 'advisor keeps a house, not 投資屋');
+assert(Town.homeTitle('analytics') === '數據分析中心', 'analytics keeps the facility name');
+assert(Town.homeTitle('shared-db') === '共用資料庫' && Town.homeTitle('lab') === '研創中心', 'other facilities keep their names');
+assert(got('invest-platform').place === 'invest-platform' && got('invest-platform').center, 'platform staff stands at the facility');
+assert(got('advisor').place === 'house', 'advisor still has a personal house');
+Town.PUBLIC.forEach(function (b) {
+  if (b.kind === 'center') assert(String(b.label).indexOf('屋') < 0, 'facility label is not a house: ' + b.label);
+});
 
 var noon = Date.parse('2026-11-06T04:00:00Z');
 var mid = Town.infer(live, roster, noon);
@@ -164,6 +177,7 @@ assert(postBy.health.x > Town.houseByStaff('life').x && postBy.health.x < 7, 'he
 assert(postBy.learn.x < 7.2 && postBy.social.x > -2, 'lane mouths are not the default desks');
 assert(postBy.boss.kind === 'porch', 'boss keeps the porch');
 assert(postBy.analytics.kind === 'center', 'analytics stands at the center');
+assert(postBy['invest-platform'].kind === 'center', 'platform attendant stands at the facility');
 assert(Math.abs(postBy.byd.x - Town.publicById('analytics').x) < 8, 'analytics desks stay near the center');
 var overflow = Town.pinsFor(roster.concat([{ id: 'newbie', name: '新同事', zoneId: 'life', status: '待命' }]));
 assert(overflow.length === 1 && overflow[0].staffId === 'newbie', 'only someone without a workplace becomes a pin');
@@ -248,6 +262,7 @@ assert(sceneSrc.indexOf('THREE.MOUSE.ROTATE') >= 0, 'left-drag still rotates');
 assert(sceneSrc.indexOf('enableZoom = true') >= 0, 'zoom stays on');
 var appSrc = fs.readFileSync(path.join(__dirname, 'app.js'), 'utf8');
 var htmlSrc = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+var cssSrc = fs.readFileSync(path.join(__dirname, 'styles.css'), 'utf8');
 assert(htmlSrc.indexOf('data-collapse="townDuty"') >= 0, 'duty header collapses');
 assert(htmlSrc.indexOf('data-collapse="focusPanel"') >= 0, 'focus header collapses');
 assert(htmlSrc.indexOf('data-collapse="townCaption"') >= 0, 'indoor hud collapses');
@@ -258,19 +273,40 @@ assert(appSrc.indexOf('hudDefaultOpen') >= 0, 'hud panels use the shared collaps
 assert(htmlSrc.indexOf('id="townBoardLink"') >= 0, 'invest monitor link stays on the indoor hud');
 
 var board = Town.investBoard(live);
-assert(board && board.url.indexOf('24a6c6b7-3134-40e5-ae4d-81bea5c123cb') >= 0, 'live invest board url');
-assert(board.title === '個人投資台 · 監控板', 'board title');
-assert(board.label === '開監控板', 'board label');
+assert(board && board.url === 'https://martinleesk.github.io/grokbot-3d-hq/invest/', 'live invest board url');
+assert(board.url.indexOf('cursor.com') < 0, 'live board is not Canvas');
+assert(board.title === '個人投資台 · 投資平台', 'board title');
+assert(board.label === '進入投資平台', 'board label');
 assert(live.invest.mode === 'PAPER' && live.invest.halt === false, 'paper mode, not halted');
 assert(live.invest.paper.label === 'SIMULATED', 'paper label says SIMULATED');
 assert(Town.investPaperLabel(live.invest.paper) === 'SIMULATED', 'renderer label is SIMULATED');
 assert(live.invest.morning.handover && live.invest.morning.handover.length < 40, 'morning handover stays short');
-assert(Town.showsInvestBoard('advisor') && Town.showsInvestBoard('analytics'), 'advisor and analytics show the board');
+assert(Town.showsInvestBoard('advisor') && Town.showsInvestBoard('analytics') && Town.showsInvestBoard('invest-platform'), 'advisor, analytics, and the platform show the board');
 assert(!Town.showsInvestBoard('boss') && !Town.showsInvestBoard('byd'), 'other rooms do not get the indoor board link');
 assert(Town.investBoard({}) === null, 'missing invest hides the board');
 assert(Town.investBoard({ invest: { dashboardUrl: 'http://example.com/x' } }) === null, 'http is not enough');
 assert(Town.investBoard({ invest: { dashboardUrl: 'javascript:alert(1)' } }) === null, 'javascript urls are dropped');
-assert(Town.investBoard({ invest: { dashboard: { url: 'https://cursor.com/canvas/x', title: '板' } } }).title === '板', 'dashboard object is accepted');
+assert(Town.investBoard({ invest: { dashboardUrl: 'invest/' } }).url === 'invest/', 'relative invest path is accepted');
+var canvasBoard = Town.investBoard({ invest: { dashboard: { url: 'https://cursor.com/canvas/x', title: '板' } } });
+assert(canvasBoard.title === '板' && canvasBoard.url === 'https://martinleesk.github.io/grokbot-3d-hq/invest/', 'canvas urls fall back to the pages board');
+var investHtml = fs.readFileSync(path.join(__dirname, 'invest/index.html'), 'utf8');
+var investCss = fs.readFileSync(path.join(__dirname, 'invest/invest.css'), 'utf8');
+var investJs = fs.readFileSync(path.join(__dirname, 'invest/invest.js'), 'utf8');
+assert(/color-scheme:\s*only light/.test(investHtml) && /color-scheme:\s*only light/.test(investCss), 'invest page locks light');
+assert(investHtml.indexOf('href="../"') >= 0 && investHtml.indexOf('返回小鎮') >= 0, 'invest page links back to the town');
+assert(investHtml.indexOf('總覽') >= 0 && investHtml.indexOf('交易') >= 0 && investHtml.indexOf('全自動') >= 0 && investHtml.indexOf('持倉') >= 0 && investHtml.indexOf('研究風控') >= 0, 'invest tabs');
+assert(investHtml.indexOf('真倉自動 OFF') >= 0 && investHtml.indexOf('唔構成投資建議') >= 0, 'demo disclaimer stays on the page');
+assert(!/cursor\.com\/canvas|grok\/canvas/.test(investHtml + investCss + investJs), 'invest page does not load canvas');
+assert(htmlSrc.indexOf('data-place="invest-platform"') >= 0, 'rail opens the platform');
+var rail = htmlSrc.split('id="floorRail"')[1].split('</nav>')[0];
+assert(rail.split('invest-platform')[1].split('</button>')[0].indexOf('屋') < 0, 'platform rail button is not a house');
+assert(cssSrc.indexOf('clip-path: none') >= 0, 'facility roofs on the flat map are not house gables');
+var snap = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/snapshot.json'), 'utf8'));
+var book = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/ledger.json'), 'utf8'));
+var stub = JSON.parse(fs.readFileSync(path.join(__dirname, 'invest/data/stub.json'), 'utf8'));
+assert(snap.is_demo && book.is_demo && stub.is_demo, 'invest seed is demo');
+assert(book.live_auto === 'OFF' && stub.leverage_on === false, 'seed keeps live auto and leverage off');
+assert(snap.symbols.length === 10 && snap.nav_hkd === 16760.07, 'snapshot holdings are the sheet demo');
 
 require('./town-scene.js');
 assert(typeof global.HQTownView.boot === 'function', 'town scene still boots');

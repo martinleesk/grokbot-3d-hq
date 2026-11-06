@@ -7,24 +7,26 @@ The live HQ is a warm cartoon town. The stacked tower is no longer the primary v
 ## 點樣用 / How to look around
 
 - 打開 `index.html`（GitHub Pages 直接伺服呢個靜態網站，唔使 build）。
-- 全景係小鎮：北邊公所係 **共用資料庫**、**數據分析中心**、**研創中心**，同埋大家一齊開工嘅 **會議廳**。
-- 八間屋：Boss Bot、工作秘書、財務管家、投資顧問、生活管家、旅遊規劃師、新聞小編、System Auditor。屋主企喺門口。
-- 其餘同事企喺相關屋前或公所崗位（分析台、投資後院、生活屋前、新聞後院、研創前地），唔再預設泊喺巷口。投資街／生活巷／內容巷只係偶爾行過去對一對。
+- 全景係小鎮：北邊社區設施係 **投資平台**、**共用資料庫**、**數據分析中心**、**研創中心**，同埋大家一齊開工嘅 **會議廳**。呢四座係大型設施，平頂、大過屋，唔會叫「屋」。
+- 八間屋：Boss Bot、工作秘書、財務管家、投資顧問（顧問屋）、生活管家、旅遊規劃師、新聞小編、System Auditor。一代理人一屋，屋主企喺門口。
+- 其餘同事企喺相關屋前或設施崗位（分析台、投資後院、生活屋前、新聞後院、研創前地），唔再預設泊喺巷口。投資街／生活巷／內容巷只係偶爾行過去對一對。
 - 右上角 **而家做緊** 列出每人而家做緊咩（跟 live.json 焦點或狀態）。拉近啲會見到頭上短標同對話泡。
 - 大約每半分鐘會見到一對鄰位同事行埋一齊講兩句，另有人巡屋或者交低進度。開會嗰陣相關同事會聚喺會議廳門口。
 - **點一個人**（或左側名單）進入室內。牆上手牌同底下說明寫明姿勢同依據。室內姿勢仍然只跟 live.json：坐、待命、短走、開會。
-- 投資屋、數據分析中心，同投資區詳情，有 **開監控板**，一按去個人投資台（新分頁）。
+- **投資平台**、數據分析中心、投資顧問室內，同投資區詳情，有 **進入投資平台**。開獨立奶油頁 [`/invest/`](https://martinleesk.github.io/grokbot-3d-hq/invest/)（新分頁），唔會去 Cursor Canvas。
 - **返回小鎮** 或頂欄 **全景** 走返出地圖。拖曳旋轉，滾輪拉近。
 - **晝 / 金** 係日間同黃金時刻。
 - 如果部機冇 WebGL，會留喺同一張平面小鎮，點屋一樣開室內卡。
 
-Open the static site (GitHub Pages serves this folder; there is no build). The north green is the shared civic block: database, analytics, lab, and the meeting hall. Eight houses are built for core staff; everyone else stands at a related porch or civic desk, not in the side lanes. The **而家做緊** list (top right) shows each person's current work from `live.json`. Click a person to step inside. The wall card states the pose and which `live.json` field it came from. **全景** or **返回小鎮** steps back outside. **晝 / 金** switches daylight and golden hour.
+Open the static site (GitHub Pages serves this folder; there is no build). The north green is the civic block: the investment platform, database, analytics, lab, and the meeting hall. Those four facilities are larger flat-roofed buildings, not houses. Eight houses remain, one per core agent, including the advisor's own house. Everyone else stands at a related porch or facility desk, not in the side lanes. The **而家做緊** list (top right) shows each person's current work from `live.json`. Click a person to step inside. The wall card states the pose and which `live.json` field it came from. **全景** or **返回小鎮** steps back outside. **晝 / 金** switches daylight and golden hour.
+
+The monitor board is a standalone cream page at [https://martinleesk.github.io/grokbot-3d-hq/invest/](https://martinleesk.github.io/grokbot-3d-hq/invest/). **投資平台** on the town opens that page.
 
 ## live.json 點樣驅動室內 / What drives the room
 
-`live.json` 朝早照舊推送。小鎮只係讀，唔要求新欄先至跑得。投資監控板係可選：有 `invest.dashboardUrl` 先顯示「開監控板」。
+`live.json` 朝早照舊推送。小鎮只係讀，唔要求新欄先至跑得。投資監控板係可選：有 `invest.dashboardUrl` 先顯示「進入投資平台」。位址係本站 `/invest/`。如果寫咗 Cursor Canvas 網址，小鎮會改開獨立頁。
 
-Morning brief pushes keep working. The town only reads `live.json` and still runs without the optional blocks below. The monitor-board link appears only when `invest.dashboardUrl` is set.
+Morning brief pushes keep working. The town only reads `live.json` and still runs without the optional blocks below. The monitor link appears only when `invest.dashboardUrl` is set. It points at this site's `/invest/` page. A Cursor Canvas URL is rewritten to that page.
 
 | 你見到 / What you see | 姿勢 / Pose | 依據 / Source |
 | --- | --- | --- |
@@ -68,8 +70,10 @@ Outdoor motion is scheduled and local: a neighbor chat, a short patrol, a desk e
 
 ### 投資監控板 / Monitor board
 
-`live.invest` 唔使有。有 `dashboardUrl`（https）時，投資區詳情、投資屋同數據分析中心室內都會顯示「開監控板」，開新分頁。平面地圖喺投資顧問屋下面亦有一粒。標題用 `dashboardTitle`，冇就用「個人投資台 · 監控板」。`paper.label` 要寫 **SIMULATED**，呢度唔報真倉價。
+獨立頁：<https://martinleesk.github.io/grokbot-3d-hq/invest/>（`invest/index.html`）。奶油底、鎖定淺色，DEMO 快照同紙上成交都喺呢頁，唔接券商，真倉自動 OFF。頁頂 **返回小鎮** 去小鎮根目錄。
 
-`live.invest` is optional. A https `dashboardUrl` shows 「開監控板」 on the invest detail and inside 投資屋 and the analytics center. The flat map also puts a short link under the advisor house. The link opens in a new tab. `paper.label` stays **SIMULATED**; this view does not show live prices.
+`live.invest` 唔使有。有 `dashboardUrl`（https，或者相對 `invest/`）時，投資區詳情、**投資平台**、數據分析中心同投資顧問室內都會顯示「進入投資平台」，開新分頁。平面地圖喺投資平台同顧問屋下面都有一粒。標題用 `dashboardTitle`，冇就用「個人投資台 · 投資平台」。`paper.label` 要寫 **SIMULATED**，呢度唔報真倉價。Canvas 網址唔會開。
+
+`live.invest` is optional. A https `dashboardUrl` — or a relative `invest/` path — shows 「進入投資平台」 on the invest detail, inside **投資平台**, the analytics center, and the advisor's room. The flat map puts the same link on the platform and under the advisor house. The link opens the standalone page in a new tab, not Cursor Canvas. `paper.label` stays **SIMULATED**; this view does not show live prices.
 
 `node town.test.js` checks the morning brief, workplace posts (not lane parking), activity labels, and that outdoor chats stay tied to real status text. At 08:10 HKT people are at their desks or idle, at 12:00 the secretary is in the DOM block, and at 20:00 Boss is out for a private plan rather than typing at a desk.
