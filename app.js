@@ -1649,8 +1649,9 @@
     var act = null;
     if (kind === 'hall' && inferred) act = window.HQTown.hallBoard(liveData || {}, inferred);
     else if (inferred) act = inferred.byId[staffId];
+    var doing = act ? (window.HQTown.outdoorLabel(act) || act.animLabel) : '';
     btn.innerHTML = '<span class="roof"></span><span class="wall"><b>' + escHtml(label) + '</b><small>' +
-      escHtml(act ? act.animLabel : '') + '</small></span>';
+      escHtml(doing) + '</small></span>';
     btn.addEventListener('click', function () {
       if (kind === 'hall') {
         showTownCard('hall');
@@ -1661,6 +1662,63 @@
       if (hit) selectZone(hit.zone.id, hit.staff.id, { toast: true, openDrawer: true });
     });
     return btn;
+  }
+
+  function townChip(staffId, inferred) {
+    var person = findStaffAnywhere(staffId);
+    var name = person ? person.staff.name : staffId;
+    var act = inferred && inferred.byId[staffId];
+    var chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'town-pin';
+    chip.dataset.staff = staffId;
+    chip.textContent = name.slice(0, 1);
+    chip.title = name + (act ? ' · ' + (window.HQTown.outdoorLabel(act) || act.animLabel) : '');
+    chip.addEventListener('click', function () {
+      var hit = findStaffAnywhere(staffId);
+      if (hit) selectZone(hit.zone.id, hit.staff.id, { toast: true, openDrawer: true });
+    });
+    return chip;
+  }
+
+  function townCell(plot, crew) {
+    var cell = document.createElement('div');
+    cell.className = 'town-cell';
+    cell.appendChild(plot);
+    if (crew && crew.length) {
+      var list = document.createElement('div');
+      list.className = 'town-crew';
+      crew.forEach(function (chip) { list.appendChild(chip); });
+      cell.appendChild(list);
+    }
+    return cell;
+  }
+
+  function renderTownDuty() {
+    var el = $('townDuty');
+    if (!el || !window.HQTown) return;
+    var inferred = activityNow();
+    if (!inferred) return;
+    var board = window.HQTown.dutyBoard(inferred);
+    var html = '<h2>而家做緊</h2>';
+    board.forEach(function (group) {
+      html += '<section class="town-duty-group"><h3>' + escHtml(group.title) + '</h3>';
+      group.people.forEach(function (person) {
+        var cls = person.away ? 'away' : (person.anim === 'idle' ? 'is-idle' : '');
+        html += '<button type="button" class="' + cls + '" data-staff="' + escHtml(person.staffId) + '">' +
+          '<b>' + escHtml(person.name) + '</b><span>' + escHtml(person.text) + '</span></button>';
+      });
+      html += '</section>';
+    });
+    el.innerHTML = html;
+    el.querySelectorAll('button[data-staff]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var hit = findStaffAnywhere(btn.getAttribute('data-staff'));
+        if (hit) selectZone(hit.zone.id, hit.staff.id, { toast: true, openDrawer: true });
+      });
+    });
+    var indoor = window.HQTownView && window.HQTownView.indoors && window.HQTownView.indoors();
+    el.hidden = !!indoor;
   }
 
   function renderTown2D() {
@@ -1675,6 +1733,13 @@
     var stack = root.querySelector('.fb-stack');
     if (stack) stack.parentNode.removeChild(stack);
     var inferred = activityNow();
+    var roster = window.HQTown.rosterFromZones(ZONES);
+    var crews = {};
+    window.HQTown.postsFor(roster).forEach(function (post) {
+      if (post.kind !== 'yard') return;
+      if (!crews[post.homeId]) crews[post.homeId] = [];
+      crews[post.homeId].push(townChip(post.staffId, inferred));
+    });
     var map = document.createElement('div');
     map.className = 'town-map';
     var grass = document.createElement('div');
@@ -1682,35 +1747,31 @@
     var civic = document.createElement('div');
     civic.className = 'town-row';
     window.HQTown.PUBLIC.forEach(function (spec) {
-      civic.appendChild(townPlot(spec.kind === 'hall' ? 'hall' : spec.staffId, spec.label, spec.kind === 'hall' ? 'hall' : 'center', inferred));
+      var id = spec.kind === 'hall' ? 'hall' : spec.staffId;
+      var kind = spec.kind === 'hall' ? 'hall' : 'center';
+      civic.appendChild(townCell(
+        townPlot(id, spec.label, kind, inferred),
+        kind === 'center' ? crews[spec.staffId] : null
+      ));
     });
     grass.appendChild(civic);
     var homes = document.createElement('div');
     homes.className = 'town-row';
     window.HQTown.HOUSES.forEach(function (spec) {
       var person = findStaffAnywhere(spec.staffId);
-      homes.appendChild(townPlot(spec.staffId, person ? person.staff.name : spec.staffId, 'house', inferred));
+      homes.appendChild(townCell(
+        townPlot(spec.staffId, person ? person.staff.name : spec.staffId, 'house', inferred),
+        crews[spec.staffId]
+      ));
     });
     grass.appendChild(homes);
-    var pins = document.createElement('div');
-    pins.className = 'town-pins';
-    window.HQTown.pinsFor(window.HQTown.rosterFromZones(ZONES)).forEach(function (spec) {
-      var person = findStaffAnywhere(spec.staffId);
-      var name = person ? person.staff.name : spec.staffId;
-      var act = inferred && inferred.byId[spec.staffId];
-      var chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'town-pin';
-      chip.dataset.staff = spec.staffId;
-      chip.textContent = name.slice(0, 1);
-      chip.title = name + (act ? ' · ' + act.animLabel : '');
-      chip.addEventListener('click', function () {
-        var hit = findStaffAnywhere(spec.staffId);
-        if (hit) selectZone(hit.zone.id, hit.staff.id, { toast: true, openDrawer: true });
-      });
-      pins.appendChild(chip);
-    });
-    grass.appendChild(pins);
+    var overflow = window.HQTown.pinsFor(roster);
+    if (overflow.length) {
+      var pins = document.createElement('div');
+      pins.className = 'town-pins';
+      overflow.forEach(function (spec) { pins.appendChild(townChip(spec.staffId, inferred)); });
+      grass.appendChild(pins);
+    }
     map.appendChild(grass);
     var indoor = document.createElement('section');
     indoor.className = 'town-indoor';
@@ -1816,9 +1877,10 @@
       btn.textContent = '立體小鎮';
     }
     var hint = $('hint');
-    if (hint) hint.textContent = '點小屋睇緊做緊咩 · 可轉立體小鎮';
+    if (hint) hint.textContent = '右上角睇每人做緊咩 · 可轉立體小鎮';
     if (reason) pushFeed({ zone: 'sys', text: '平面小鎮：' + reason });
     build2D();
+    renderTownDuty();
     renderDetail(selectedZone, selectedStaffId);
   }
 
@@ -1863,6 +1925,7 @@
   function syncLifeFromLive() {
     if (runtime3d && runtime3d.town && window.HQTownView) window.HQTownView.sync(liveData || {});
     if (mode === '2d') renderTown2D();
+    renderTownDuty();
   }
 
   function enable3D() {
@@ -1907,7 +1970,7 @@
       var btn = $('btnTry3d');
       if (btn) btn.textContent = '平面地圖';
       var hint = $('hint');
-      if (hint) hint.textContent = '點小屋進入室內 · 全景返回小鎮';
+      if (hint) hint.textContent = '右上角睇緊做緊咩 · 點人入室內';
       mode = '3d';
       if (runtime3d && window.HQTownView) window.HQTownView.sync(liveData || {});
       if (runtime3d) runtime3d.skipEnter = true;
@@ -2009,6 +2072,7 @@
   }
 
   buildFloorRail();
+  renderTownDuty();
 
   Promise.all([loadDirectory(), loadLifeLayout()]).then(function () {
     var hosted = location.protocol === 'https:' || location.protocol === 'http:';

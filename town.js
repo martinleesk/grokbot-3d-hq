@@ -2,7 +2,10 @@
    Indoor poses come from live.json: status, focus, calendar, and optional
    live.agents / live.campus.meetings / live.town.meetings.
    idle | walk | sit | meeting are the only poses. A private appointment
-   that is happening now is idle + away (out, not pretending to type). */
+   that is happening now is idle + away (out, not pretending to type).
+   Outdoor posts prefer a house porch or a workplace yard. frameAt() then
+   plays a short chat, a porch patrol, and an occasional lane visit.
+   Those walks do not change infer(). */
 (function (root, factory) {
   var api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -46,6 +49,85 @@
     { id: 'life-lane', text: '生活巷', x: -11.0, z: 1.4 },
     { id: 'content-lane', text: '內容巷', x: -10.8, z: 4.45 }
   ];
+
+  /* Specialists work at a related house or civic center. Lanes are visits, not parking. */
+  var WORK_HOME = {
+    byd: 'analytics', '2800': 'analytics', qqq: 'analytics', voo: 'analytics',
+    orcl: 'analytics', sdiv: 'analytics', rsss: 'analytics', spacex: 'analytics', dcf: 'analytics',
+    passive: 'advisor', retire: 'advisor', home: 'advisor',
+    health: 'life', mind: 'life', learn: 'life',
+    meet: 'sec',
+    social: 'news', sum: 'news', tr: 'news',
+    research: 'lab', scout: 'lab'
+  };
+
+  var YARD_ORDER = {
+    analytics: ['byd', '2800', 'qqq', 'voo', 'orcl', 'sdiv', 'rsss', 'spacex', 'dcf'],
+    advisor: ['passive', 'retire', 'home'],
+    life: ['health', 'mind', 'learn'],
+    sec: ['meet'],
+    news: ['social', 'sum', 'tr'],
+    lab: ['research', 'scout']
+  };
+
+  var YARD_SLOTS = {
+    analytics: [
+      { x: -8.2, z: -3.6 }, { x: -6.35, z: -3.6 }, { x: -4.5, z: -3.6 }, { x: -2.65, z: -3.6 }, { x: -0.8, z: -3.6 },
+      { x: -7.3, z: -2.55 }, { x: -5.45, z: -2.55 }, { x: -3.6, z: -2.55 }, { x: -1.75, z: -2.55 }
+    ],
+    advisor: [
+      { x: -7.5, z: 6.05 }, { x: -6.15, z: 6.05 }, { x: -4.8, z: 6.05 }
+    ],
+    life: [
+      { x: 4.9, z: -0.9 }, { x: 4.9, z: 0.3 }, { x: 6.05, z: -0.3 }
+    ],
+    sec: [
+      { x: -4.35, z: 0.55 }
+    ],
+    news: [
+      { x: 0.55, z: 6.0 }, { x: 2.05, z: 6.0 }, { x: 3.55, z: 6.0 }
+    ],
+    lab: [
+      { x: 3.15, z: -3.35 }, { x: 4.7, z: -3.35 }
+    ]
+  };
+
+  var HOME_LABEL = {
+    boss: '總管屋', sec: '秘書屋', finance: '財務屋', life: '生活屋',
+    advisor: '投資屋', travel: '旅遊屋', news: '新聞屋', auditor: '稽核屋'
+  };
+
+  var COURT_MARKS = [
+    { id: 'analytics-yard', text: '分析台', x: -9.35, z: -3.6 },
+    { id: 'advisor-yard', text: '投資後院', x: -8.7, z: 6.05 },
+    { id: 'life-yard', text: '生活屋前', x: 6.55, z: -1.15 },
+    { id: 'news-yard', text: '新聞後院', x: -0.75, z: 6.0 },
+    { id: 'lab-yard', text: '研創前地', x: 2.15, z: -3.35 }
+  ];
+
+  var CHAT_HOMES = ['analytics', 'advisor', 'life', 'news', 'lab'];
+  var PATROL_HOMES = ['advisor', 'life', 'news', 'analytics'];
+  var ERRANDS = ['byd', 'health', 'social', 'passive', 'research', 'meet'];
+  var LANES = [
+    { id: 'qqq', sign: 'invest-lane' },
+    { id: 'learn', sign: 'life-lane' },
+    { id: 'sum', sign: 'content-lane' }
+  ];
+
+  var BEAT = {
+    cycle: 40,
+    chatGoEnd: 4,
+    chatTalkEnd: 10,
+    chatEnd: 14,
+    patrolGoEnd: 20,
+    patrolHoldEnd: 22,
+    patrolEnd: 28,
+    errandGoEnd: 33,
+    errandHoldEnd: 35,
+    visitEnd: 40,
+    laneGoEnd: 34,
+    laneHoldEnd: 36
+  };
 
   function yearOf(live, nowMs) {
     var s = live && live.updated != null ? String(live.updated) : '';
@@ -197,14 +279,11 @@ function pickCalendar(cals, context, title) {
   }
 
   function pinsFor(roster) {
-    var housed = {};
-    var centers = {};
-    HOUSES.forEach(function (h) { housed[h.staffId] = true; });
-    PUBLIC.forEach(function (p) { if (p.staffId) centers[p.staffId] = true; });
     var out = [];
     var extra = 0;
     (roster || []).forEach(function (p) {
-      if (!p || housed[p.id] || centers[p.id]) return;
+      if (!p || !p.id) return;
+      if (p.center || houseByStaff(p.id) || WORK_HOME[p.id]) return;
       var slot = PIN_SLOTS[p.id];
       var x;
       var z;
@@ -216,9 +295,575 @@ function pickCalendar(cals, context, title) {
         z = 7.2 + Math.floor(extra / 8) * 0.65;
         extra++;
       }
-      out.push({ staffId: p.id, zoneId: p.zoneId, x: x, z: z });
+      out.push({
+        staffId: p.id,
+        zoneId: p.zoneId,
+        homeId: 'pin',
+        x: x,
+        z: z,
+        reason: '未有崗位，暫放街口'
+      });
     });
     return out;
+  }
+
+  function homeTitle(id) {
+    if (!id || id === 'pin') return '街口暫放';
+    if (id === 'hall') return '會議廳';
+    var pub = publicById(id);
+    if (pub && pub.label) return pub.label;
+    return HOME_LABEL[id] || id;
+  }
+
+  function yardYaw(homeId) {
+    if (homeId === 'life') return -Math.PI / 2;
+    return Math.PI;
+  }
+
+  function postsFor(roster) {
+    var out = [];
+    (roster || []).forEach(function (p) {
+      if (!p || !p.id) return;
+      if (p.center) {
+        var pub = publicById(p.id);
+        if (pub) {
+          out.push({
+            staffId: p.id,
+            homeId: p.id,
+            kind: 'center',
+            x: pub.x,
+            z: pub.z + pub.d / 2 + 0.62,
+            yaw: Math.PI,
+            reason: '公所當值'
+          });
+          return;
+        }
+      }
+      var house = houseByStaff(p.id);
+      if (house) {
+        var porch = porchOf(house);
+        out.push({
+          staffId: p.id,
+          homeId: p.id,
+          kind: 'porch',
+          x: porch.x + 0.42,
+          z: porch.z,
+          yaw: porch.yaw,
+          reason: '屋主崗位'
+        });
+        return;
+      }
+      var home = WORK_HOME[p.id];
+      var slots = home && YARD_SLOTS[home];
+      if (slots && slots.length) {
+        var order = YARD_ORDER[home] || [];
+        var idx = order.indexOf(p.id);
+        if (idx < 0) idx = 0;
+        var slot = slots[Math.min(idx, slots.length - 1)];
+        out.push({
+          staffId: p.id,
+          homeId: home,
+          kind: 'yard',
+          x: slot.x,
+          z: slot.z,
+          yaw: yardYaw(home),
+          reason: publicById(home) ? '公所崗位' : '屋前崗位'
+        });
+        return;
+      }
+    });
+    pinsFor(roster).forEach(function (pin) {
+      out.push({
+        staffId: pin.staffId,
+        homeId: 'pin',
+        kind: 'pin',
+        x: pin.x + 0.28,
+        z: pin.z + 0.05,
+        yaw: 0,
+        reason: pin.reason
+      });
+    });
+    return out;
+  }
+
+  function clipText(s, maxUnits) {
+    var str = String(s || '').replace(/\s+/g, ' ').trim();
+    var out = '';
+    var w = 0;
+    var max = maxUnits || 8;
+    for (var i = 0; i < str.length; i++) {
+      var ch = str.charAt(i);
+      var cw = ch === ' ' ? 0.35 : (ch.charCodeAt(0) > 255 ? 1 : 0.55);
+      if (out && w + cw > max) break;
+      out += ch;
+      w += cw;
+    }
+    return out;
+  }
+
+  function outdoorLabel(act) {
+    if (!act) return '';
+    if (act.anim === 'meeting') return '開會';
+    if (act.away) return '外出';
+    if (act.anim === 'walk') return '短走';
+    if (act.anim === 'idle') return '待命';
+    if (act.focusTitle) return clipText(act.focusTitle, 8);
+    if (act.status) return clipText(act.status, 6);
+    return '辦公';
+  }
+
+  function dutyText(act) {
+    if (!act) return '';
+    if (act.anim === 'meeting' || act.away || act.anim === 'walk' || act.anim === 'idle') {
+      return act.headline || outdoorLabel(act);
+    }
+    if (act.focusTitle) return act.focusTitle;
+    if (act.status) return act.status;
+    return act.animLabel || '辦公';
+  }
+
+  function workPhrase(act) {
+    if (!act) return '辦公';
+    if (act.anim === 'meeting') return '開會';
+    if (act.away) return '外出';
+    if (act.anim === 'walk') return '短走';
+    if (act.anim === 'idle') return '待命';
+    if (act.focusTitle) return act.focusTitle;
+    if (act.status) return act.status;
+    return act.animLabel || '辦公';
+  }
+
+  function speak(act, kind) {
+    var work = workPhrase(act);
+    var line = work;
+    if (kind === 'open') line = '而家' + work;
+    else if (kind === 'reply') line = '收到，我' + work;
+    else if (kind === 'patrol') line = '巡過：' + work;
+    else if (kind === 'errand') line = '交低：' + work;
+    else if (kind === 'lane') line = '過嚟對：' + work;
+    return clipText(line, 16);
+  }
+
+  function dutyBoard(inferred) {
+    inferred = inferred || { list: [] };
+    var groups = {};
+    var order = ['hall', 'analytics', 'lab', 'shared-db'];
+    HOUSES.forEach(function (h) { order.push(h.staffId); });
+    order.push('pin');
+    function group(key) {
+      if (!groups[key]) {
+        groups[key] = { id: key, title: homeTitle(key), people: [] };
+      }
+      return groups[key];
+    }
+    order.forEach(group);
+    var roster = (inferred.list || []).map(function (a) {
+      return { id: a.staffId, center: a.center, zoneId: a.zoneId, name: a.name, status: a.status };
+    });
+    var postBy = {};
+    postsFor(roster).forEach(function (p) { postBy[p.staffId] = p; });
+    (inferred.list || []).forEach(function (act) {
+      var key = act.anim === 'meeting'
+        ? 'hall'
+        : ((postBy[act.staffId] && postBy[act.staffId].homeId) || act.homeId || 'pin');
+      group(key).people.push({
+        staffId: act.staffId,
+        name: act.name || act.staffId,
+        label: outdoorLabel(act),
+        text: dutyText(act),
+        anim: act.anim,
+        away: !!act.away
+      });
+    });
+    return order.map(function (key) { return groups[key]; }).filter(function (g) { return g && g.people.length; });
+  }
+
+  function buildingBoxes() {
+    var boxes = [];
+    HOUSES.concat(PUBLIC).forEach(function (b) {
+      boxes.push({
+        id: b.staffId || b.id,
+        minX: b.x - b.w / 2,
+        maxX: b.x + b.w / 2,
+        minZ: b.z - b.d / 2,
+        maxZ: b.z + b.d / 2
+      });
+    });
+    boxes.push({ id: 'pond', minX: 5.45, maxX: 7.95, minZ: -3.6, maxZ: -1.1 });
+    return boxes;
+  }
+
+  function segmentHitsBox(a, b, box, pad) {
+    var minX = box.minX - pad;
+    var maxX = box.maxX + pad;
+    var minZ = box.minZ - pad;
+    var maxZ = box.maxZ + pad;
+    var dx = b.x - a.x;
+    var dz = b.z - a.z;
+    var t0 = 0;
+    var t1 = 1;
+    function clip(p, q) {
+      if (Math.abs(p) < 1e-9) return q >= 0;
+      var r = q / p;
+      if (p < 0) {
+        if (r > t1) return false;
+        if (r > t0) t0 = r;
+      } else {
+        if (r < t0) return false;
+        if (r < t1) t1 = r;
+      }
+      return true;
+    }
+    if (!clip(-dx, a.x - minX)) return false;
+    if (!clip(dx, maxX - a.x)) return false;
+    if (!clip(-dz, a.z - minZ)) return false;
+    if (!clip(dz, maxZ - a.z)) return false;
+    return t0 <= t1;
+  }
+
+  function pathHits(pts, boxes, pad) {
+    for (var i = 1; i < pts.length; i++) {
+      for (var j = 0; j < boxes.length; j++) {
+        if (segmentHitsBox(pts[i - 1], pts[i], boxes[j], pad)) return true;
+      }
+    }
+    return false;
+  }
+
+  function dedupePath(pts) {
+    var out = [];
+    (pts || []).forEach(function (p) {
+      if (!p) return;
+      var last = out[out.length - 1];
+      if (last && Math.abs(last.x - p.x) < 0.04 && Math.abs(last.z - p.z) < 0.04) return;
+      out.push({ x: p.x, z: p.z });
+    });
+    return out;
+  }
+
+  function route(a, b, boxes) {
+    var pad = 0.42;
+    if (!pathHits([a, b], boxes, pad)) return [a, b];
+    function clearX(x, z0, z1) {
+      function free(xx) {
+        return !pathHits([{ x: xx, z: z0 }, { x: xx, z: z1 }], boxes, pad);
+      }
+      if (free(x)) return x;
+      for (var d = 0.45; d <= 5; d += 0.45) {
+        if (free(x - d)) return x - d;
+        if (free(x + d)) return x + d;
+      }
+      return x;
+    }
+    var streetZ = 1.55;
+    var x1 = clearX(a.x, a.z, streetZ);
+    var x2 = clearX(b.x, b.z, streetZ);
+    var via = dedupePath([
+      a,
+      { x: x1, z: a.z },
+      { x: x1, z: streetZ },
+      { x: x2, z: streetZ },
+      { x: x2, z: b.z },
+      b
+    ]);
+    if (!pathHits(via, boxes, pad)) return via;
+    var offsets = [-3.4, 3.4, -5, 5];
+    for (var i = 0; i < offsets.length; i++) {
+      var mx = (a.x + b.x) / 2 + offsets[i];
+      var mz = (a.z + b.z) / 2;
+      var side = dedupePath([a, { x: a.x, z: mz }, { x: mx, z: mz }, { x: b.x, z: mz }, b]);
+      if (!pathHits(side, boxes, pad)) return side;
+    }
+    return via;
+  }
+
+  function pathDist(a, b) {
+    var dx = a.x - b.x;
+    var dz = a.z - b.z;
+    return Math.sqrt(dx * dx + dz * dz);
+  }
+
+  function pointAlong(pts, u) {
+    if (u < 0) u = 0;
+    if (u > 1) u = 1;
+    if (!pts || !pts.length) return { x: 0, z: 0, yaw: 0 };
+    if (pts.length === 1) return { x: pts[0].x, z: pts[0].z, yaw: 0 };
+    var lengths = [];
+    var total = 0;
+    for (var i = 1; i < pts.length; i++) {
+      var len = pathDist(pts[i - 1], pts[i]);
+      lengths.push(len);
+      total += len;
+    }
+    if (total < 1e-4) return { x: pts[0].x, z: pts[0].z, yaw: 0 };
+    var target = total * u;
+    var acc = 0;
+    for (var s = 0; s < lengths.length; s++) {
+      var seg = lengths[s];
+      if (acc + seg >= target - 1e-6 || s === lengths.length - 1) {
+        var k = seg < 1e-6 ? 0 : (target - acc) / seg;
+        if (k < 0) k = 0;
+        if (k > 1) k = 1;
+        var p0 = pts[s];
+        var p1 = pts[s + 1];
+        return {
+          x: p0.x + (p1.x - p0.x) * k,
+          z: p0.z + (p1.z - p0.z) * k,
+          yaw: Math.atan2(p1.x - p0.x, p1.z - p0.z)
+        };
+      }
+      acc += seg;
+    }
+    var last = pts[pts.length - 1];
+    return { x: last.x, z: last.z, yaw: 0 };
+  }
+
+  function hashPhase(id) {
+    var n = 0;
+    var s = String(id || '');
+    for (var i = 0; i < s.length; i++) n = (n * 33 + s.charCodeAt(i)) >>> 0;
+    return (n % 628) / 100;
+  }
+
+  function isFree(act) {
+    return !!(act && act.anim !== 'meeting' && act.anim !== 'walk' && !act.away);
+  }
+
+  function doorSpot(homeId) {
+    var house = houseByStaff(homeId);
+    if (house) {
+      var porch = porchOf(house);
+      return { x: porch.x - 0.9, z: porch.z };
+    }
+    var pub = publicById(homeId);
+    if (pub) return { x: pub.x + pub.w / 2 + 0.75, z: pub.z + pub.d / 2 + 0.28 };
+    return { x: 0, z: 1.55 };
+  }
+
+  function signSpot(signId) {
+    for (var i = 0; i < SIGNS.length; i++) {
+      if (SIGNS[i].id === signId) return { x: SIGNS[i].x, z: SIGNS[i].z + 0.9 };
+    }
+    return { x: 9.7, z: 2.05 };
+  }
+
+  function hallSeats(n) {
+    var hall = publicById('hall');
+    var gap = 0.5;
+    var width = Math.max(n - 1, 0) * gap;
+    var x0 = hall.x - width / 2;
+    var z = hall.z + hall.d / 2 + 0.78;
+    var seats = [];
+    for (var i = 0; i < n; i++) seats.push({ x: x0 + i * gap, z: z, yaw: Math.PI });
+    return seats;
+  }
+
+  function chatPair(turn, byId) {
+    var homes = CHAT_HOMES.filter(function (home) {
+      var members = (YARD_ORDER[home] || []).filter(function (id) { return isFree(byId[id]); });
+      return members.length >= 2;
+    });
+    if (!homes.length) return null;
+    var home = homes[turn % homes.length];
+    var members = (YARD_ORDER[home] || []).filter(function (id) { return isFree(byId[id]); });
+    var idx = Math.floor(turn / homes.length) % (members.length - 1);
+    return { a: members[idx], b: members[idx + 1], home: home };
+  }
+
+  function patrolPlan(turn, byId, posts) {
+    var homes = PATROL_HOMES.filter(function (home) {
+      if (isFree(byId[home]) && posts[home]) return true;
+      var yards = YARD_ORDER[home] || [];
+      for (var i = 0; i < yards.length; i++) {
+        if (isFree(byId[yards[i]]) && posts[yards[i]]) return true;
+      }
+      return false;
+    });
+    if (!homes.length) return null;
+    var home = homes[turn % homes.length];
+    var walker = (isFree(byId[home]) && posts[home]) ? home : '';
+    if (!walker) {
+      var yards = YARD_ORDER[home] || [];
+      for (var i = 0; i < yards.length; i++) {
+        if (isFree(byId[yards[i]]) && posts[yards[i]]) { walker = yards[i]; break; }
+      }
+    }
+    var slots = YARD_SLOTS[home] || [];
+    if (!walker || !slots.length || !posts[walker]) return null;
+    var far = slots[slots.length - 1];
+    return {
+      id: walker,
+      to: { x: far.x + 0.15, z: far.z + 0.72 }
+    };
+  }
+
+  function visitPlan(turn, byId, posts) {
+    if (turn % 2 === 0) {
+      for (var i = 0; i < ERRANDS.length; i++) {
+        var id = ERRANDS[(Math.floor(turn / 2) + i) % ERRANDS.length];
+        if (isFree(byId[id]) && posts[id] && WORK_HOME[id]) {
+          return { id: id, to: doorSpot(WORK_HOME[id]), kind: 'errand' };
+        }
+      }
+      return null;
+    }
+    var start = Math.floor(turn / 2) % LANES.length;
+    for (var j = 0; j < LANES.length; j++) {
+      var lane = LANES[(start + j) % LANES.length];
+      if (isFree(byId[lane.id]) && posts[lane.id]) {
+        return { id: lane.id, to: signSpot(lane.sign), kind: 'lane' };
+      }
+    }
+    return null;
+  }
+
+  function ride(from, to, u, boxes) {
+    return pointAlong(route(from, to, boxes), u);
+  }
+
+  function frameAt(roster, inferred, tSec) {
+    var byId = (inferred && inferred.byId) || {};
+    var t = isFinite(+tSec) ? +tSec : 0;
+    if (t < 0) t = 0;
+    var posts = {};
+    postsFor(roster).forEach(function (p) { posts[p.staffId] = p; });
+    var boxes = buildingBoxes();
+    var people = {};
+    var meeting = [];
+    (roster || []).forEach(function (person) {
+      if (!person || !person.id) return;
+      var act = byId[person.id];
+      var post = posts[person.id];
+      if (!act || !post) return;
+      if (act.anim === 'meeting') {
+        meeting.push(person.id);
+        return;
+      }
+      var spot = { x: post.x, z: post.z, yaw: post.yaw, pose: act.away || act.anim === 'idle' ? 'idle' : 'sit', bubble: '' };
+      if (act.anim === 'walk') {
+        var house = houseByStaff(person.id);
+        var a;
+        var b;
+        if (house) {
+          var porch = porchOf(house);
+          a = { x: porch.x, z: porch.z };
+          b = porch.walkTo;
+        } else {
+          a = { x: post.x, z: post.z };
+          b = { x: post.x + 0.15, z: post.z > 1.55 ? post.z - 1.25 : post.z + 1.25 };
+        }
+        var u = (Math.sin(t * 0.7 + hashPhase(person.id)) + 1) / 2;
+        var dir = Math.cos(t * 0.7 + hashPhase(person.id)) >= 0 ? 1 : -1;
+        spot.x = a.x + (b.x - a.x) * u;
+        spot.z = a.z + (b.z - a.z) * u;
+        spot.yaw = Math.atan2((b.x - a.x) * dir, (b.z - a.z) * dir);
+        spot.pose = 'walk';
+      }
+      people[person.id] = { spot: spot, act: act, post: post };
+    });
+    var seats = hallSeats(meeting.length);
+    meeting.forEach(function (id, i) {
+      var seat = seats[i];
+      people[id] = {
+        spot: { x: seat.x, z: seat.z, yaw: seat.yaw, pose: 'meeting', bubble: '' },
+        act: byId[id],
+        post: posts[id]
+      };
+    });
+
+    var turn = Math.floor(t / BEAT.cycle);
+    var local = t - turn * BEAT.cycle;
+    var pair = chatPair(turn, byId);
+    if (pair && posts[pair.a] && posts[pair.b] && local < BEAT.chatEnd) {
+      var pa = posts[pair.a];
+      var pb = posts[pair.b];
+      var mid = { x: (pa.x + pb.x) / 2, z: (pa.z + pb.z) / 2 };
+      var destA = { x: mid.x - 0.4, z: mid.z };
+      var destB = { x: mid.x + 0.4, z: mid.z };
+      var sa = people[pair.a].spot;
+      var sb = people[pair.b].spot;
+      if (local < BEAT.chatGoEnd) {
+        var ga = ride(pa, destA, local / BEAT.chatGoEnd, boxes);
+        var gb = ride(pb, destB, local / BEAT.chatGoEnd, boxes);
+        sa.x = ga.x; sa.z = ga.z; sa.yaw = ga.yaw; sa.pose = 'walk';
+        sb.x = gb.x; sb.z = gb.z; sb.yaw = gb.yaw; sb.pose = 'walk';
+      } else if (local < BEAT.chatTalkEnd) {
+        sa.x = destA.x; sa.z = destA.z; sa.yaw = Math.atan2(destB.x - destA.x, destB.z - destA.z); sa.pose = 'idle';
+        sb.x = destB.x; sb.z = destB.z; sb.yaw = Math.atan2(destA.x - destB.x, destA.z - destB.z); sb.pose = 'idle';
+        sa.bubble = speak(byId[pair.a], 'open');
+        sb.bubble = speak(byId[pair.b], 'reply');
+      } else {
+        var backU = (local - BEAT.chatTalkEnd) / (BEAT.chatEnd - BEAT.chatTalkEnd);
+        var ra = ride(destA, pa, backU, boxes);
+        var rb = ride(destB, pb, backU, boxes);
+        sa.x = ra.x; sa.z = ra.z; sa.yaw = ra.yaw; sa.pose = 'walk';
+        sb.x = rb.x; sb.z = rb.z; sb.yaw = rb.yaw; sb.pose = 'walk';
+      }
+    }
+
+    var patrol = patrolPlan(turn, byId, posts);
+    if (patrol && people[patrol.id] && local >= BEAT.chatEnd && local < BEAT.patrolEnd) {
+      var walker = people[patrol.id];
+      var from = { x: posts[patrol.id].x, z: posts[patrol.id].z };
+      var goSpan = BEAT.patrolGoEnd - BEAT.chatEnd;
+      var backSpan = BEAT.patrolEnd - BEAT.patrolHoldEnd;
+      if (local < BEAT.patrolGoEnd) {
+        var gp = ride(from, patrol.to, (local - BEAT.chatEnd) / goSpan, boxes);
+        walker.spot.x = gp.x; walker.spot.z = gp.z; walker.spot.yaw = gp.yaw; walker.spot.pose = 'walk';
+      } else if (local < BEAT.patrolHoldEnd) {
+        var held = ride(from, patrol.to, 1, boxes);
+        walker.spot.x = held.x; walker.spot.z = held.z;
+        walker.spot.yaw = Math.atan2(from.x - patrol.to.x, from.z - patrol.to.z);
+        walker.spot.pose = 'idle';
+        walker.spot.bubble = speak(byId[patrol.id], 'patrol');
+      } else {
+        var bp = ride(patrol.to, from, (local - BEAT.patrolHoldEnd) / backSpan, boxes);
+        walker.spot.x = bp.x; walker.spot.z = bp.z; walker.spot.yaw = bp.yaw; walker.spot.pose = 'walk';
+      }
+    }
+
+    var visit = visitPlan(turn, byId, posts);
+    if (visit && people[visit.id] && local >= BEAT.patrolEnd && local < BEAT.visitEnd) {
+      var guest = people[visit.id];
+      var origin = { x: posts[visit.id].x, z: posts[visit.id].z };
+      var goEnd = visit.kind === 'lane' ? BEAT.laneGoEnd : BEAT.errandGoEnd;
+      var holdEnd = visit.kind === 'lane' ? BEAT.laneHoldEnd : BEAT.errandHoldEnd;
+      var goLen = goEnd - BEAT.patrolEnd;
+      var backLen = BEAT.visitEnd - holdEnd;
+      if (local < goEnd) {
+        var gv = ride(origin, visit.to, (local - BEAT.patrolEnd) / goLen, boxes);
+        guest.spot.x = gv.x; guest.spot.z = gv.z; guest.spot.yaw = gv.yaw; guest.spot.pose = 'walk';
+      } else if (local < holdEnd) {
+        var hv = ride(origin, visit.to, 1, boxes);
+        guest.spot.x = hv.x; guest.spot.z = hv.z;
+        guest.spot.yaw = Math.atan2(origin.x - visit.to.x, origin.z - visit.to.z);
+        guest.spot.pose = 'idle';
+        guest.spot.bubble = speak(byId[visit.id], visit.kind === 'lane' ? 'lane' : 'errand');
+      } else {
+        var bv = ride(visit.to, origin, (local - holdEnd) / backLen, boxes);
+        guest.spot.x = bv.x; guest.spot.z = bv.z; guest.spot.yaw = bv.yaw; guest.spot.pose = 'walk';
+      }
+    }
+
+    var out = {};
+    Object.keys(people).forEach(function (id) {
+      var row = people[id];
+      var pose = row.spot.pose;
+      out[id] = {
+        staffId: id,
+        x: row.spot.x,
+        z: row.spot.z,
+        y: (pose === 'sit' || pose === 'meeting') ? 0.16 : 0,
+        yaw: row.spot.yaw,
+        pose: pose,
+        bubble: row.spot.bubble || '',
+        label: outdoorLabel(row.act),
+        homeId: row.post ? row.post.homeId : '',
+        kind: row.post ? row.post.kind : '',
+        scale: 0.64
+      };
+    });
+    return { people: out, t: t, turn: turn, local: local };
   }
 
   function porchOf(house) {
@@ -328,10 +973,19 @@ function pickCalendar(cals, context, title) {
     return map;
   }
 
+  function homeFor(person, anim) {
+    if (anim === 'meeting') return 'hall';
+    if (person.center) return person.id;
+    if (houseByStaff(person.id)) return person.id;
+    if (WORK_HOME[person.id]) return WORK_HOME[person.id];
+    return 'pin';
+  }
+
   function placeFor(person, anim) {
     if (anim === 'meeting') return 'hall';
     if (person.center) return person.id;
     if (houseByStaff(person.id)) return 'house';
+    if (WORK_HOME[person.id]) return 'yard';
     return 'pin';
   }
 
@@ -433,10 +1087,12 @@ function pickCalendar(cals, context, title) {
           act.source = 'live.agents';
         }
       }
+      act.focusTitle = primary && primary.title ? String(primary.title) : '';
       applyCopy(act, person, primary);
       if (act.lockedNote) act.headline = act.lockedNote;
       if (act.anim === 'meeting' && !act.meetingTitle) act.meetingTitle = primary && primary.title || '會議';
       act.place = placeFor(person, act.anim);
+      act.homeId = homeFor(person, act.anim);
       activities[person.id] = act;
       list.push(act);
     });
@@ -469,7 +1125,8 @@ function pickCalendar(cals, context, title) {
     }
     var kicker = '室內';
     if (act.place === 'hall' || act.anim === 'meeting') kicker = '會議廳';
-    else if (act.place === 'pin') kicker = '街口小檔';
+    else if (act.place === 'yard') kicker = '崗位 · ' + homeTitle(act.homeId);
+    else if (act.place === 'pin') kicker = '街口暫放';
     else if (act.center) kicker = '共用公所';
     else if (act.away) kicker = '門口';
     return {
@@ -546,10 +1203,14 @@ function pickCalendar(cals, context, title) {
     HOUSES: HOUSES,
     PUBLIC: PUBLIC,
     SIGNS: SIGNS,
+    COURT_MARKS: COURT_MARKS,
+    WORK_HOME: WORK_HOME,
+    BEAT: BEAT,
     rosterFromZones: rosterFromZones,
     houseByStaff: houseByStaff,
     publicById: publicById,
     pinsFor: pinsFor,
+    postsFor: postsFor,
     porchOf: porchOf,
     infer: infer,
     hudLines: hudLines,
@@ -557,6 +1218,14 @@ function pickCalendar(cals, context, title) {
     sourceLabel: sourceLabel,
     focusPoint: focusPoint,
     clockRanges: clockRanges,
-    tokens: tokens
+    tokens: tokens,
+    outdoorLabel: outdoorLabel,
+    dutyText: dutyText,
+    dutyBoard: dutyBoard,
+    frameAt: frameAt,
+    buildingBoxes: buildingBoxes,
+    homeTitle: homeTitle,
+    clipText: clipText,
+    speak: speak
   };
 });
