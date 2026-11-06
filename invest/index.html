@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light" />
 <meta name="theme-color" content="#F7F1E8" />
-<title>個人投資台 · 監控板</title>
+<title>個人投資台 · 投資平台</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600&display=swap" rel="stylesheet" />
@@ -15,21 +15,51 @@
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="shell">
+    <div class="roof" aria-hidden="true"></div>
     <header class="top">
+      <svg class="mark" viewBox="0 0 48 40" aria-hidden="true">
+        <path d="M5 18 L24 5 L43 18" fill="none" stroke="#C46A4A" stroke-width="4" stroke-linejoin="round" />
+        <path d="M10 18 V34 H38 V18" fill="#FFFBF6" stroke="#3A322C" stroke-width="2" />
+        <rect x="21" y="23" width="6" height="11" rx="1" fill="#3E92D0" />
+      </svg>
       <div class="top-copy">
-        <p class="eyebrow">投資平台 · Sheet DEMO</p>
-        <h1>個人投資台 · 監控板</h1>
-        <p class="sub" id="subline">數據分析板 · 載入 DEMO…</p>
+        <p class="eyebrow">紙上試行至 2026-11-20 · live_auto OFF</p>
+        <h1>個人投資台 · 投資平台</h1>
+        <p class="sub" id="subline">載入紙上 DEMO…</p>
       </div>
-      <a class="back" href="../">返回小鎮</a>
+      <div class="top-side">
+        <div class="chips" aria-label="狀態">
+          <span class="chip chip-off">真倉 OFF</span>
+          <span class="chip chip-demo">DEMO</span>
+          <span class="chip chip-paper">PAPER</span>
+        </div>
+        <a class="back" href="../">返回小鎮</a>
+      </div>
     </header>
 
-    <p class="warn" id="warn">真倉自動 OFF · DEMO／PAPER 唔構成投資建議 · 1% / −3% / −10% · 槓桿 OFF</p>
+    <p class="warn" id="warn" role="status">真倉自動 OFF · DEMO／PAPER 唔構成投資建議 · 1% / −3% / −10% · 槓桿 OFF</p>
 
-    <section class="kpis" id="kpis" aria-label="指標"></section>
+    <section class="hero" id="hero" aria-label="紙上 DEMO 本金">
+      <div class="hero-top">
+        <div class="hero-main">
+          <p class="hero-kicker" id="heroKicker">本金／equity</p>
+          <p class="hero-value" id="heroValue">…</p>
+          <p class="hero-note" id="heroNote">紙上交易資本</p>
+        </div>
+        <svg class="hero-sky" viewBox="0 0 132 40" aria-hidden="true">
+          <path d="M2 30 L16 16 L30 30 V38 H2 Z" fill="#3E92D0" />
+          <path d="M34 32 L50 14 L66 32 V38 H34 Z" fill="#C46A4A" />
+          <path d="M70 28 L88 12 L106 28 V38 H70 Z" fill="#2EAA96" />
+          <path d="M108 33 L118 22 L128 33 V38 H108 Z" fill="#E2A31A" />
+        </svg>
+        <div class="hero-side" id="heroSide"></div>
+      </div>
+      <div class="mix" id="heroMix"></div>
+    </section>
+    <p class="sheet-ref" id="sheetRef"></p>
 
-    <div class="tabs" role="tablist" aria-label="監控板">
+    <div class="tabs" role="tablist" aria-label="投資平台">
       <button type="button" role="tab" id="tab-overview" data-tab="overview" aria-selected="true" aria-controls="panel-overview">總覽</button>
       <button type="button" role="tab" id="tab-trade" data-tab="trade" aria-selected="false" aria-controls="panel-trade">交易</button>
       <button type="button" role="tab" id="tab-auto" data-tab="auto" aria-selected="false" aria-controls="panel-auto">全自動</button>
@@ -37,55 +67,57 @@
       <button type="button" role="tab" id="tab-risk" data-tab="risk" aria-selected="false" aria-controls="panel-risk">研究風控</button>
     </div>
 
-    <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview"></section>
+    <main class="stage">
+      <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview"></section>
 
-    <section class="panel" id="panel-trade" role="tabpanel" aria-labelledby="tab-trade" hidden>
-      <div class="split">
-        <form class="card ticket" id="ticket">
-          <h2>落紙上單</h2>
-          <p class="hint">只寫入呢部機 localStorage。DEMO 成交，無 broker API，真倉自動保持 OFF。</p>
-          <div class="seg" role="group" aria-label="方向">
-            <button type="button" data-side="buy" aria-pressed="true">買入</button>
-            <button type="button" data-side="sell" aria-pressed="false">賣出</button>
-          </div>
-          <label>代號
-            <select id="symbol" name="symbol"></select>
-          </label>
-          <div class="fields">
-            <label>數量
-              <input id="qty" name="qty" type="number" inputmode="decimal" min="0" step="any" value="1" />
+      <section class="panel" id="panel-trade" role="tabpanel" aria-labelledby="tab-trade" hidden>
+        <div class="split">
+          <form class="card ticket" id="ticket">
+            <h2>落紙上單</h2>
+            <p class="hint">只寫入呢部機 localStorage。DEMO 成交，無 broker API，真倉自動保持 OFF。</p>
+            <div class="seg" role="group" aria-label="方向">
+              <button type="button" data-side="buy" aria-pressed="true">買入</button>
+              <button type="button" data-side="sell" aria-pressed="false">賣出</button>
+            </div>
+            <label>代號
+              <select id="symbol" name="symbol"></select>
             </label>
-            <label>價格
-              <input id="price" name="price" type="number" inputmode="decimal" min="0" step="any" />
-            </label>
-          </div>
-          <div class="presets" role="group" aria-label="預設">
-            <button type="button" data-preset="one">1 股</button>
-            <button type="button" data-preset="mid">0.4% 風險</button>
-            <button type="button" data-preset="cap">貼 1% 閘</button>
-          </div>
-          <p class="preview" id="preview">風險預覽…</p>
-          <p class="gates">閘門 1% / −3% / −10% · 槓桿 OFF · 紙上本金 US$100,000</p>
-          <button type="submit" class="go" id="submit">落紙上單</button>
-          <p class="form-note" id="formNote" role="status"></p>
-        </form>
-        <div class="card">
-          <h2>最近紙上成交</h2>
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr><th>時間</th><th>方向</th><th>代號</th><th class="num">數量</th><th class="num">價格</th><th class="num">風險</th><th>狀態</th></tr>
-              </thead>
-              <tbody id="fills"></tbody>
-            </table>
+            <div class="fields">
+              <label>數量
+                <input id="qty" name="qty" type="number" inputmode="decimal" min="0" step="any" value="1" />
+              </label>
+              <label>價格
+                <input id="price" name="price" type="number" inputmode="decimal" min="0" step="any" />
+              </label>
+            </div>
+            <div class="presets" role="group" aria-label="預設">
+              <button type="button" data-preset="one">1 股</button>
+              <button type="button" data-preset="mid">0.4% 風險</button>
+              <button type="button" data-preset="cap">貼 1% 閘</button>
+            </div>
+            <p class="preview" id="preview">風險預覽…</p>
+            <p class="gates" id="gates">閘門 1% / −3% / −10% · 槓桿 OFF · 紙上本金載入中</p>
+            <button type="submit" class="go" id="submit">落紙上單</button>
+            <p class="form-note" id="formNote" role="status"></p>
+          </form>
+          <div class="card">
+            <h2>最近紙上成交</h2>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr><th>時間</th><th>方向</th><th>代號</th><th class="num">數量</th><th class="num">價格</th><th class="num">風險</th><th>狀態</th></tr>
+                </thead>
+                <tbody id="fills"></tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="panel" id="panel-auto" role="tabpanel" aria-labelledby="tab-auto" hidden></section>
-    <section class="panel" id="panel-holds" role="tabpanel" aria-labelledby="tab-holds" hidden></section>
-    <section class="panel" id="panel-risk" role="tabpanel" aria-labelledby="tab-risk" hidden></section>
+      <section class="panel" id="panel-auto" role="tabpanel" aria-labelledby="tab-auto" hidden></section>
+      <section class="panel" id="panel-holds" role="tabpanel" aria-labelledby="tab-holds" hidden></section>
+      <section class="panel" id="panel-risk" role="tabpanel" aria-labelledby="tab-risk" hidden></section>
+    </main>
 
     <footer class="foot">DEMO／PAPER · 模擬 ≠ 實盤 · 無 broker API · 真倉自動 OFF · 唔構成投資建議</footer>
   </div>
