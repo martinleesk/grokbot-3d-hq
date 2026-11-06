@@ -59,6 +59,15 @@
       "zoneIds": ["invest", "life"]
     },
     {
+      "category": "財務",
+      "title": "個人投資台 · 監控板",
+      "canvas_id": "24a6c6b7-3134-40e5-ae4d-81bea5c123cb",
+      "updated": "2026-11-06",
+      "staffIds": ["advisor", "analytics"],
+      "zoneIds": ["invest"],
+      "url": "https://cursor.com/canvas/store-cfbe74cb-3f1b-4f2f-b2de-5dd12c81d557/24a6c6b7-3134-40e5-ae4d-81bea5c123cb"
+    },
+    {
       "category": "旅遊",
       "title": "澳洲之旅回顧",
       "canvas_id": "8321c0c1-9b0a-466c-9d78-60a932a4ff08",

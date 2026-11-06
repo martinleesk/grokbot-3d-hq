@@ -756,9 +756,18 @@
       var duty = document.getElementById('townDuty');
       if (duty) duty.hidden = !show;
     }
+    function paintBoardLink(act) {
+      var link = document.getElementById('townBoardLink');
+      if (!link || !Town.fillInvestBoardLink) return;
+      var board = act && Town.showsInvestBoard(act.staffId)
+        ? Town.investBoard(opts.getLive ? opts.getLive() : null)
+        : null;
+      Town.fillInvestBoardLink(link, board);
+    }
     function hideHud() {
       var hud = document.getElementById('townHud');
       if (hud) hud.hidden = true;
+      paintBoardLink(null);
     }
     function showHud(act) {
       var hud = document.getElementById('townHud');
@@ -779,6 +788,7 @@
       setText('townDetail', lines.detail);
       setText('townStatus', lines.status);
       setText('townSource', lines.source);
+      paintBoardLink(act);
       hud.hidden = false;
     }
     function setText(id, value) {
