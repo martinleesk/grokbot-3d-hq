@@ -296,6 +296,11 @@ assert(/color-scheme:\s*only light/.test(investHtml) && /color-scheme:\s*only li
 assert(investHtml.indexOf('href="../"') >= 0 && investHtml.indexOf('返回小鎮') >= 0, 'invest page links back to the town');
 assert(investHtml.indexOf('總覽') >= 0 && investHtml.indexOf('交易') >= 0 && investHtml.indexOf('全自動') >= 0 && investHtml.indexOf('持倉') >= 0 && investHtml.indexOf('研究風控') >= 0, 'invest tabs');
 assert(investHtml.indexOf('真倉自動 OFF') >= 0 && investHtml.indexOf('唔構成投資建議') >= 0, 'demo disclaimer stays on the page');
+assert(investHtml.indexOf('個人投資台 · 投資平台') >= 0 && investHtml.indexOf('監控板') < 0, 'invest chrome is 投資平台, not 監控板');
+var subAssign = investJs.split("$('subline').textContent")[1].split(';')[0];
+var warnAssign = investJs.split("$('warn').textContent")[1].split(';')[0];
+assert(subAssign.indexOf('NAV') >= 0 && subAssign.indexOf('當日') < 0 && subAssign.indexOf('pct(') < 0, 'header meta keeps NAV and drops day percent');
+assert(warnAssign.indexOf('當日') >= 0 && warnAssign.indexOf('day_pnl_hkd') >= 0, 'pink strip keeps day percent and dollar delta');
 assert(!/cursor\.com\/canvas|grok\/canvas/.test(investHtml + investCss + investJs), 'invest page does not load canvas');
 assert(htmlSrc.indexOf('data-place="invest-platform"') >= 0, 'rail opens the platform');
 var rail = htmlSrc.split('id="floorRail"')[1].split('</nav>')[0];

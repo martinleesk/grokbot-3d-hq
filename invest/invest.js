@@ -170,7 +170,7 @@
     var accounts = {};
     symbols.forEach(function (s) { accounts[s.account] = 1; });
     $('subline').textContent = '數據分析板 · Sheet DEMO NAV ' + money(snapshot.nav_hkd, 2) +
-      ' · 當日 ' + pct(day, 2) + ' · ' + fmtTs(batch.ts || ledger.updated_at) + ' HKT';
+      ' · ' + fmtTs(batch.ts || ledger.updated_at) + ' HKT';
     var ok = stubOk();
     $('warn').textContent = '真倉自動 OFF · DEMO／PAPER 唔構成投資建議 · 當日 ' + pct(day, 2) +
       '（' + money(snapshot.day_pnl_hkd, 2) + '）· Risk ' + (ok ? 'OK' : 'HALT') +
