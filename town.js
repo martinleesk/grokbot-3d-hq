@@ -27,13 +27,14 @@
     { staffId: 'auditor', zoneId: 'sys', x: 5.35, z: 4.15, w: 1.88, d: 1.72, h: 1.4, roof: 0x6A9A48, wall: 0xF6FBF2 }
   ];
 
-  /* Civic facilities are centers, not agent houses. 投資平台 matches that footprint. */
+  /* Civic facilities are centers, not agent houses. 投資平台 and 財富狀況 match that footprint. */
   var PUBLIC = [
     { id: 'invest-platform', staffId: 'invest-platform', zoneId: 'invest', kind: 'center', x: -10.75, z: -7.55, w: 3.35, d: 2.25, h: 1.86, roof: 0x3E92D0, wall: 0xF4F8FC, label: '投資平台' },
     { id: 'shared-db', staffId: 'shared-db', zoneId: 'sys', kind: 'center', x: -6.3, z: -7.55, w: 2.9, d: 2.15, h: 1.72, roof: 0x3E86C4, wall: 0xF4F8FC, label: '共用資料庫' },
     { id: 'analytics', staffId: 'analytics', zoneId: 'invest', kind: 'center', x: -1.55, z: -7.65, w: 3.05, d: 2.15, h: 1.76, roof: 0x2EAA96, wall: 0xF3FBFA, label: '數據分析中心' },
     { id: 'lab', staffId: 'lab', zoneId: 'content', kind: 'center', x: 3.05, z: -7.5, w: 2.75, d: 2.1, h: 1.7, roof: 0xE07A3A, wall: 0xFFF6F0, label: '研創中心' },
-    { id: 'hall', staffId: null, zoneId: 'cmd', kind: 'hall', x: 8.15, z: -6.55, w: 4.5, d: 2.7, h: 2.05, roof: 0xD45348, wall: 0xFFF6EE, label: '會議廳' }
+    { id: 'hall', staffId: null, zoneId: 'cmd', kind: 'hall', x: 8.15, z: -6.55, w: 4.5, d: 2.7, h: 2.05, roof: 0xD45348, wall: 0xFFF6EE, label: '會議廳' },
+    { id: 'wealth', staffId: 'wealth', zoneId: 'invest', kind: 'center', x: 3.75, z: -4.5, w: 3.0, d: 1.9, h: 2.02, roof: 0xE2A31A, wall: 0xFFF8EE, label: '財富狀況' }
   ];
 
   var PIN_SLOTS = {
@@ -56,6 +57,10 @@
   var INVEST_BOARD_LABEL = '進入投資平台';
   var INVEST_BOARD_URL = 'https://martinleesk.github.io/grokbot-3d-hq/invest/';
   var INVEST_BOARD_HOMES = { advisor: 1, analytics: 1, 'invest-platform': 1 };
+  var WEALTH_BOARD_TITLE = '個人財富狀況';
+  var WEALTH_BOARD_LABEL = '進入財富看板';
+  var WEALTH_BOARD_URL = 'wealth/';
+  var WEALTH_BOARD_HOMES = { wealth: 1 };
 
   /* Specialists work at a related house or civic center. Lanes are visits, not parking. */
   var WORK_HOME = {
@@ -1137,6 +1142,15 @@ function pickCalendar(cals, context, title) {
     return '';
   }
 
+  function acceptWealthUrl(url) {
+    var s = String(url || '').trim();
+    if (!s || isCanvasBoardUrl(s) || /[\s<>"']/.test(s)) return '';
+    if (/^https:\/\/\S+$/i.test(s)) return s;
+    if (/^(\.\/)?wealth\/(index\.html)?$/.test(s)) return s;
+    if (/^\/grokbot-3d-hq\/wealth\/(index\.html)?$/.test(s)) return s;
+    return '';
+  }
+
   function investBoard(live) {
     var invest = live && live.invest;
     if (!invest || typeof invest !== 'object' || Array.isArray(invest)) return null;
@@ -1161,6 +1175,32 @@ function pickCalendar(cals, context, title) {
 
   function showsInvestBoard(staffId) {
     return !!INVEST_BOARD_HOMES[staffId];
+  }
+
+  function wealthBoard(live) {
+    var block = live && live.wealth;
+    var raw = '';
+    var title = '';
+    if (block && typeof block === 'object' && !Array.isArray(block)) {
+      if (typeof block.dashboardUrl === 'string') raw = block.dashboardUrl.trim();
+      else if (block.dashboard && typeof block.dashboard === 'object' && !Array.isArray(block.dashboard) &&
+        typeof block.dashboard.url === 'string') {
+        raw = block.dashboard.url.trim();
+      }
+      if (typeof block.dashboardTitle === 'string') title = block.dashboardTitle.trim();
+      else if (block.dashboard && typeof block.dashboard === 'object' && !Array.isArray(block.dashboard) &&
+        typeof block.dashboard.title === 'string') {
+        title = block.dashboard.title.trim();
+      }
+    }
+    var url = acceptWealthUrl(raw);
+    if (!url) url = WEALTH_BOARD_URL;
+    if (!title) title = WEALTH_BOARD_TITLE;
+    return { url: url, title: title, label: WEALTH_BOARD_LABEL };
+  }
+
+  function showsWealthBoard(staffId) {
+    return !!WEALTH_BOARD_HOMES[staffId];
   }
 
   function investPaperLabel(paper) {
@@ -1310,6 +1350,8 @@ function pickCalendar(cals, context, title) {
     speak: speak,
     investBoard: investBoard,
     showsInvestBoard: showsInvestBoard,
+    wealthBoard: wealthBoard,
+    showsWealthBoard: showsWealthBoard,
     investPaperLabel: investPaperLabel,
     fillInvestBoardLink: fillInvestBoardLink
   };

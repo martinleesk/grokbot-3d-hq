@@ -2036,6 +2036,9 @@ body.mode-2d #townHud { display: none !important; }
 .town-plot.kind-hall { width: 136px; }
 .town-plot.is-platform { width: 156px; }
 .town-plot.is-platform .roof { background: #3E92D0; height: 18px; }
+.town-plot.is-wealth { width: 172px; }
+.town-plot.is-wealth .roof { background: #E2A31A; height: 18px; }
+.center-line[data-staff="wealth"] { box-shadow: inset 3px 0 0 #E2A31A; }
 .town-plot[data-staff="shared-db"] .roof { background: #3E86C4; }
 .town-plot[data-staff="analytics"] .roof { background: #2EAA96; }
 .town-plot[data-staff="lab"] .roof { background: #E07A3A; }

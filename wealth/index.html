@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light" />
+<meta name="theme-color" content="#F7F1E8" />
+<title>個人財富狀況 · 財富看板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="wealth.css" />
+<style>
+  html, body { color-scheme: only light; background: #F7F1E8; color: #3A322C; }
+</style>
+</head>
+<body>
+  <div class="shell" id="wealthApp">
+    <header class="bar">
+      <div class="brand">
+        <span class="coin" aria-hidden="true"></span>
+        <div>
+          <p class="eyebrow">財富看板 · 實倉／Sheet DEMO</p>
+          <h1>個人財富狀況</h1>
+        </div>
+      </div>
+      <div class="bar-actions">
+        <span class="pill">Sheet 持倉</span>
+        <span class="pill pill-quiet">紙上 DEMO 另計</span>
+        <span class="when" id="when">載入快照…</span>
+        <a class="back" href="../invest/">投資平台</a>
+        <a class="back" href="../">返回小鎮</a>
+      </div>
+    </header>
+    <p class="source" id="sourceNote">讀取已發布持倉…</p>
+    <section class="kpis" id="kpis" aria-label="財富指標"></section>
+    <main class="main">
+      <section class="card" id="cardBrokers" aria-label="券商配置"></section>
+      <section class="card" id="cardHolds" aria-label="持倉組成"></section>
+      <section class="card" id="cardSide" aria-label="資產類別同快照"></section>
+    </main>
+    <footer class="foot" id="foot">Sheet DEMO · 真倉自動 OFF · 唔構成投資建議</footer>
+  </div>
+  <script src="wealth.js"></script>
+</body>
+</html>

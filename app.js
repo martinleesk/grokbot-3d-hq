@@ -82,7 +82,7 @@
 
   function centerRows() {
     var rows = [];
-    var pref = { 'shared-db': 0, 'invest-platform': 1, analytics: 2, lab: 3 };
+    var pref = { 'shared-db': 0, 'invest-platform': 1, wealth: 2, analytics: 3, lab: 4 };
     ZONES.forEach(function (z) {
       centersOf(z).forEach(function (staff) {
         rows.push({ zone: z, staff: staff, status: centerStatus(staff) });
@@ -116,6 +116,7 @@
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'center-line';
+      btn.dataset.staff = row.staff.id;
       var name = document.createElement('span');
       name.className = 'cn';
       name.textContent = row.staff.name;
@@ -125,6 +126,10 @@
       btn.appendChild(name);
       btn.appendChild(st);
       btn.addEventListener('click', function () {
+        if (row.staff.id === 'wealth') {
+          openWealthBoard();
+          return;
+        }
         selectZone(row.zone.id, row.staff.id, { toast: true, openDrawer: true });
       });
       el.appendChild(btn);
@@ -387,6 +392,25 @@
     highlight3D(zone.id, staff.id);
     highlight2D(zone.id);
     renderInvestSlot();
+    renderWealthDetailLink(staff.id);
+  }
+
+  function renderWealthDetailLink(staffId) {
+    var link = $('wealthDetailLink');
+    if (!link || !window.HQTown || !window.HQTown.fillInvestBoardLink) return;
+    var board = staffId === 'wealth' && window.HQTown.wealthBoard
+      ? window.HQTown.wealthBoard(liveData || {})
+      : null;
+    window.HQTown.fillInvestBoardLink(link, board);
+  }
+
+  function openWealthBoard() {
+    var board = window.HQTown && window.HQTown.wealthBoard
+      ? window.HQTown.wealthBoard(liveData || {})
+      : { url: 'wealth/', title: '個人財富狀況', label: '進入財富看板' };
+    if (board && board.url) window.open(board.url, '_blank', 'noopener');
+    if (runtime3d) runtime3d.skipEnter = true;
+    selectZone('invest', 'wealth', { toast: true, openDrawer: true });
   }
 
   function selectZone(zoneId, staffId, opts) {
@@ -1668,9 +1692,20 @@
   /* ---------- 2D town map (WebGL fallback; same houses and halls) ---------- */
   var townCardId = null;
 
+  function facilityBoard(staffId) {
+    if (!window.HQTown) return null;
+    if (window.HQTown.showsWealthBoard && window.HQTown.showsWealthBoard(staffId) && window.HQTown.wealthBoard) {
+      return window.HQTown.wealthBoard(liveData || {});
+    }
+    if (window.HQTown.showsInvestBoard && window.HQTown.showsInvestBoard(staffId) && window.HQTown.investBoard) {
+      return window.HQTown.investBoard(liveData || {});
+    }
+    return null;
+  }
+
   function appendInvestBoardChip(cell, staffId) {
-    if (!cell || !window.HQTown || !window.HQTown.showsInvestBoard(staffId)) return;
-    var board = window.HQTown.investBoard(liveData || {});
+    if (!cell || !window.HQTown) return;
+    var board = facilityBoard(staffId);
     if (!board) return;
     var a = document.createElement('a');
     a.className = 'town-board-chip';
@@ -1723,10 +1758,11 @@
       '<p class="status">' + escHtml(lines.status) + '</p>' +
       '<p class="source">' + escHtml(lines.source) + '</p>' +
       '<div class="town-avatar pose-' + escHtml(act.anim || 'idle') + (act.away ? ' away' : '') + '" aria-hidden="true"></div>';
-    if (window.HQTown.showsInvestBoard && window.HQTown.showsInvestBoard(id)) {
+    var indoorBoard = facilityBoard(id);
+    if (indoorBoard && window.HQTown.fillInvestBoardLink) {
       var indoorLink = document.createElement('a');
       indoorLink.className = 'town-board-link';
-      window.HQTown.fillInvestBoardLink(indoorLink, window.HQTown.investBoard(liveData || {}));
+      window.HQTown.fillInvestBoardLink(indoorLink, indoorBoard);
       if (!indoorLink.hidden) copy.appendChild(indoorLink);
     }
     panel.hidden = false;
@@ -1742,7 +1778,8 @@
     btn.className = 'town-plot kind-' + kind +
       (staffId === 'boss' ? ' is-boss' : '') +
       (kind === 'center' || kind === 'hall' ? ' is-facility' : '') +
-      (staffId === 'invest-platform' ? ' is-platform' : '');
+      (staffId === 'invest-platform' ? ' is-platform' : '') +
+      (staffId === 'wealth' ? ' is-wealth' : '');
     btn.dataset.staff = kind === 'hall' ? '' : staffId;
     btn.dataset.place = kind === 'hall' ? 'hall' : kind;
     var act = null;
@@ -1752,6 +1789,10 @@
     btn.innerHTML = '<span class="roof"></span><span class="wall"><b>' + escHtml(label) + '</b><small>' +
       escHtml(doing) + '</small></span>';
     btn.addEventListener('click', function () {
+      if (staffId === 'wealth') {
+        openWealthBoard();
+        return;
+      }
       if (kind === 'hall') {
         showTownCard('hall');
         toast('會議廳');
@@ -1925,6 +1966,10 @@
           toast('會議廳');
           return;
         }
+        if (place === 'wealth') {
+          openWealthBoard();
+          return;
+        }
         var house = window.HQTown && window.HQTown.houseByStaff(place);
         var pub = window.HQTown && window.HQTown.publicById(place);
         selectZone((house && house.zoneId) || (pub && pub.zoneId) || btn.dataset.id, place, { toast: true, openDrawer: true });
@@ -2066,6 +2111,10 @@
           if (!hit || !runtime3d) return;
           if (hit.kind === 'hall') {
             toast('會議廳');
+            return;
+          }
+          if (hit.staffId === 'wealth' || hit.place === 'wealth') {
+            openWealthBoard();
             return;
           }
           if (!hit.staffId) return;

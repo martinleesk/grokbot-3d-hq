@@ -1,0 +1,24 @@
+{
+  "kind": "SHEET_WATCHLIST_SNAPSHOT",
+  "is_demo": true,
+  "label": "DEMO / Sheet-like embedded snapshot",
+  "as_of": "2026-11-06T12:57:00+08:00",
+  "source": "Google Sheet「個人投資策劃與資產追蹤表」Dashboard embed · DEMO · 價格可能延遲",
+  "fx_usd_hkd": 7.8358,
+  "nav_hkd": 16760.07,
+  "day_pnl_hkd": -633.86,
+  "day_pnl_pct_portfolio": -3.64,
+  "notes": "OPINION／DEMO only · 模擬 ≠ 實盤 · 唔構成投資建議 · 真倉自動 OFF · 無 broker API",
+  "symbols": [
+    {"symbol": "02800.HK", "kind": "ETF", "account": "HSBC", "price": 24.66, "currency": "HKD", "day_pct": -1.12, "weight_pct": 45.9, "tradable_paper": true},
+    {"symbol": "QQQ", "kind": "ETF", "account": "Tiger", "price": 647.05, "currency": "USD", "day_pct": -6.49, "weight_pct": 11.8, "tradable_paper": true},
+    {"symbol": "VOO", "kind": "ETF", "account": "Tiger", "price": 673.97, "currency": "USD", "day_pct": -4.37, "weight_pct": 11.1, "tradable_paper": true},
+    {"symbol": "SPCX", "kind": "Stock", "account": "Tiger", "price": 123.62, "currency": "USD", "day_pct": -9.05, "weight_pct": 10.9, "tradable_paper": true},
+    {"symbol": "ORCL", "kind": "Stock", "account": "Tiger", "price": 115.16, "currency": "USD", "day_pct": -6.93, "weight_pct": 9.4, "tradable_paper": true},
+    {"symbol": "01211.HK", "kind": "ETF", "account": "HSBC", "price": 73.90, "currency": "HKD", "day_pct": -2.38, "weight_pct": 4.4, "tradable_paper": true},
+    {"symbol": "00005.HK", "kind": "Stock", "account": "Futu 1061", "price": 138.60, "currency": "HKD", "day_pct": -1.77, "weight_pct": 1.7, "tradable_paper": true},
+    {"symbol": "SDIV", "kind": "ETF", "account": "Futu 8035", "price": 22.14, "currency": "USD", "day_pct": -1.60, "weight_pct": 1.0, "tradable_paper": true},
+    {"symbol": "00939.HK", "kind": "Stock", "account": "Futu 1061", "price": 10.52, "currency": "HKD", "day_pct": 0.38, "weight_pct": 0.1, "tradable_paper": true},
+    {"symbol": "RSSS", "kind": "Stock", "account": "SoFi", "price": 1.82, "currency": "USD", "day_pct": -2.15, "weight_pct": 0.1, "tradable_paper": true}
+  ]
+}
