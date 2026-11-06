@@ -1,6 +1,7 @@
 /* Isometric cartoon town. Replaces the tower as the only 3D stage.
-   Poses come from HQTown.infer (live.json). Short porch walks only when
-   the feed says walk — everyone else sits, waits, or is actually in the hall. */
+   Indoor poses come from HQTown.infer (live.json): idle | walk | sit | meeting.
+   Outdoor posts, short chats, patrols, and lane visits come from HQTown.frameAt.
+   Clicking a person still opens the simple indoor room. */
 (function (root) {
   var OVERVIEW_POS = { x: 16.8, y: 14.6, z: 18.6 };
   var OVERVIEW_TGT = { x: 0.4, y: 0.5, z: 0.15 };
@@ -64,6 +65,7 @@
     sprite.userData.tex = tex;
     sprite.userData.style = opts;
     sprite.userData.paint = function (next, style) {
+      sprite.userData.lastText = next == null ? '' : String(next);
       paintLabel(canvas, tex, next, style || sprite.userData.style || {});
     };
     sprite.userData.paint(text, opts);
@@ -253,13 +255,14 @@
       parts.bust.rotation.z = step * 0.05;
       parts.bust.rotation.x = 0.06;
     } else if (sit) {
+      var typing = Math.sin(t * 3.1 + phase);
       parts.legL.rotation.x = -1.15;
       parts.legR.rotation.x = -1.15;
-      parts.armL.rotation.x = -0.45;
-      parts.armR.rotation.x = -0.55;
-      parts.bust.position.y = -0.24;
+      parts.armL.rotation.x = -0.35 + (typing > 0 ? typing * 0.85 : 0);
+      parts.armR.rotation.x = -0.85 + (typing < 0 ? typing * 0.55 : 0);
+      parts.bust.position.y = -0.24 + Math.abs(typing) * 0.02;
       parts.bust.rotation.x = 0.08;
-      parts.bust.rotation.z = 0;
+      parts.bust.rotation.z = typing * 0.03;
     } else {
       var idle = Math.sin(t * 1.7 + phase);
       parts.legL.rotation.x = 0;
@@ -485,29 +488,26 @@
     return g;
   }
 
-  function makePersonAnchor(act, pins) {
-    var Town = root.HQTown;
-    if (act.anim === 'meeting') return null;
-    if (act.center) {
-      var pub = Town.publicById(act.staffId);
-      if (!pub) return null;
-      return { x: pub.x, z: pub.z + pub.d / 2 + 0.62, yaw: Math.PI, anim: 'sit', y: 0.16 };
-    }
-    var house = Town.houseByStaff(act.staffId);
-    if (house) {
-      var porch = Town.porchOf(house);
-      if (act.anim === 'walk') {
-        return { x: porch.x, z: porch.z, yaw: porch.yaw, anim: 'walk', path: [{ x: porch.x, z: porch.z }, porch.walkTo] };
-      }
-      if (act.anim === 'sit') {
-        return { x: porch.x + 0.42, z: porch.z, yaw: porch.yaw, anim: 'sit', y: 0.18 };
-      }
-      return { x: porch.x - 0.28, z: porch.z, yaw: porch.yaw, anim: act.away ? 'idle' : 'idle', y: 0 };
-    }
-    var pin = null;
-    for (var i = 0; i < pins.length; i++) if (pins[i].staffId === act.staffId) pin = pins[i];
-    if (!pin) return null;
-    return { x: pin.x + 0.28, z: pin.z + 0.05, yaw: 0, anim: act.anim === 'walk' ? 'walk' : 'idle', y: 0 };
+  function makeDesk(THREE, post) {
+    var g = new THREE.Group();
+    g.position.set(post.x, 0, post.z);
+    g.rotation.y = post.yaw || 0;
+    var top = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.06, 0.3), std(THREE, 0xE7C4A0, { roughness: 0.7 }));
+    top.position.set(0, 0.24, 0.34);
+    top.castShadow = true;
+    g.add(top);
+    var leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.2, 0.08), std(THREE, 0xC4845A));
+    leg.position.set(0, 0.1, 0.34);
+    g.add(leg);
+    return g;
+  }
+
+  function addBillboard(THREE, parent, text, opts, y) {
+    var sprite = makeLabel(THREE, text, opts);
+    sprite.position.set(0, y, 0);
+    sprite.center.set(0.5, 0);
+    parent.add(sprite);
+    return sprite;
   }
 
   function boot(opts) {
@@ -664,6 +664,21 @@
       sprite.position.set(sign.x, 1.35, sign.z);
       outdoor.add(sprite);
     });
+    (Town.COURT_MARKS || []).forEach(function (mark) {
+      var sprite = makeLabel(THREE, mark.text, {
+        sw: 1.45, sh: 0.4, px: 48, bg: 'rgba(255,248,236,0.94)', color: '#6A4A2A', border: '#E7C9A0'
+      });
+      sprite.position.set(mark.x, 1.15, mark.z);
+      outdoor.add(sprite);
+    });
+    Town.postsFor(roster).forEach(function (post) {
+      if (post.kind !== 'yard') return;
+      var desk = makeDesk(THREE, post);
+      var owner = null;
+      for (var ri = 0; ri < roster.length; ri++) if (roster[ri].id === post.staffId) owner = roster[ri];
+      tag(desk, { kind: 'person', staffId: post.staffId, zoneId: owner ? owner.zoneId : '' });
+      outdoor.add(desk);
+    });
 
     var clouds = new THREE.Group();
     outdoor.add(clouds);
@@ -687,6 +702,15 @@
       bot.traverse(function (obj) {
         if (obj.isMesh) obj.userData.pick = bot.userData.pick;
       });
+      bot.userData.pill = addBillboard(THREE, bot, '', {
+        sw: 2.05, sh: 0.62, px: 46, cw: 384, ch: 128,
+        bg: 'rgba(255,251,246,0.96)', color: '#3A322C', border: '#E7C48A', single: true
+      }, 1.42);
+      bot.userData.bubble = addBillboard(THREE, bot, '', {
+        sw: 2.55, sh: 0.72, px: 42, cw: 512, ch: 140,
+        bg: '#FFFFFF', color: '#3A322C', border: '#E7A23A', single: true
+      }, 2.15);
+      bot.userData.bubble.visible = false;
       cast.add(bot);
       people[person.id] = bot;
     });
@@ -707,6 +731,10 @@
     var alive = true;
     var labels = [];
     outdoor.traverse(function (obj) { if (obj.userData && obj.userData.paint) labels.push(obj); });
+    Object.keys(people).forEach(function (id) {
+      if (people[id].userData.pill) labels.push(people[id].userData.pill);
+      if (people[id].userData.bubble) labels.push(people[id].userData.bubble);
+    });
 
     function limitsOutdoor() {
       controls.minDistance = 5;
@@ -723,6 +751,10 @@
     }
     function glideTo(pos, target) {
       glide = { pos: pos.clone(), target: target.clone() };
+    }
+    function setDuty(show) {
+      var duty = document.getElementById('townDuty');
+      if (duty) duty.hidden = !show;
     }
     function hideHud() {
       var hud = document.getElementById('townHud');
@@ -762,6 +794,7 @@
       centerRoom.visible = false;
       Object.keys(people).forEach(function (id) { people[id].visible = true; });
       hideHud();
+      setDuty(true);
       limitsOutdoor();
     }
     function paintScreen(group, act) {
@@ -794,53 +827,54 @@
       bot.visible = true;
       bot.position.set(x, y || 0, z);
       bot.rotation.y = yaw || 0;
-      bot.scale.setScalar(scale || 0.55);
+      bot.scale.setScalar(scale || 0.64);
       bot.userData.anim = anim || 'idle';
+    }
+    function hideBillboards() {
+      Object.keys(people).forEach(function (id) {
+        var bot = people[id];
+        if (bot.userData.pill) bot.userData.pill.visible = false;
+        if (bot.userData.bubble) bot.userData.bubble.visible = false;
+      });
     }
     function refreshFlags() {
       Object.keys(houses).forEach(function (id) {
         var act = state.byId[id];
         var flag = houses[id].userData.flag;
-        if (act && flag) flag.userData.paint(act.anim === 'meeting' ? '會議中' : act.animLabel);
+        if (act && flag) flag.userData.paint(act.anim === 'meeting' ? '開會' : Town.outdoorLabel(act));
       });
       Object.keys(pinMeshes).forEach(function (id) {
         var act = state.byId[id];
         var flag = pinMeshes[id].userData.flag;
         if (act && flag) {
           var name = byName[id] || id;
-          flag.userData.paint(name.slice(0, 3) + ' ' + (act.anim === 'meeting' ? '會' : act.animLabel.slice(0, 2)));
+          flag.userData.paint(name.slice(0, 3) + ' ' + Town.outdoorLabel(act));
         }
       });
     }
+    function paintBillboard(sprite, text, show) {
+      if (!sprite) return;
+      var next = text || '';
+      sprite.visible = !!show && !!next;
+      if (!next || sprite.userData.lastText === next) return;
+      sprite.userData.paint(next);
+    }
     function layoutOutdoor(t) {
-      var meetN = 0;
-      var hall = Town.publicById('hall');
+      if (view.mode !== 'outdoor') return;
+      var frame = Town.frameAt(roster, state, t);
+      var dist = camera.position.distanceTo(controls.target);
+      var close = dist < 22;
       Object.keys(people).forEach(function (id) {
         var bot = people[id];
-        var act = state.byId[id];
-        if (!act) { bot.visible = false; return; }
-        if (view.mode !== 'outdoor') return;
-        if (act.anim === 'meeting') {
-          var seatX = hall.x - 1.35 + meetN * 0.52;
-          var seatZ = hall.z + hall.d / 2 + 0.7;
-          placeBot(bot, seatX, 0.16, seatZ, Math.PI, 'meeting', 0.52);
-          meetN++;
-          return;
-        }
-        var slot = makePersonAnchor(act, pins);
-        if (!slot) { bot.visible = false; return; }
-        var x = slot.x;
-        var z = slot.z;
-        var yaw = slot.yaw;
-        if (slot.anim === 'walk' && slot.path) {
-          var u = (Math.sin(t * 0.7 + bot.userData.phase) + 1) / 2;
-          x = slot.path[0].x + (slot.path[1].x - slot.path[0].x) * u;
-          z = slot.path[0].z + (slot.path[1].z - slot.path[0].z) * u;
-          var dir = Math.cos(t * 0.7 + bot.userData.phase) >= 0 ? 1 : -1;
-          yaw = Math.atan2((slot.path[1].x - slot.path[0].x) * dir, (slot.path[1].z - slot.path[0].z) * dir);
-        }
-        var sc = act.place === 'pin' ? 0.46 : 0.55;
-        placeBot(bot, x, slot.y || 0, z, yaw, slot.anim, sc);
+        var spot = frame.people[id];
+        if (!spot) { bot.visible = false; return; }
+        placeBot(bot, spot.x, spot.y || 0, spot.z, spot.yaw, spot.pose, spot.scale || 0.64);
+        var s = bot.scale.x || 0.64;
+        if (bot.userData.pill) bot.userData.pill.scale.set(1.2 / s, 0.4 / s, 1);
+        if (bot.userData.bubble) bot.userData.bubble.scale.set(1.85 / s, 0.5 / s, 1);
+        var showPill = close || spot.pose === 'walk' || !!spot.bubble;
+        paintBillboard(bot.userData.pill, spot.label, showPill);
+        paintBillboard(bot.userData.bubble, spot.bubble, true);
       });
     }
     function openHouse(act, keepCamera) {
@@ -853,6 +887,7 @@
       room.userData.stall.visible = act.place === 'pin';
       paintBoard(room.userData.board, boardLines(act));
       paintScreen(room, act);
+      hideBillboards();
       Object.keys(people).forEach(function (id) { people[id].visible = id === act.staffId; });
       var bot = people[act.staffId];
       if (bot) {
@@ -861,6 +896,7 @@
         else placeBot(bot, -0.7, 0, 0.05, 0.35, 'idle', 1);
       }
       limitsIndoor();
+      setDuty(false);
       if (!keepCamera) {
         glideTo(new THREE.Vector3(0.35, 1.95, 3.15), new THREE.Vector3(0.1, 1.02, -0.45));
       }
@@ -878,10 +914,12 @@
       });
       paintBoard(centerRoom.userData.board, boardLines(act));
       paintScreen(centerRoom, act);
+      hideBillboards();
       Object.keys(people).forEach(function (id) { people[id].visible = id === act.staffId; });
       var bot = people[act.staffId];
       if (bot) placeBot(bot, -0.15, 0.34, -0.15, 0.4, act.anim === 'idle' ? 'idle' : 'sit', 1);
       limitsIndoor();
+      setDuty(false);
       if (!keepCamera) glideTo(new THREE.Vector3(0.35, 1.95, 3.15), new THREE.Vector3(0.1, 1.02, -0.45));
       showHud(act);
     }
@@ -910,6 +948,7 @@
       paintBoard(hallRoom.userData.board, boardLines(board));
       var attendees = state.list.filter(function (a) { return a.anim === 'meeting'; });
       var seats = hallRoom.userData.seats;
+      hideBillboards();
       Object.keys(people).forEach(function (id) {
         people[id].visible = false;
       });
@@ -920,6 +959,7 @@
         placeBot(bot, seat.x, 0.34, seat.z, seat.yaw, 'meeting', 1);
       });
       limitsIndoor();
+      setDuty(false);
       if (!keepCamera) glideTo(new THREE.Vector3(0.4, 2.25, 3.55), new THREE.Vector3(0, 0.85, -0.35));
       showHud(board);
     }
@@ -1172,7 +1212,7 @@
     var board = makeBoard(THREE, 2.5, 1.25);
     board.position.set(0.15, 1.7, -1.72);
     g.add(board);
-    var stall = makeLabel(THREE, '街口小檔 · 未起獨立屋', {
+    var stall = makeLabel(THREE, '街口暫放 · 未有崗位', {
       sw: 2.4, sh: 0.4, px: 40, bg: '#FFF4D8', color: '#8A5A2A', border: '#E7C48A'
     });
     stall.position.set(0, 2.35, -1.6);

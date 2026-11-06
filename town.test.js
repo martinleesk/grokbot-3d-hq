@@ -15,16 +15,32 @@ var roster = [
   { id: 'boss', name: 'Boss Bot', role: '總管', status: '指揮中', zoneId: 'cmd' },
   { id: 'advisor', name: '投資顧問', role: '組合', status: '監察中', zoneId: 'invest' },
   { id: 'byd', name: '比亞迪', role: '個股', status: '更新中', zoneId: 'invest' },
+  { id: '2800', name: '盈富', role: '港股 ETF', status: '監察中', zoneId: 'invest' },
+  { id: 'qqq', name: 'QQQ', role: '納指 ETF', status: '監察中', zoneId: 'invest' },
+  { id: 'voo', name: 'VOO', role: '標普 ETF', status: '監察中', zoneId: 'invest' },
+  { id: 'orcl', name: 'ORCL', role: '個股', status: '更新中', zoneId: 'invest' },
+  { id: 'sdiv', name: 'SDIV', role: '高息 ETF', status: '監察中', zoneId: 'invest' },
   { id: 'rsss', name: 'RSSS', role: '持倉', status: '待機', zoneId: 'invest' },
+  { id: 'spacex', name: 'SpaceX', role: '另類', status: '研究中', zoneId: 'invest' },
+  { id: 'dcf', name: '大成中國基金', role: '基金', status: '監察中', zoneId: 'invest' },
+  { id: 'passive', name: '被動收入', role: '股息', status: '規劃中', zoneId: 'invest' },
+  { id: 'retire', name: '退休大計', role: '退休', status: '規劃中', zoneId: 'invest' },
+  { id: 'home', name: '買樓大計', role: '置業', status: '規劃中', zoneId: 'invest' },
   { id: 'analytics', name: '數據分析中心', role: '分析板', status: '分析板已交', zoneId: 'invest', center: true },
   { id: 'life', name: '生活管家', role: '日常', status: '運作中', zoneId: 'life' },
   { id: 'finance', name: '財務管家', role: '收支', status: '運作中', zoneId: 'life' },
   { id: 'health', name: '健康教練', role: '作息', status: '待命', zoneId: 'life' },
   { id: 'mind', name: '心理命理', role: '情緒', status: '待命', zoneId: 'life' },
+  { id: 'learn', name: '學習夥伴', role: '學習', status: '學習中', zoneId: 'life' },
   { id: 'sec', name: '工作秘書', role: '日程', status: '運作中', zoneId: 'life' },
   { id: 'meet', name: '會議紀錄', role: '摘要', status: '待機', zoneId: 'life' },
   { id: 'travel', name: '旅遊規劃師', role: '行程', status: '規劃中', zoneId: 'travel' },
   { id: 'news', name: '新聞小編', role: '頭條', status: '掃描中', zoneId: 'content' },
+  { id: 'social', name: '社交媒體小編', role: '貼文', status: '創作中', zoneId: 'content' },
+  { id: 'sum', name: '摘要專員', role: '濃縮', status: '摘要中', zoneId: 'content' },
+  { id: 'tr', name: '翻譯專員', role: '翻譯', status: '待命', zoneId: 'content' },
+  { id: 'research', name: '研究專員', role: '蒐集', status: '研究中', zoneId: 'content' },
+  { id: 'scout', name: '新資訊探索員', role: '趨勢', status: '探索中', zoneId: 'content' },
   { id: 'lab', name: '研創中心', role: '原型', status: '研創待原型題目', zoneId: 'content', center: true },
   { id: 'auditor', name: 'System Auditor', role: '稽核', status: '稽核中', zoneId: 'sys' },
   { id: 'shared-db', name: '共用資料庫', role: 'Postgres', status: 'Postgres 就緒', zoneId: 'sys', center: true }
@@ -49,9 +65,18 @@ assert(got('advisor').headline.indexOf('投資台') >= 0, 'advisor inherits inve
 assert(got('health').anim === 'idle' && !got('health').away, 'health stays idle, got ' + got('health').anim);
 assert(got('mind').anim === 'idle', 'mind stays idle');
 assert(got('meet').anim === 'idle', 'meet clerk stays idle');
-assert(got('rsss').anim === 'idle', 'rsss pin stays idle');
-assert(got('rsss').place === 'pin', 'rsss is a pin');
-assert(got('byd').place === 'pin' && got('byd').anim === 'sit', 'byd pin sits on its own status');
+assert(got('rsss').anim === 'idle', 'rsss stays idle');
+assert(got('rsss').place === 'yard' && got('rsss').homeId === 'analytics', 'rsss works the analytics yard');
+assert(got('byd').place === 'yard' && got('byd').anim === 'sit' && got('byd').homeId === 'analytics', 'byd sits at the analytics yard');
+assert(got('health').place === 'yard' && got('health').homeId === 'life', 'health waits at the life house');
+assert(got('social').homeId === 'news' && got('research').homeId === 'lab', 'content specialists sit with news or the lab');
+assert(got('meet').homeId === 'sec', 'meeting clerk stands with the secretary');
+assert(Town.outdoorLabel(got('boss')).indexOf('今晚') >= 0, 'boss label names the focus: ' + Town.outdoorLabel(got('boss')));
+assert(Town.outdoorLabel(got('sec')).indexOf('DOM') >= 0, 'secretary label names DOM');
+assert(Town.outdoorLabel(got('health')) === '待命', 'idle label is 待命');
+assert(Town.outdoorLabel(got('byd')) === '更新中', 'byd label uses status');
+assert(Town.dutyText(got('boss')).indexOf('Tsz Kin') >= 0, 'duty line keeps the focus title');
+assert(Town.hudLines(got('byd')).kicker.indexOf('數據分析') >= 0, 'yard hud names the workplace');
 assert(am.attendees.length === 0, 'morning is not a meeting, attendees ' + am.attendees.join(','));
 assert(!am.list.some(function (a) { return a.anim === 'walk'; }), 'morning does not invent walkers');
 assert(got('analytics').place === 'analytics', 'analytics is the center building');
@@ -108,7 +133,115 @@ assert(board.headline.indexOf('沒有進行中') >= 0, 'empty hall tells the tru
 var lines = Town.hudLines(got('boss'));
 assert(lines.doing === got('boss').headline && lines.status.indexOf('指揮中') >= 0, 'hud repeats the pose and the status');
 assert(Town.porchOf(Town.houseByStaff('boss')).z > Town.houseByStaff('boss').z, 'north porch faces the street');
-assert(Town.pinsFor(roster).length >= 4, 'unhoused agents become pins');
+
+var posts = Town.postsFor(roster);
+var postBy = {};
+posts.forEach(function (p) { postBy[p.staffId] = p; });
+function inLaneParking(p) {
+  if (p.x >= 8.3 && p.z >= 1.6 && p.z <= 3.6) return true;
+  if (p.x <= -9.5 && p.z >= 1.9 && p.z <= 6.5) return true;
+  return false;
+}
+function insideBox(p, box, pad) {
+  return p.x > box.minX - pad && p.x < box.maxX + pad && p.z > box.minZ - pad && p.z < box.maxZ + pad;
+}
+var boxes = Town.buildingBoxes().filter(function (b) { return b.id !== 'pond'; });
+posts.forEach(function (p) {
+  assert(!inLaneParking(p), p.staffId + ' is not parked in a lane');
+  boxes.forEach(function (box) {
+    assert(!insideBox(p, box, 0.12), p.staffId + ' stands clear of ' + box.id);
+  });
+});
+for (var pi = 0; pi < posts.length; pi++) {
+  for (var pj = pi + 1; pj < posts.length; pj++) {
+    var dx = posts[pi].x - posts[pj].x;
+    var dz = posts[pi].z - posts[pj].z;
+    assert(Math.sqrt(dx * dx + dz * dz) >= 0.7, posts[pi].staffId + ' and ' + posts[pj].staffId + ' are not stacked');
+  }
+}
+assert(postBy.byd.kind === 'yard' && postBy.byd.homeId === 'analytics', 'byd post is an analytics desk');
+assert(postBy.health.x > Town.houseByStaff('life').x && postBy.health.x < 7, 'health stands in the life side yard, not 投資街');
+assert(postBy.learn.x < 7.2 && postBy.social.x > -2, 'lane mouths are not the default desks');
+assert(postBy.boss.kind === 'porch', 'boss keeps the porch');
+assert(postBy.analytics.kind === 'center', 'analytics stands at the center');
+assert(Math.abs(postBy.byd.x - Town.publicById('analytics').x) < 8, 'analytics desks stay near the center');
+var overflow = Town.pinsFor(roster.concat([{ id: 'newbie', name: '新同事', zoneId: 'life', status: '待命' }]));
+assert(overflow.length === 1 && overflow[0].staffId === 'newbie', 'only someone without a workplace becomes a pin');
+assert(overflow[0].reason.indexOf('街口') >= 0, 'overflow pin says why it is in the lane');
+assert(Town.pinsFor(roster).length === 0, 'the shipped roster has a workplace for everyone');
+
+var still = Town.frameAt(roster, am, 0);
+Object.keys(still.people).forEach(function (id) {
+  var spot = still.people[id];
+  var post = postBy[id];
+  assert(Math.abs(spot.x - post.x) < 0.05 && Math.abs(spot.z - post.z) < 0.05, id + ' starts at the workplace');
+  assert(!spot.bubble, id + ' is quiet at the start of a beat');
+});
+var talk = Town.frameAt(roster, am, 6);
+var talking = Object.keys(talk.people).filter(function (id) { return talk.people[id].bubble; });
+assert(talking.length === 2, 'one pair talks at a time, got ' + talking.join(','));
+talking.forEach(function (id) {
+  var act = am.byId[id];
+  var bubble = talk.people[id].bubble;
+  var grounded = [act.status, act.focusTitle, '待命', '開會', '外出', '短走'].some(function (bit) {
+    return bit && bubble.indexOf(bit) >= 0;
+  });
+  assert(grounded, id + ' bubble quotes real work: ' + bubble);
+});
+var ax = talk.people[talking[0]];
+var bx = talk.people[talking[1]];
+var apart = Math.sqrt(Math.pow(ax.x - bx.x, 2) + Math.pow(ax.z - bx.z, 2));
+assert(apart < 1.2 && apart > 0.4, 'the pair stands close enough to talk, apart ' + apart);
+var walkers = Object.keys(talk.people).filter(function (id) { return talk.people[id].pose === 'walk'; });
+assert(walkers.length === 0, 'they stand still while the bubbles are up');
+
+var midWalk = Town.frameAt(roster, am, 2);
+var moving = Object.keys(midWalk.people).filter(function (id) { return midWalk.people[id].pose === 'walk'; });
+assert(moving.length === 2, 'the same pair walks to the meeting, got ' + moving.length);
+
+var patrol = Town.frameAt(roster, am, 21);
+var patrolBubbles = Object.keys(patrol.people).filter(function (id) { return patrol.people[id].bubble; });
+assert(patrolBubbles.length === 1, 'one porch patrol speaks');
+assert(patrol.people[patrolBubbles[0]].bubble.indexOf('投資台') >= 0, 'patrol quotes the advisor focus: ' + patrol.people[patrolBubbles[0]].bubble);
+
+var errand = Town.frameAt(roster, am, 34);
+var errandBubbles = Object.keys(errand.people).filter(function (id) { return errand.people[id].bubble; });
+assert(errandBubbles.length === 1 && errand.people[errandBubbles[0]].bubble.indexOf('更新中') >= 0, 'desk errand quotes status');
+
+var lane = Town.frameAt(roster, am, 74);
+assert(lane.people.qqq && lane.people.qqq.x > 8, 'qqq visits 投資街 instead of living there');
+assert(lane.people.qqq.bubble.indexOf('監察') >= 0, 'lane visit still names the work');
+assert(lane.people.byd.x < 0, 'everyone else stays at work during the visit');
+
+function buried(spot) {
+  return boxes.some(function (box) { return insideBox(spot, box, 0.05); });
+}
+for (var sample = 0; sample <= 200; sample += 2) {
+  var frame = Town.frameAt(roster, am, sample);
+  var walkingNow = 0;
+  Object.keys(frame.people).forEach(function (id) {
+    var spot = frame.people[id];
+    if (spot.pose === 'walk') walkingNow++;
+    assert(!buried(spot), id + ' walks through a building at t=' + sample);
+  });
+  assert(walkingNow <= 2, 'at most a pair is walking at t=' + sample + ' (' + walkingNow + ')');
+}
+
+var noonLabel = Town.outdoorLabel(mid.byId.sec);
+assert(noonLabel === '開會', 'noon label says 開會, got ' + noonLabel);
+var gathered = Town.frameAt(roster, mid, 6);
+assert(gathered.people.sec.pose === 'meeting', 'secretary gathers instead of chatting');
+var hall = Town.publicById('hall');
+assert(Math.abs(gathered.people.sec.z - (hall.z + hall.d / 2)) < 1.4, 'meeting stands in front of the hall');
+assert(!gathered.people.sec.bubble, 'a live meeting is not also a sidewalk chat');
+
+var sceneSrc = fs.readFileSync(path.join(__dirname, 'town-scene.js'), 'utf8');
+assert(sceneSrc.indexOf('frameAt') >= 0, 'scene places the town from frameAt');
+assert(sceneSrc.indexOf('outdoorLabel') >= 0, 'scene paints activity labels');
+assert(sceneSrc.indexOf('bubble') >= 0, 'scene shows speech bubbles');
+assert(sceneSrc.indexOf("place === 'pin'") >= 0, 'indoor stall still only marks a real overflow pin');
+require('./town-scene.js');
+assert(typeof global.HQTownView.boot === 'function', 'town scene still boots');
 
 if (fails) {
   console.error(fails + ' failed');
