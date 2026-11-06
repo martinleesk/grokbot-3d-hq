@@ -1,4 +1,5 @@
-/* L4 life-floor motion. No THREE dependency.
+/* Not loaded by the town page. Kept for life-sim.test.js. Town poses live in town.js.
+   L4 life-floor motion. No THREE dependency.
    Infers idle | walk | sit | meeting from live.json.
    Does not read invest.halt — that flag is only for the invest floor. */
 (function (root, factory) {

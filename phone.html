@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#111a2a" />
-<title>Martin Lee · GrokBot 總部（手機版）</title>
+<title>Martin Lee · GrokBot 卡通小鎮（手機版）</title>
 <style>
 :root {
   --office: #d9e0eb;
@@ -485,12 +485,12 @@ body.mode-3d #fallback { display: none !important; }
         <div class="fb-windows" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         <div class="fb-aisle" aria-hidden="true"></div>
         <div class="fb-grid" id="fbGridPlaceholder">
-          <div class="fb-zone" style="border-color:#ff6b8a"><div class="fb-zone-head"><h3 style="color:#ff6b8a">指揮中心</h3><span class="tag">L6</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ff6b8a">B</div></div></div></div>
-          <div class="fb-zone" style="border-color:#4ea1ff"><div class="fb-zone-head"><h3 style="color:#4ea1ff">投資樓層</h3><span class="tag">L5</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">投</div></div><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">Q</div></div></div></div>
-          <div class="fb-zone" style="border-color:#3dffa8"><div class="fb-zone-head"><h3 style="color:#1a8f5c">生活樓層</h3><span class="tag">L4</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#3dffa8">生</div></div></div></div>
-          <div class="fb-zone" style="border-color:#c4a1ff"><div class="fb-zone-head"><h3 style="color:#8a5fd6">旅遊樓層</h3><span class="tag">L3</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#c4a1ff">旅</div></div></div></div>
-          <div class="fb-zone" style="border-color:#ffd166"><div class="fb-zone-head"><h3 style="color:#c9991a">內容樓層</h3><span class="tag">L2</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ffd166">新</div></div></div></div>
-          <div class="fb-zone" style="border-color:#9aa4b2"><div class="fb-zone-head"><h3 style="color:#5c6675">系統樓層</h3><span class="tag">L1</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#9aa4b2">S</div></div></div></div>
+          <div class="fb-zone" style="border-color:#ff6b8a"><div class="fb-zone-head"><h3 style="color:#ff6b8a">指揮中心</h3><span class="tag">總管</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ff6b8a">B</div></div></div></div>
+          <div class="fb-zone" style="border-color:#4ea1ff"><div class="fb-zone-head"><h3 style="color:#4ea1ff">投資區</h3><span class="tag">投資</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">投</div></div><div class="fb-desk"><div class="fb-bot" style="background:#4ea1ff">Q</div></div></div></div>
+          <div class="fb-zone" style="border-color:#3dffa8"><div class="fb-zone-head"><h3 style="color:#1a8f5c">生活區</h3><span class="tag">生活</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#3dffa8">生</div></div></div></div>
+          <div class="fb-zone" style="border-color:#c4a1ff"><div class="fb-zone-head"><h3 style="color:#8a5fd6">旅遊區</h3><span class="tag">旅遊</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#c4a1ff">旅</div></div></div></div>
+          <div class="fb-zone" style="border-color:#ffd166"><div class="fb-zone-head"><h3 style="color:#c9991a">內容區</h3><span class="tag">內容</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#ffd166">新</div></div></div></div>
+          <div class="fb-zone" style="border-color:#9aa4b2"><div class="fb-zone-head"><h3 style="color:#5c6675">系統區</h3><span class="tag">系統</span></div><div class="fb-desks"><div class="fb-desk"><div class="fb-bot" style="background:#9aa4b2">S</div></div></div></div>
         </div>
       </div>
     </div>
@@ -501,8 +501,8 @@ body.mode-3d #fallback { display: none !important; }
       <div class="brand">
         <div class="logo">ML</div>
         <div>
-          <div class="title">GrokBot 總部 · 手機版</div>
-          <div class="sub">Martin Lee · Hong Kong · 平面實時總覽</div>
+          <div class="title">GrokBot 卡通小鎮 · 手機版</div>
+          <div class="sub">Martin Lee · Hong Kong · 平面小鎮名單</div>
         </div>
       </div>
       <div class="live"><span class="dot"></span><span>LIVE</span></div>
@@ -528,7 +528,7 @@ body.mode-3d #fallback { display: none !important; }
       </div>
       <p class="detail-desc" id="detailDesc">總管 · 全域調度與決策</p>
       <div class="metrics" id="detailMetrics"></div>
-      <div class="roster-label">同層團隊</div>
+      <div class="roster-label">同區夥伴</div>
       <div class="roster" id="roster"></div>
     </aside>
     <section class="panel feed-panel">
@@ -553,7 +553,7 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'invest', name: '投資樓層', en: 'Invest', color: '#4ea1ff', shape: 'cylinder',
+      id: 'invest', name: '投資區', en: 'Invest', color: '#4ea1ff', shape: 'cylinder',
       desc: '投資顧問與資產追蹤：股票、ETF、基金與人生財務大計。',
       staff: [
         { id: 'advisor', name: '投資顧問', role: '組合分析與配置建議', status: '監察中' },
@@ -572,7 +572,7 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'life', name: '生活樓層', en: 'Life', color: '#3dffa8', shape: 'rounded',
+      id: 'life', name: '生活區', en: 'Life', color: '#3dffa8', shape: 'rounded',
       desc: '日常生活、財務、健康與工作支援自動化。',
       staff: [
         { id: 'life', name: '生活管家', role: '日常安排與提醒', status: '運作中' },
@@ -585,14 +585,14 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'travel', name: '旅遊樓層', en: 'Travel', color: '#c4a1ff', shape: 'cone',
+      id: 'travel', name: '旅遊區', en: 'Travel', color: '#c4a1ff', shape: 'cone',
       desc: '行程、機票、住宿與活動規劃。',
       staff: [
         { id: 'travel', name: '旅遊規劃師', role: '行程設計與預訂建議', status: '規劃中' }
       ]
     },
     {
-      id: 'content', name: '內容樓層', en: 'Content', color: '#ffd166', shape: 'pyramid',
+      id: 'content', name: '內容區', en: 'Content', color: '#ffd166', shape: 'pyramid',
       desc: '新聞、社交、摘要、翻譯與研究資訊流。',
       staff: [
         { id: 'news', name: '新聞小編', role: '頭條篩選與整理', status: '掃描中' },
@@ -604,7 +604,7 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'sys', name: '系統樓層', en: 'Systems', color: '#9aa4b2', shape: 'cross',
+      id: 'sys', name: '系統區', en: 'Systems', color: '#9aa4b2', shape: 'cross',
       desc: '基礎設施稽核、安全與穩定性監控。',
       staff: [
         { id: 'auditor', name: 'System Auditor', role: '系統稽核與健康檢查', status: '稽核中' }
@@ -691,7 +691,7 @@ window.HQ_DATA = {
     if (ph) ph.remove();
     var old = root.querySelector('.fb-grid'); if (old) old.remove();
     var grid = document.createElement('div'); grid.className = 'fb-grid';
-    var levelMap = { cmd:'L6', invest:'L5', life:'L4', travel:'L3', content:'L2', sys:'L1' };
+    var levelMap = { cmd:'總管', invest:'投資', life:'生活', travel:'旅遊', content:'內容', sys:'系統' };
     ZONES.forEach(function (z, zi) {
       var cell = document.createElement('div');
       cell.className = 'fb-zone' + (z.id === selectedZone ? ' active' : '');

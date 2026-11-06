@@ -120,6 +120,8 @@
   }
 
   function paintFloorRailCenters() {
+    var rail = $('floorRail');
+    if (rail && rail.querySelector('[data-place]')) return;
     document.querySelectorAll('.floor-btn').forEach(function (btn) {
       var zone = findZone(btn.dataset.id);
       var center = centerStaff(zone);
@@ -206,7 +208,13 @@
       btn.innerHTML = '<span class="swatch" style="background:' + z.color + ';color:' + z.color + '"></span>' +
         '<span><div class="name">' + z.name + '</div><div class="meta">' + z.staff.length + ' 代理人 · ' + z.en +
         (center ? ' · ' + center.name : '') + '</div></span>';
-      btn.addEventListener('click', function () { selectZone(z.id, null, { toast: true, openDrawer: true }); });
+      btn.addEventListener('click', function () {
+        if (runtime3d && runtime3d.town && window.HQTownView) {
+          runtime3d.skipEnter = true;
+          window.HQTownView.frameZone(z.id);
+        }
+        selectZone(z.id, null, { toast: true, openDrawer: true });
+      });
       nav.appendChild(btn);
     });
   }
@@ -314,7 +322,7 @@
     if (panel.classList.contains('collapsed')) {
       // keep collapsed state but still update data
     }
-    $('detailZone').textContent = floorInfo(zone).code + ' · ' + zone.name + ' · ' + zone.en;
+    $('detailZone').textContent = zone.name + ' · ' + zone.en;
     $('detailName').textContent = staff.name;
     $('detailDesc').textContent = staff.role + ' — ' + zone.desc;
     $('detailBadge').textContent = staff.status;
@@ -373,6 +381,10 @@
         toast('已選取 ' + ((hit && hit.staff.name) || staffId));
       } else if (zoneId !== prevZone) {
         toast('切換至 ' + findZone(zoneId).name);
+      }
+      if (mode === '2d') {
+        if (staffId) showTownCard(staffId);
+        else closeTownCard();
       }
     }
   }
@@ -1579,59 +1591,151 @@
     }
   }
 
-  /* ---------- 2D floor stack (WebGL fallback; same six floors) ---------- */
-  function build2D() {
-    var root = $('fbOffice');
-    if (!root) return;
-    var ph = $('fbGridPlaceholder');
-    if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
-    var oldStack = root.querySelector('.fb-stack');
-    if (oldStack) oldStack.parentNode.removeChild(oldStack);
-    var grid = document.createElement('div');
-    grid.className = 'fb-stack';
-    ZONES.forEach(function (z) {
-      var info = floorInfo(z);
-      var cell = document.createElement('div');
-      cell.className = 'fb-floor fb-zone' + (z.id === selectedZone ? ' active' : '');
-      cell.dataset.id = z.id;
-      var head = document.createElement('div');
-      head.className = 'fb-zone-head';
-      head.innerHTML = '<span class="tag">' + info.code + '</span><h3>' + info.short + '</h3>';
-      var centerLine = centerStaff(z);
-      if (centerLine) {
-        var centerEl = document.createElement('div');
-        centerEl.className = 'fb-center';
-        centerEl.textContent = centerLine.name + ' · ' + centerStatus(centerLine);
-        head.appendChild(centerEl);
-      }
-      cell.appendChild(head);
-      var desks = document.createElement('div');
-      desks.className = 'fb-desks';
-      var n = Math.min(z.staff.length, 4);
-      for (var i = 0; i < n; i++) {
-        var b = document.createElement('div');
-        b.className = 'fb-bot';
-        b.title = z.staff[i].name;
-        b.textContent = z.staff[i].name.slice(0, 1);
-        b.addEventListener('click', (function (zoneId, staffId) {
-          return function (ev) { ev.stopPropagation(); selectZone(zoneId, staffId, { openDrawer: true, toast: true }); };
-        })(z.id, z.staff[i].id));
-        desks.appendChild(b);
-      }
-      cell.appendChild(desks);
-      cell.addEventListener('click', function () { selectZone(z.id, null, { toast: true, openDrawer: true }); });
-      grid.appendChild(cell);
-    });
-    root.appendChild(grid);
+  /* ---------- 2D town map (WebGL fallback; same houses and halls) ---------- */
+  var townCardId = null;
+
+  function activityNow() {
+    if (!window.HQTown) return null;
+    return window.HQTown.infer(liveData || {}, window.HQTown.rosterFromZones(ZONES), Date.now());
   }
 
-  function highlight2D(zoneId) {
-    document.querySelectorAll('.fb-zone, .floor-btn').forEach(function (el) {
-      var on = el.dataset.id === zoneId;
+  function closeTownCard() {
+    townCardId = null;
+    var panel = $('townIndoor');
+    if (panel) panel.hidden = true;
+  }
+
+  function showTownCard(id) {
+    var panel = $('townIndoor');
+    var copy = $('townIndoorCopy');
+    if (!panel || !copy || !window.HQTown) return;
+    var inferred = activityNow();
+    var act = id === 'hall'
+      ? window.HQTown.hallBoard(liveData || {}, inferred)
+      : (inferred && inferred.byId[id]);
+    if (!act) return;
+    townCardId = id;
+    var lines = id === 'hall' ? {
+      kicker: '會議廳',
+      who: act.name,
+      anim: act.animLabel,
+      doing: act.headline,
+      detail: act.detail,
+      status: act.status || '',
+      source: window.HQTown.sourceLabel(act.source)
+    } : window.HQTown.hudLines(act);
+    copy.innerHTML =
+      '<div class="kicker">' + escHtml(lines.kicker) + '</div>' +
+      '<h3>' + escHtml(lines.who) + '</h3>' +
+      '<p class="anim">' + escHtml(lines.anim) + '</p>' +
+      '<p class="doing">' + escHtml(lines.doing) + '</p>' +
+      '<p class="detail">' + escHtml(lines.detail) + '</p>' +
+      '<p class="status">' + escHtml(lines.status) + '</p>' +
+      '<p class="source">' + escHtml(lines.source) + '</p>' +
+      '<div class="town-avatar pose-' + escHtml(act.anim || 'idle') + (act.away ? ' away' : '') + '" aria-hidden="true"></div>';
+    panel.hidden = false;
+    document.querySelectorAll('.town-plot').forEach(function (el) {
+      var on = (id === 'hall' && el.dataset.place === 'hall') || el.dataset.staff === id;
       el.classList.toggle('active', on);
-      if (el.classList.contains('floor-btn')) el.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
   }
+
+  function townPlot(staffId, label, kind, inferred) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'town-plot kind-' + kind + (staffId === 'boss' ? ' is-boss' : '');
+    btn.dataset.staff = kind === 'hall' ? '' : staffId;
+    btn.dataset.place = kind === 'hall' ? 'hall' : kind;
+    var act = null;
+    if (kind === 'hall' && inferred) act = window.HQTown.hallBoard(liveData || {}, inferred);
+    else if (inferred) act = inferred.byId[staffId];
+    btn.innerHTML = '<span class="roof"></span><span class="wall"><b>' + escHtml(label) + '</b><small>' +
+      escHtml(act ? act.animLabel : '') + '</small></span>';
+    btn.addEventListener('click', function () {
+      if (kind === 'hall') {
+        showTownCard('hall');
+        toast('會議廳');
+        return;
+      }
+      var hit = findStaffAnywhere(staffId);
+      if (hit) selectZone(hit.zone.id, hit.staff.id, { toast: true, openDrawer: true });
+    });
+    return btn;
+  }
+
+  function renderTown2D() {
+    var root = $('fbOffice');
+    if (!root || !window.HQTown) return;
+    root.classList.add('is-town');
+    var keep = townCardId;
+    var old = root.querySelector('.town-map');
+    if (old) old.parentNode.removeChild(old);
+    var ph = $('fbGridPlaceholder');
+    if (ph && ph.parentNode) ph.parentNode.removeChild(ph);
+    var stack = root.querySelector('.fb-stack');
+    if (stack) stack.parentNode.removeChild(stack);
+    var inferred = activityNow();
+    var map = document.createElement('div');
+    map.className = 'town-map';
+    var grass = document.createElement('div');
+    grass.className = 'town-grass';
+    var civic = document.createElement('div');
+    civic.className = 'town-row';
+    window.HQTown.PUBLIC.forEach(function (spec) {
+      civic.appendChild(townPlot(spec.kind === 'hall' ? 'hall' : spec.staffId, spec.label, spec.kind === 'hall' ? 'hall' : 'center', inferred));
+    });
+    grass.appendChild(civic);
+    var homes = document.createElement('div');
+    homes.className = 'town-row';
+    window.HQTown.HOUSES.forEach(function (spec) {
+      var person = findStaffAnywhere(spec.staffId);
+      homes.appendChild(townPlot(spec.staffId, person ? person.staff.name : spec.staffId, 'house', inferred));
+    });
+    grass.appendChild(homes);
+    var pins = document.createElement('div');
+    pins.className = 'town-pins';
+    window.HQTown.pinsFor(window.HQTown.rosterFromZones(ZONES)).forEach(function (spec) {
+      var person = findStaffAnywhere(spec.staffId);
+      var name = person ? person.staff.name : spec.staffId;
+      var act = inferred && inferred.byId[spec.staffId];
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'town-pin';
+      chip.dataset.staff = spec.staffId;
+      chip.textContent = name.slice(0, 1);
+      chip.title = name + (act ? ' · ' + act.animLabel : '');
+      chip.addEventListener('click', function () {
+        var hit = findStaffAnywhere(spec.staffId);
+        if (hit) selectZone(hit.zone.id, hit.staff.id, { toast: true, openDrawer: true });
+      });
+      pins.appendChild(chip);
+    });
+    grass.appendChild(pins);
+    map.appendChild(grass);
+    var indoor = document.createElement('section');
+    indoor.className = 'town-indoor';
+    indoor.id = 'townIndoor';
+    indoor.hidden = true;
+    indoor.innerHTML = '<button type="button" class="town-back-2d" id="townBack2d">返回小鎮</button><div class="town-indoor-copy" id="townIndoorCopy"></div>';
+    map.appendChild(indoor);
+    root.appendChild(map);
+    var back = $('townBack2d');
+    if (back) back.addEventListener('click', closeTownCard);
+    if (keep) showTownCard(keep);
+  }
+
+  function build2D() { renderTown2D(); }
+
+  function highlight2D(zoneId) {
+    document.querySelectorAll('.floor-btn').forEach(function (el) {
+      var on = el.dataset.place === selectedStaffId;
+      el.classList.toggle('active', on);
+      el.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.town-plot').forEach(function (el) {
+      el.classList.toggle('active', el.dataset.staff === selectedStaffId || (el.dataset.place === 'hall' && false));
+    });
+    }
 
   function buildFloorRail() {
     var rail = $('floorRail');
@@ -1640,7 +1744,15 @@
       if (btn.dataset.bound) return;
       btn.dataset.bound = '1';
       btn.addEventListener('click', function () {
-        selectZone(btn.dataset.id, null, { toast: true, openDrawer: true });
+        var place = btn.dataset.place || btn.dataset.id;
+        if (place === 'hall') {
+          if (runtime3d && runtime3d.town && window.HQTownView) window.HQTownView.openHall();
+          else showTownCard('hall');
+          toast('會議廳');
+          return;
+        }
+        var house = window.HQTown && window.HQTown.houseByStaff(place);
+        selectZone((house && house.zoneId) || btn.dataset.id, place, { toast: true, openDrawer: true });
       });
     });
     highlight2D(selectedZone);
@@ -1701,11 +1813,11 @@
     var btn = $('btnTry3d');
     if (btn) {
       btn.classList.remove('hidden');
-      btn.textContent = '試 3D（進階）';
+      btn.textContent = '立體小鎮';
     }
     var hint = $('hint');
-    if (hint) hint.textContent = '點樓層聚焦並開詳情 · 底欄開啟職能／動態';
-    if (reason) pushFeed({ zone: 'sys', text: '平面模式：' + reason });
+    if (hint) hint.textContent = '點小屋睇緊做緊咩 · 可轉立體小鎮';
+    if (reason) pushFeed({ zone: 'sys', text: '平面小鎮：' + reason });
     build2D();
     renderDetail(selectedZone, selectedStaffId);
   }
@@ -1721,1122 +1833,85 @@
     });
   }
 
-  /* ---------- Shared materials / geos ---------- */
-  function createSharedPool() {
-    var geos = {
-      deskTop: new THREE.BoxGeometry(1.55, 0.07, 0.72),
-      deskLeg: new THREE.CylinderGeometry(0.03, 0.035, 0.55, 8),
-      strip: new THREE.BoxGeometry(1.4, 0.02, 0.08),
-      monStand: new THREE.CylinderGeometry(0.03, 0.05, 0.12, 8),
-      monBezel: new THREE.BoxGeometry(0.46, 0.32, 0.03),
-      monScreen: new THREE.PlaneGeometry(0.4, 0.26),
-      kb: new THREE.BoxGeometry(0.38, 0.02, 0.14),
-      mouse: new THREE.BoxGeometry(0.06, 0.025, 0.1),
-      mug: new THREE.CylinderGeometry(0.04, 0.035, 0.08, 10),
-      coffee: new THREE.CylinderGeometry(0.032, 0.032, 0.02, 10),
-      seat: new THREE.CylinderGeometry(0.18, 0.2, 0.06, 14),
-      back: new THREE.BoxGeometry(0.34, 0.42, 0.05),
-      pole: new THREE.CylinderGeometry(0.035, 0.04, 0.32, 8),
-      base: new THREE.CylinderGeometry(0.22, 0.22, 0.03, 12),
-      cord: new THREE.CylinderGeometry(0.01, 0.01, 0.5, 6),
-      shade: new THREE.ConeGeometry(0.18, 0.16, 12, 1, true),
-      bulb: new THREE.SphereGeometry(0.05, 10, 10),
-      pot: new THREE.CylinderGeometry(0.13, 0.11, 0.18, 12),
-      soil: new THREE.CylinderGeometry(0.11, 0.11, 0.03, 12),
-      leaf: new THREE.SphereGeometry(0.1, 8, 8),
-      plantTop: new THREE.SphereGeometry(0.12, 8, 8)
-    };
-    var mats = {
-      wood: new THREE.MeshStandardMaterial({ color: 0xE7D4BE, metalness: 0.06, roughness: 0.72 }),
-      metal: new THREE.MeshStandardMaterial({ color: 0xD9CBB8, metalness: 0.32, roughness: 0.42 }),
-      mug: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, roughness: 0.72 }),
-      coffee: new THREE.MeshStandardMaterial({ color: 0x3A2A1C, roughness: 0.9 }),
-      seat: new THREE.MeshStandardMaterial({ color: 0xF3EBE1, metalness: 0.04, roughness: 0.72 }),
-      chairBack: new THREE.MeshStandardMaterial({ color: 0xE7DDD2, metalness: 0.04, roughness: 0.7 }),
-      shade: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.08, side: THREE.DoubleSide, roughness: 0.8 }),
-      bulb: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.16 }),
-      pot: new THREE.MeshStandardMaterial({ color: 0xC4A090, roughness: 0.72, metalness: 0.06 }),
-      soil: new THREE.MeshStandardMaterial({ color: 0x2A2118, roughness: 1 }),
-      leaf: new THREE.MeshStandardMaterial({ color: 0x3E9A40, roughness: 0.68, metalness: 0.02, emissive: 0x4AAA48, emissiveIntensity: 0.12 }),
-      dark: new THREE.MeshStandardMaterial({ color: 0x1C1916, metalness: 0.16, roughness: 0.72 }),
-      foot: new THREE.MeshStandardMaterial({ color: 0x2E2924, metalness: 0.12, roughness: 0.72 }),
-      eye: new THREE.MeshBasicMaterial({ color: 0xEDE6DA }),
-      pupil: new THREE.MeshBasicMaterial({ color: 0x1C1916 }),
-      wall: new THREE.MeshStandardMaterial({ color: 0x24201C, metalness: 0.06, roughness: 0.92 }),
-      glassWin: new THREE.MeshStandardMaterial({
-        color: 0x2E2924, transparent: true, opacity: 0.16,
-        metalness: 0.18, roughness: 0.46,
-        emissive: 0x1C1916, emissiveIntensity: 0.02,
-        side: THREE.DoubleSide
-      }),
-      mullion: new THREE.MeshStandardMaterial({ color: 0xC47E1E, metalness: 0.28, roughness: 0.4, emissive: 0xC47E1E, emissiveIntensity: 0.16 }),
-      ceiling: new THREE.MeshStandardMaterial({ color: 0x1C1916, metalness: 0.04, roughness: 0.92 }),
-      recess: new THREE.MeshStandardMaterial({ color: 0xEDE6DA, emissive: 0xB79F80, emissiveIntensity: 0.1 }),
-      frame: new THREE.MeshStandardMaterial({ color: 0x3F3830, metalness: 0.28, roughness: 0.62 })
-    };
-    var zoneStrip = {};
-    var zoneScreen = {};
-    function stripMat(color) {
-      var key = String(color);
-      if (!zoneStrip[key]) {
-        zoneStrip[key] = new THREE.MeshStandardMaterial({
-          color: 0x3F3830, emissive: 0xB79F80, emissiveIntensity: 0.06, metalness: 0.55, roughness: 0.46
-        });
-      }
-      return zoneStrip[key];
-    }
-    function screenMat(glowCol) {
-      var key = String(glowCol);
-      if (!zoneScreen[key]) {
-        var m = new THREE.MeshStandardMaterial({
-          color: 0x1C1916, emissive: new THREE.Color(0xB79F80), emissiveIntensity: 0.06,
-          metalness: 0.2, roughness: 0.62
-        });
-        m.userData.baseEmissive = 0.06;
-        zoneScreen[key] = m;
-        screenMats.push(m);
-      }
-      return zoneScreen[key];
-    }
-    return { geos: geos, mats: mats, stripMat: stripMat, screenMat: screenMat, zoneStrip: zoneStrip, zoneScreen: zoneScreen };
-  }
+  /* Town stage. Tower mesh boot was removed; HQTownView is the only 3D view. */
 
-  /* ---------- 3D builders ---------- */
   function highlight3D(zoneId, staffId) {
-    botMeshes.forEach(function (b) {
-      var activeZone = b.userData.zoneId === zoneId;
-      var activeStaff = b.userData.staffId === staffId;
-      var base = b.userData.baseScale || 1;
-      var s = (activeStaff ? 1.28 : (activeZone ? 1.1 : 1)) * base;
-      b.scale.setScalar(s);
-      if (b.userData.glow) {
-        b.userData.glow.visible = !!(activeStaff || activeZone);
-        b.userData.glow.material.opacity = activeStaff ? 0.18 : 0.07;
-      }
-    });
-    var mid = window.HQLook ? window.HQLook.floorBaseY(6) * 0.46 : (FLOOR_PITCH * 5) / 2;
-    Object.keys(zoneRoots).forEach(function (id) {
-      var g = zoneRoots[id];
-      if (!g || !g.userData.matFloor) return;
-      var on = id === zoneId;
-      if (window.HQLook) {
-        g.userData.matFloor.color.set(on ? 0xE8C060 : 0xE4B45C);
-        g.userData.matFloor.emissive.set(0xE8B050);
-        g.userData.matFloor.emissiveIntensity = on ? 0.22 : 0.16;
-      } else {
-        g.userData.matFloor.color.set(on ? 0x2E2924 : 0x24201C);
-        g.userData.matFloor.emissive.set(on ? 0x3A332C : 0x1C1916);
-        g.userData.matFloor.emissiveIntensity = on ? 0.1 : 0.02;
-      }
-      if (window.HQLook) {
-        g.userData.goalZ = 0;
-        g.userData.goalScale = 1;
-      } else {
-        g.userData.goalZ = on ? (g.userData.lifeOffice ? 4.15 : 0.72) : 0;
-        g.userData.goalScale = on ? (g.userData.lifeOffice ? 1 : 1.035) : (g.userData.lifeOffice ? 0.7 : 0.985);
-      }
-      if (g.userData.fasciaMat) {
-        if (window.HQLook) {
-          g.userData.fasciaMat.color.set(0xD4922A);
-          g.userData.fasciaMat.emissive.set(0xC47E1E);
-          g.userData.fasciaMat.emissiveIntensity = on ? 0.5 : 0.4;
-        } else {
-          g.userData.fasciaMat.color.set(on ? 0xB79F80 : 0x3F3830);
-          g.userData.fasciaMat.emissive.set(on ? 0xB79F80 : 0x000000);
-          g.userData.fasciaMat.emissiveIntensity = on ? 0.55 : 0;
-        }
-      }
-      if (g.userData.coveMat) {
-        g.userData.coveMat.emissiveIntensity = on ? 0.45 : 0.05;
-      }
-      if (g.userData.screenMat) g.userData.screenMat.emissiveIntensity = on ? 0.14 : 0.03;
-      if (g.userData.labelMat) g.userData.labelMat.opacity = on ? 1 : 0.46;
-      if (g.userData.glassMats) {
-        g.userData.glassMats.forEach(function (m) {
-          m.opacity = on ? 0.2 : 0.1;
-          m.emissiveIntensity = on ? 0.06 : 0.02;
-        });
-      }
-    });
-    if (runtime3d && runtime3d.controls && zoneRoots[zoneId]) {
-      var y = zoneRoots[zoneId].position.y + 0.35;
-      runtime3d.focusY = mid + (y - mid) * 0.34;
-      runtime3d.suspendFrame = false;
-      runtime3d.frameLife = false;
-      runtime3d.focusY = null;
-    }
-  }
-
-  function makeCuteBot(color, shape, shared) {
-    if (!window.HQLook) {
-      var g = new THREE.Group();
-      g.userData.baseY = 0;
-      g.userData.baseScale = 1;
-      return g;
-    }
-    return window.HQLook.makeAgent(THREE, color, shape, shared);
-  }
-
-  function applyLifePose(bot, agent, t) {
-    if (window.HQLook && bot.userData.fashion) {
-      window.HQLook.applyPose(bot, agent, t);
+    if (!runtime3d || !runtime3d.town || !window.HQTownView) return;
+    if (runtime3d.skipEnter) {
+      runtime3d.skipEnter = false;
       return;
     }
-    var baseY = bot.userData.baseY || 0;
-    bot.position.x = agent.x;
-    bot.position.z = agent.z;
-    bot.position.y = baseY;
-    bot.rotation.y = agent.yaw;
-  }
-
-  function towerView(topY) {
-    var top = topY || (window.HQLook ? window.HQLook.floorBaseY(6) + window.HQLook.pitch : 12);
-    return {
-      target: new THREE.Vector3(8.2, 6.2, 0.15),
-      pos: new THREE.Vector3(34, Math.max(14, top * 0.95), 50)
-    };
+    if (staffId && window.HQTownView.showStaff) window.HQTownView.showStaff(staffId);
   }
 
   function frameTower() {
-    if (!runtime3d || !runtime3d.controls) return;
-    var view = towerView();
-    runtime3d.frameLife = false;
-    runtime3d.wasLife = false;
-    runtime3d.focusY = null;
-    runtime3d.suspendFrame = false;
-    runtime3d.userSteer = false;
-    runtime3d.glide = { pos: view.pos.clone(), target: view.target.clone() };
-    runtime3d.controls.autoRotate = false;
+    if (runtime3d && runtime3d.town && window.HQTownView) window.HQTownView.frame();
   }
 
   function setTowerWash(mode) {
-    if (!runtime3d || !runtime3d.applyWash) return;
-    runtime3d.wash = runtime3d.applyWash(mode, runtime3d.look);
+    if (!runtime3d || !runtime3d.town || !window.HQTownView) return;
+    runtime3d.wash = window.HQTownView.setWash(mode);
     var btn = $('btnWash');
     if (btn) {
-      var day = runtime3d.wash === 'day';
+      var day = runtime3d.wash !== 'gold';
       btn.textContent = day ? '晝' : '金';
-      btn.title = day ? '日間幕牆，再按轉黃金時刻' : '黃金時刻，再按轉日間';
+      btn.title = day ? '日間小鎮，再按轉黃金時刻' : '黃金時刻，再按轉日間';
       btn.setAttribute('aria-pressed', day ? 'true' : 'false');
     }
   }
 
   function syncLifeFromLive() {
-    if (!runtime3d || !runtime3d.lifeSim || !window.HQLifeSim || !lifeLayout) return;
-    try {
-      var zone = findZone('life');
-      var inferred = window.HQLifeSim.inferLifeRoster(liveData || {}, zone.staff, lifeLayout, Date.now());
-      runtime3d.lifeSim.setIntents(inferred.intents);
-      var title = inferred.meetingTitle || '';
-      if (title !== runtime3d.meetingTitle) {
-        runtime3d.meetingTitle = title;
-        if (runtime3d.paintMeet) runtime3d.paintMeet(title);
-      }
-    } catch (err) {
-      console.warn('life floor sync failed', err);
-    }
-  }
-
-  function makeDesk(zoneColor, shared) {
-    var g = new THREE.Group();
-    var geos = shared.geos, mats = shared.mats;
-    var top = new THREE.Mesh(geos.deskTop, mats.wood);
-    top.position.y = 0.58;
-    top.castShadow = true; top.receiveShadow = true;
-    g.add(top);
-    var strip = new THREE.Mesh(geos.strip, shared.stripMat(zoneColor));
-    strip.position.set(0, 0.52, 0.3);
-    g.add(strip);
-    [[-0.68, -0.28], [0.68, -0.28], [-0.68, 0.28], [0.68, 0.28]].forEach(function (p) {
-      var leg = new THREE.Mesh(geos.deskLeg, mats.metal);
-      leg.position.set(p[0], 0.275, p[1]);
-      g.add(leg);
-    });
-    function addMonitor(ox, glowCol) {
-      var stand = new THREE.Mesh(geos.monStand, mats.metal);
-      stand.position.set(ox, 0.68, -0.12);
-      g.add(stand);
-      var bezel = new THREE.Mesh(geos.monBezel, mats.metal);
-      bezel.position.set(ox, 0.9, -0.14);
-      bezel.rotation.x = -0.12;
-      g.add(bezel);
-      var screen = new THREE.Mesh(geos.monScreen, shared.screenMat(glowCol));
-      screen.position.set(ox, 0.9, -0.125);
-      screen.rotation.x = -0.12;
-      g.add(screen);
-    }
-    addMonitor(-0.28, zoneColor);
-    addMonitor(0.28, 0x4ea1ff);
-    var kb = new THREE.Mesh(geos.kb, mats.metal);
-    kb.position.set(-0.15, 0.63, 0.12);
-    g.add(kb);
-    var mouse = new THREE.Mesh(geos.mouse, mats.metal);
-    mouse.position.set(0.28, 0.635, 0.14);
-    g.add(mouse);
-    var mug = new THREE.Mesh(geos.mug, mats.mug);
-    mug.position.set(0.55, 0.66, 0.1);
-    g.add(mug);
-    var coffee = new THREE.Mesh(geos.coffee, mats.coffee);
-    coffee.position.set(0.55, 0.69, 0.1);
-    g.add(coffee);
-    var seat = new THREE.Mesh(geos.seat, mats.seat);
-    seat.position.set(0, 0.38, 0.72);
-    seat.castShadow = true;
-    g.add(seat);
-    var back = new THREE.Mesh(geos.back, mats.chairBack);
-    back.position.set(0, 0.62, 0.88);
-    g.add(back);
-    var pole = new THREE.Mesh(geos.pole, mats.metal);
-    pole.position.set(0, 0.2, 0.72);
-    g.add(pole);
-    var base = new THREE.Mesh(geos.base, mats.metal);
-    base.position.set(0, 0.04, 0.72);
-    g.add(base);
-    var cord = new THREE.Mesh(geos.cord, mats.metal);
-    cord.position.set(0, 2.0, 0);
-    g.add(cord);
-    var shade = new THREE.Mesh(geos.shade, mats.shade);
-    shade.position.set(0, 1.72, 0);
-    g.add(shade);
-    var bulb = new THREE.Mesh(geos.bulb, mats.bulb);
-    bulb.position.set(0, 1.68, 0);
-    g.add(bulb);
-    return g;
-  }
-
-  function makePlant(shared) {
-    var g = new THREE.Group();
-    var pot = new THREE.Mesh(shared.geos.pot, shared.mats.pot);
-    pot.position.y = 0.09;
-    pot.castShadow = true;
-    g.add(pot);
-    var soil = new THREE.Mesh(shared.geos.soil, shared.mats.soil);
-    soil.position.y = 0.18;
-    g.add(soil);
-    for (var i = 0; i < 5; i++) {
-      var leaf = new THREE.Mesh(shared.geos.leaf, shared.mats.leaf);
-      var a = (i / 5) * Math.PI * 2;
-      leaf.position.set(Math.cos(a) * 0.09, 0.3 + (i % 3) * 0.07, Math.sin(a) * 0.09);
-      leaf.scale.set(1, 0.75 + (i % 2) * 0.2, 1);
-      g.add(leaf);
-    }
-    var top = new THREE.Mesh(shared.geos.plantTop, shared.mats.leaf);
-    top.position.y = 0.48;
-    g.add(top);
-    return g;
-  }
-
-  function makeShelf(zoneColor, shared) {
-    var g = new THREE.Group();
-    var frame = shared.mats.frame;
-    var back = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.1, 0.08), frame);
-    back.position.set(0, 0.6, -0.1);
-    g.add(back);
-    for (var y = 0; y < 3; y++) {
-      var board = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.04, 0.28), frame);
-      board.position.set(0, 0.25 + y * 0.35, 0);
-      g.add(board);
-      for (var b = 0; b < 3; b++) {
-        var book = new THREE.Mesh(
-          new THREE.BoxGeometry(0.08, 0.22, 0.18),
-          new THREE.MeshStandardMaterial({
-            color: new THREE.Color().setHSL((b * 0.17 + y * 0.1) % 1, 0.55, 0.55),
-            roughness: 0.7
-          })
-        );
-        book.position.set(-0.3 + b * 0.28, 0.38 + y * 0.35, 0.02);
-        g.add(book);
-      }
-    }
-    var accent = new THREE.Mesh(
-      new THREE.BoxGeometry(1.2, 0.04, 0.09),
-      new THREE.MeshStandardMaterial({ color: zoneColor, emissive: zoneColor, emissiveIntensity: 0.45 })
-    );
-    accent.position.set(0, 1.18, -0.1);
-    g.add(accent);
-    return g;
-  }
-
-  function makeCoffeeStation(shared) {
-    var g = new THREE.Group();
-    var counter = new THREE.Mesh(
-      new THREE.BoxGeometry(1.4, 0.7, 0.6),
-      new THREE.MeshStandardMaterial({ color: 0x1c2433, metalness: 0.3, roughness: 0.45 })
-    );
-    counter.position.y = 0.35;
-    counter.castShadow = true;
-    g.add(counter);
-    var top = new THREE.Mesh(
-      new THREE.BoxGeometry(1.42, 0.05, 0.62),
-      new THREE.MeshStandardMaterial({ color: 0xe8eef6, metalness: 0.15, roughness: 0.35 })
-    );
-    top.position.y = 0.72;
-    g.add(top);
-    var machine = new THREE.Mesh(
-      new THREE.BoxGeometry(0.45, 0.5, 0.35),
-      new THREE.MeshStandardMaterial({ color: 0x2a3140, metalness: 0.6, roughness: 0.3 })
-    );
-    machine.position.set(-0.3, 0.98, 0);
-    g.add(machine);
-    var led = new THREE.Mesh(
-      new THREE.BoxGeometry(0.08, 0.03, 0.02),
-      new THREE.MeshStandardMaterial({ color: 0x3dffa8, emissive: 0x3dffa8, emissiveIntensity: 0.9 })
-    );
-    led.position.set(-0.3, 1.15, 0.18);
-    g.add(led);
-    var cooler = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.16, 0.16, 0.55, 12),
-      new THREE.MeshStandardMaterial({ color: 0xb8d4ff, transparent: true, opacity: 0.55, metalness: 0.2, roughness: 0.2 })
-    );
-    cooler.position.set(0.4, 1.0, 0);
-    g.add(cooler);
-    return g;
-  }
-
-  function makeGlassWall(w, h, color) {
-    var g = new THREE.Group();
-    var glassMat = new THREE.MeshStandardMaterial({
-      color: 0x8EC8EA, transparent: true, opacity: 0.32,
-      metalness: 0.04, roughness: 0.1,
-      emissive: 0xB7DFF6, emissiveIntensity: 0.08,
-      side: THREE.DoubleSide, depthWrite: false
-    });
-    var pane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), glassMat);
-    pane.position.y = h / 2;
-    g.add(pane);
-    var frameMat = new THREE.MeshStandardMaterial({ color: 0xC47E1E, metalness: 0.28, roughness: 0.4, emissive: 0xC47E1E, emissiveIntensity: 0.22 });
-    var topF = new THREE.Mesh(new THREE.BoxGeometry(w + 0.08, 0.06, 0.06), frameMat);
-    topF.position.y = h;
-    g.add(topF);
-    var botF = new THREE.Mesh(new THREE.BoxGeometry(w + 0.08, 0.06, 0.06), frameMat);
-    botF.position.y = 0.03;
-    g.add(botF);
-    var stripe = new THREE.Mesh(
-      new THREE.BoxGeometry(w + 0.08, 0.05, 0.07),
-      new THREE.MeshStandardMaterial({ color: 0xE0B46A, emissive: 0xC47E1E, emissiveIntensity: 0.24 })
-    );
-    stripe.position.y = h * 0.55;
-    g.add(stripe);
-    g.userData.glassMat = glassMat;
-    return g;
-  }
-
-  function boot3D() {
-    if (typeof THREE === 'undefined') throw new Error('Three.js 未載入');
-    if (!THREE.OrbitControls) throw new Error('OrbitControls 未載入');
-
-    dispose3D();
-    botMeshes = [];
-    zoneRoots = {};
-    screenMats = [];
-
-    var shared = createSharedPool();
-    var lifePaint = null;
-    var lifeBots = {};
-    var lifeSim = null;
-    var lifeTitle = '';
-    var lifeTgtTmp = new THREE.Vector3();
-    var lifeCamTmp = new THREE.Vector3();
-    var wrap = $('canvas-wrap');
-    var scene = new THREE.Scene();
-    scene.background = new THREE.Color(window.HQLook ? 0x4C8ED0 : 0x1C1916);
-    scene.fog = new THREE.FogExp2(window.HQLook ? 0xC5D4E4 : 0x1C1916, window.HQLook ? 0.0022 : 0.012);
-
-    var camera = new THREE.PerspectiveCamera(window.HQLook ? 44 : 30, 1, 0.1, 280);
-    var towerTopY = window.HQLook ? window.HQLook.floorBaseY(6) + window.HQLook.pitch : FLOOR_PITCH * 5;
-    var towerMid = window.HQLook ? towerTopY * 0.46 : (FLOOR_PITCH * 5) / 2;
-    var overview = towerView(towerTopY);
-    camera.position.copy(overview.pos);
-
-    var renderer = new THREE.WebGLRenderer({ antialias: !isTouch, alpha: false, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isTouch ? 1.25 : 1.75));
-    renderer.setClearColor(window.HQLook ? 0x4C8ED0 : 0x1C1916, 1);
-    renderer.shadowMap.enabled = !isTouch;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.shadowMap.autoUpdate = true;
-    if (renderer.toneMapping !== undefined) {
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = window.HQLook ? 0.78 : 0.94;
-    }
-    if (renderer.outputEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
-    wrap.appendChild(renderer.domElement);
-
-    var controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.07;
-    controls.minDistance = window.HQLook ? 1.8 : 2.5;
-    controls.maxDistance = window.HQLook ? 260 : 80;
-    controls.zoomSpeed = window.HQLook ? 1.35 : 1;
-    controls.maxPolarAngle = window.HQLook ? Math.PI * 0.92 : Math.PI * 0.5;
-    controls.minPolarAngle = window.HQLook ? 0.02 : Math.PI * 0.12;
-    controls.minAzimuthAngle = -Infinity;
-    controls.maxAzimuthAngle = Infinity;
-    controls.target.copy(overview.target);
-    controls.enablePan = !isTouch;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.35;
-    if (THREE.TOUCH) {
-      controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-    }
-    controls.addEventListener('start', function () {
-      controls.autoRotate = false;
-      if (runtime3d) {
-        runtime3d.userSteer = true;
-        runtime3d.suspendFrame = true;
-        runtime3d.glide = null;
-      }
-    });
-
-    var wash = null;
-    if (window.HQLook) {
-      wash = window.HQLook.createWash(THREE, scene, renderer);
-      wash.moon.castShadow = !isTouch;
-      if (!isTouch) {
-        wash.moon.shadow.mapSize.set(1024, 1024);
-        wash.moon.shadow.camera.near = 1;
-        wash.moon.shadow.camera.far = 80;
-        wash.moon.shadow.camera.left = -24;
-        wash.moon.shadow.camera.right = 24;
-        wash.moon.shadow.camera.top = 24;
-        wash.moon.shadow.camera.bottom = -24;
-        wash.moon.shadow.bias = -0.00025;
-      }
-    } else {
-      scene.add(new THREE.HemisphereLight(0xEDE6DA, 0x1C1916, 0.14));
-      scene.add(new THREE.AmbientLight(0x3A332C, 0.18));
-      var key = new THREE.DirectionalLight(0xF3E6D2, 0.5);
-      key.position.set(8, 16, 10);
-      key.castShadow = !isTouch;
-      if (!isTouch) {
-        key.shadow.mapSize.set(1024, 1024);
-        key.shadow.camera.near = 1;
-        key.shadow.camera.far = 50;
-        key.shadow.camera.left = -20;
-        key.shadow.camera.right = 20;
-        key.shadow.camera.top = 20;
-        key.shadow.camera.bottom = -20;
-        key.shadow.bias = -0.0002;
-      }
-      scene.add(key);
-      var fill = new THREE.DirectionalLight(0xB79F80, 0.05);
-      fill.position.set(-12, 8, -6);
-      scene.add(fill);
-      var rim = new THREE.DirectionalLight(0xEDE6DA, 0.07);
-      rim.position.set(0, 6, -14);
-      scene.add(rim);
-    }
-
-    // ---- stacked floors: L1 系統 through L6 指揮, all visible at once ----
-    var towerTop = towerTopY;
-    var podiumR = window.HQLook ? 5.55 : 3.7;
-    var podium = new THREE.Mesh(
-      new THREE.CylinderGeometry(podiumR, podiumR + 0.45, 0.28, 40),
-      new THREE.MeshStandardMaterial({
-        color: window.HQLook ? 0xE4B45C : 0x24201C, metalness: window.HQLook ? 0.12 : 0.12, roughness: window.HQLook ? 0.46 : 0.78,
-        emissive: window.HQLook ? 0xE8B050 : 0x1C1916, emissiveIntensity: window.HQLook ? 0.16 : 0.06
-      })
-    );
-    podium.position.y = -0.2;
-    podium.receiveShadow = true;
-    scene.add(podium);
-
-    if (!window.HQLook) {
-      var cityGlow = new THREE.Mesh(
-        new THREE.PlaneGeometry(26, 14),
-        new THREE.MeshBasicMaterial({ color: 0x1C1916, transparent: true, opacity: 0.2, depthWrite: false })
-      );
-      cityGlow.position.set(0, towerMid, -7.2);
-      scene.add(cityGlow);
-    }
-
-    var emblem = new THREE.Mesh(
-      new THREE.TorusGeometry(0.42, 0.07, 10, 28),
-      new THREE.MeshStandardMaterial({ color: 0xC47E1E, emissive: 0xC47E1E, emissiveIntensity: 0.36, metalness: 0.28, roughness: 0.4 })
-    );
-    emblem.rotation.x = Math.PI / 2;
-    emblem.position.set(0, towerTop + 1.05, 0);
-    scene.add(emblem);
-    var emblemCore = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 12, 10),
-      new THREE.MeshStandardMaterial({ color: 0xF0D090, emissive: 0xC47E1E, emissiveIntensity: 0.2, metalness: 0.28, roughness: 0.42 })
-    );
-    emblemCore.position.copy(emblem.position);
-    scene.add(emblemCore);
-
-    (function makeParticles() {
-      var count = isTouch ? 28 : 60;
-      var geo = new THREE.BufferGeometry();
-      var positions = new Float32Array(count * 3);
-      for (var i = 0; i < count; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * 12;
-        positions[i * 3 + 1] = Math.random() * (towerTop + 1.2);
-        positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
-      }
-      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      particles = new THREE.Points(geo, new THREE.PointsMaterial({
-        color: 0xB79F80, size: 0.025, transparent: true, opacity: 0.1,
-        depthWrite: false, sizeAttenuation: true
-      }));
-      scene.add(particles);
-    })();
-
-    function makeCompactDesk(screenMaterial) {
-      var g = new THREE.Group();
-      var top = new THREE.Mesh(shared.geos.deskTop, shared.mats.wood);
-      top.scale.set(0.72, 1, 0.72);
-      top.position.y = 0.58;
-      g.add(top);
-      var leg = new THREE.Mesh(shared.geos.deskLeg, shared.mats.metal);
-      leg.position.set(0, 0.28, 0);
-      g.add(leg);
-      var bezel = new THREE.Mesh(shared.geos.monBezel, shared.mats.metal);
-      bezel.scale.set(0.8, 0.8, 1);
-      bezel.position.set(0, 0.92, -0.08);
-      g.add(bezel);
-      var screen = new THREE.Mesh(shared.geos.monScreen, screenMaterial);
-      screen.scale.set(0.8, 0.8, 1);
-      screen.position.set(0, 0.92, -0.06);
-      g.add(screen);
-      return g;
-    }
-
-    var office = new THREE.Group();
-    scene.add(office);
-    var floorLayouts = {};
-
-    ZONES.forEach(function (zone) {
-      var info = floorInfo(zone);
-      var root = new THREE.Group();
-      root.position.set(0, window.HQLook ? window.HQLook.floorBaseY(info.level) : (info.level - 1) * FLOOR_PITCH, 0);
-      root.userData.zoneId = zone.id;
-      root.userData.glassMats = [];
-      root.userData.goalZ = 0;
-      root.userData.goalScale = 1;
-
-      var lifeHere = zone.id === 'life' && lifeLayout && window.HQLifeScene;
-      var slabW = lifeHere ? (lifeLayout.floor && lifeLayout.floor.width) || 9.2 : (window.HQLook ? 9.35 : 6.6);
-      var slabD = lifeHere ? (lifeLayout.floor && lifeLayout.floor.depth) || 5.2 : (window.HQLook ? 5.45 : 3.5);
-      var halfD = slabD / 2;
-      var rugMat = new THREE.MeshStandardMaterial({
-        color: window.HQLook ? 0xE4B45C : 0x24201C,
-        emissive: window.HQLook ? 0xE8B050 : 0x1C1916,
-        emissiveIntensity: window.HQLook ? 0.16 : 0.04,
-        roughness: window.HQLook ? 0.55 : 0.93, metalness: window.HQLook ? 0.16 : 0.04
-      });
-      var slab = new THREE.Mesh(new THREE.BoxGeometry(slabW, 0.18, slabD), rugMat);
-      slab.position.y = 0.1;
-      slab.receiveShadow = true;
-      slab.userData.isZone = true;
-      slab.userData.zoneId = zone.id;
-      root.add(slab);
-      root.userData.matFloor = rugMat;
-
-      var fasciaMat = new THREE.MeshStandardMaterial({
-        color: window.HQLook ? 0xD4922A : 0x3F3830,
-        emissive: window.HQLook ? 0xC47E1E : 0x000000,
-        emissiveIntensity: window.HQLook ? 0.4 : 0,
-        metalness: window.HQLook ? 0.28 : 0.62, roughness: 0.4
-      });
-      var fascia = new THREE.Mesh(new THREE.BoxGeometry(slabW + 0.02, 0.06, 0.045), fasciaMat);
-      fascia.position.set(0, 0.19, halfD - 0.005);
-      fascia.userData.isZone = true;
-      fascia.userData.zoneId = zone.id;
-      root.add(fascia);
-      var inlay = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.2, slabW - 0.4), 0.014, 0.09), fasciaMat);
-      inlay.position.set(0, 0.198, halfD - 0.13);
-      root.add(inlay);
-      root.userData.fasciaMat = fasciaMat;
-
-      var coveMat = new THREE.MeshStandardMaterial({
-        color: window.HQLook ? 0xF0D090 : 0x3F3830,
-        emissive: 0xC47E1E, emissiveIntensity: window.HQLook ? 0.26 : 0.04,
-        metalness: 0.3, roughness: 0.5
-      });
-      var cove = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.2, slabW - 0.25), 0.01, 0.025), coveMat);
-      cove.position.set(0, 0.198, halfD - 0.05);
-      root.add(cove);
-      root.userData.coveMat = coveMat;
-
-      var screenMat = new THREE.MeshStandardMaterial({
-        color: 0x1C1916, emissive: 0xB79F80, emissiveIntensity: 0.03,
-        metalness: 0.18, roughness: 0.64
-      });
-      root.userData.screenMat = screenMat;
-
-      if (!window.HQLook) {
-        var spine = new THREE.Mesh(
-          new THREE.BoxGeometry(0.08, FLOOR_PITCH, 0.08),
-          shared.mats.metal
-        );
-        spine.position.set(0, FLOOR_PITCH * 0.5, lifeHere ? (-halfD + 0.18) : -1.45);
-        root.add(spine);
-      }
-
-      var centerMark = centerStaff(zone);
-      var label = makeLabel(info.code + '  ' + info.short + (centerMark && centerMark.mark ? ' · ' + centerMark.mark : ''));
-      label.position.set(0, lifeHere ? 0.42 : 0.72, halfD + (lifeHere ? 0.02 : 0.3));
-      label.scale.set(lifeHere ? 1.55 : 2.35, lifeHere ? 0.36 : 0.52, 1);
-      root.add(label);
-      root.userData.labelMat = label.material;
-
-      if (window.HQLook) {
-        if (!shared.look) shared.look = window.HQLook.mats(THREE);
-        var storyH = info.level === 1 ? window.HQLook.lobbyH : window.HQLook.pitch;
-        window.HQLook.addCurtain(THREE, root, shared.look, {
-          storyH: storyH,
-          lobby: info.level === 1,
-          parapet: info.level === 6
-        });
-      }
-
-      if (lifeHere) {
-        try {
-          var builtLife = window.HQLifeScene.build({
-            THREE: THREE,
-            root: root,
-            zone: zone,
-            layout: lifeLayout,
-            shared: shared,
-            surfaceY: 0.19,
-            screenMat: screenMat,
-            makeCuteBot: makeCuteBot,
-            makePlant: makePlant,
-            makeGlassWall: makeGlassWall,
-            botMeshes: botMeshes
-          });
-          root.userData.lifeOffice = true;
-          lifePaint = builtLife && builtLife.paint;
-          floorLayouts.life = lifeLayout;
-          if (window.HQOffice) {
-            window.HQOffice.dress({
-              THREE: THREE,
-              root: root,
-              zone: zone,
-              shared: shared,
-              surfaceY: 0.19,
-              makePlant: makePlant,
-              layout: {
-                lamps: [{ x: -1.6, z: 0.05 }, { x: 0.35, z: -0.2 }, { x: 1.05, z: 0.85 }],
-                art: { x: -0.15, z: 2.32, yaw: Math.PI },
-                greenWall: { x: 0.35, z: -2.32, yaw: 0 }
-              },
-              extraPlants: [{ x: 3.9, z: 1.45 }]
-            });
-          }
-        } catch (errLife) {
-          console.warn('life office build failed', errLife);
-          root.userData.lifeOffice = false;
-        }
-      }
-      if (!root.userData.lifeOffice && window.HQOffice && window.HQCampus) {
-        try {
-          var madeLayout = window.HQCampus.layoutFor(zone.id, zone.staff.map(function (s) { return s.id; }));
-          floorLayouts[zone.id] = madeLayout;
-          window.HQOffice.build({
-            THREE: THREE,
-            root: root,
-            zone: zone,
-            layout: madeLayout,
-            shared: shared,
-            surfaceY: 0.19,
-            makeCuteBot: makeCuteBot,
-            makePlant: makePlant,
-            makeGlassWall: makeGlassWall,
-            botMeshes: botMeshes
-          });
-          root.userData.lifeOffice = true;
-        } catch (errOffice) {
-          console.warn('office build failed', zone.id, errOffice);
-          floorLayouts[zone.id] = null;
-        }
-      }
-      if (!root.userData.lifeOffice) {
-        var shown = Math.min(zone.staff.length, 3);
-        for (var idx = 0; idx < shown; idx++) {
-          var staff = zone.staff[idx];
-          var desk = makeCompactDesk(screenMat);
-          var x = (idx - (shown - 1) / 2) * 1.85;
-          desk.position.set(x, 0, 0.15);
-          root.add(desk);
-          var bot = makeCuteBot(zone.color, zone.shape, shared);
-          bot.userData.baseScale = window.HQLook ? 0.82 : 0.78;
-          bot.scale.setScalar(bot.userData.baseScale);
-          bot.position.set(x, window.HQLook ? 0.19 : 0, 0.95);
-          bot.userData.zoneId = zone.id;
-          bot.userData.staffId = staff.id;
-          bot.userData.isBot = true;
-          bot.userData.phase = Math.random() * Math.PI * 2;
-          bot.userData.baseY = window.HQLook ? 0.19 : 0;
-          root.add(bot);
-          botMeshes.push(bot);
-        }
-      }
-
-      office.add(root);
-      zoneRoots[zone.id] = root;
-    });
-
-    var staffBots = {};
-    botMeshes.forEach(function (b) {
-      if (b.userData.lifeAgent) {
-        lifeBots[b.userData.staffId] = b;
-        b.userData.campusAgent = true;
-      }
-      if (b.userData.staffId) staffBots[b.userData.staffId] = b;
-    });
-    if (lifePaint && window.HQLifeSim && lifeLayout && zoneRoots.life && zoneRoots.life.userData.lifeOffice) {
-      try {
-        var inferredLife = window.HQLifeSim.inferLifeRoster(liveData || {}, findZone('life').staff, lifeLayout, Date.now());
-        lifeSim = window.HQLifeSim.createSim(lifeLayout, inferredLife.intents);
-        lifeTitle = inferredLife.meetingTitle || '';
-        lifePaint(lifeTitle);
-        lifeSim.agents.forEach(function (a) {
-          var bot = lifeBots[a.staffId];
-          if (bot) applyLifePose(bot, a, 0);
-        });
-      } catch (errSim) {
-        console.warn('life sim failed', errSim);
-        lifeSim = null;
-      }
-    }
-
-    var campusView = null;
-    var director = null;
-    if (window.HQCampus && window.HQLifeSim && window.HQLook) {
-      try {
-        var levelY = {};
-        ZONES.forEach(function (z) {
-          if (zoneRoots[z.id]) levelY[z.id] = zoneRoots[z.id].position.y + 0.19;
-        });
-        var bridgeY = levelY.travel || (window.HQLook.floorBaseY(3) + 0.19);
-        if (window.HQCampusScene && shared.look) {
-          campusView = window.HQCampusScene.build({
-            THREE: THREE,
-            scene: scene,
-            look: shared.look,
-            mats: shared.mats,
-            shared: shared,
-            bridgeY: bridgeY,
-            topY: towerTopY,
-            makePlant: makePlant,
-            makeBot: makeCuteBot
-          });
-          (campusView.wingBots || []).forEach(function (b) { botMeshes.push(b); });
-        }
-        var directorFloors = [];
-        ZONES.forEach(function (z) {
-          var layout = floorLayouts[z.id];
-          if (!layout) return;
-          directorFloors.push({
-            id: z.id,
-            layout: layout,
-            staff: z.staff,
-            sim: z.id === 'life' ? lifeSim : null
-          });
-        });
-        if (directorFloors.length) {
-          director = window.HQCampus.createDirector({
-            Life: window.HQLifeSim,
-            floors: directorFloors,
-            levelY: levelY,
-            bridgeY: bridgeY,
-            getLive: function () { return liveData || {}; }
-          });
-        }
-      } catch (errCampus) {
-        console.warn('campus build failed', errCampus);
-        director = null;
-      }
-    }
-
-    function makeLabel(text) {
-      var canvas = document.createElement('canvas');
-      canvas.width = 512; canvas.height = 128;
-      var ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, 512, 128);
-      ctx.fillStyle = 'rgba(28,25,22,0.92)';
-      roundRect(ctx, 48, 30, 416, 68, 2); ctx.fill();
-      ctx.strokeStyle = '#B79F80'; ctx.lineWidth = 2;
-      roundRect(ctx, 48, 30, 416, 68, 2); ctx.stroke();
-      ctx.fillStyle = '#EDE6DA';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      var size = 38;
-      ctx.font = '500 ' + size + 'px "Noto Serif TC","Songti TC",serif';
-      while (size > 22 && ctx.measureText(text).width > 400) {
-        size -= 2;
-        ctx.font = '500 ' + size + 'px "Noto Serif TC","Songti TC",serif';
-      }
-      ctx.fillText(text, 256, 66);
-      var tex = new THREE.CanvasTexture(canvas);
-      var mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
-      var spr = new THREE.Sprite(mat);
-      spr.scale.set(3.05, 0.76, 1);
-      return spr;
-    }
-
-    function makeMiniCard(text, color) {
-      var canvas = document.createElement('canvas');
-      canvas.width = 256; canvas.height = 96;
-      var ctx = canvas.getContext('2d');
-      ctx.fillStyle = 'rgba(28,25,22,0.92)';
-      roundRect(ctx, 8, 16, 240, 64, 2); ctx.fill();
-      ctx.strokeStyle = '#3F3830'; ctx.lineWidth = 1.5;
-      roundRect(ctx, 8, 16, 240, 64, 2); ctx.stroke();
-      ctx.fillStyle = '#EDE6DA';
-      ctx.font = '500 22px "Noto Serif TC","Songti TC",serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(text.slice(0, 10), 128, 50);
-      var spr = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: new THREE.CanvasTexture(canvas), transparent: true, depthWrite: false, opacity: 0.94
-      }));
-      spr.scale.set(1.7, 0.64, 1);
-      spr.userData.float = true;
-      spr.userData.phase = Math.random() * 6;
-      return spr;
-    }
-
-    function roundRect(ctx, x, y, w, h, r) {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + w, y, x + w, y + h, r);
-      ctx.arcTo(x + w, y + h, x, y + h, r);
-      ctx.arcTo(x, y + h, x, y, r);
-      ctx.arcTo(x, y, x + w, y, r);
-      ctx.closePath();
-    }
-
-    var raycaster = new THREE.Raycaster();
-    var pointer = new THREE.Vector2();
-    var downX = 0, downY = 0, moved = false;
-
-    function setPointer(e) {
-      var rect = renderer.domElement.getBoundingClientRect();
-      var x = e.clientX, y = e.clientY;
-      if (x == null && e.changedTouches && e.changedTouches[0]) {
-        x = e.changedTouches[0].clientX; y = e.changedTouches[0].clientY;
-      }
-      pointer.x = ((x - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((y - rect.top) / rect.height) * 2 + 1;
-    }
-
-    function pick() {
-      raycaster.setFromCamera(pointer, camera);
-      var objs = [];
-      botMeshes.forEach(function (b) {
-        b.traverse(function (o) { if (o.isMesh) objs.push(o); });
-      });
-      Object.keys(zoneRoots).forEach(function (id) {
-        zoneRoots[id].traverse(function (o) {
-          if (o.isMesh && o.userData.isZone) objs.push(o);
-        });
-      });
-      var hits = raycaster.intersectObjects(objs, true);
-      if (!hits.length) return null;
-      var obj = hits[0].object;
-      while (obj) {
-        if (obj.userData && obj.userData.isBot) return { zoneId: obj.userData.zoneId, staffId: obj.userData.staffId };
-        if (obj.userData && obj.userData.isZone) return { zoneId: obj.userData.zoneId, staffId: null };
-        obj = obj.parent;
-      }
-      return null;
-    }
-
-    function onPointerDown(e) { downX = e.clientX; downY = e.clientY; moved = false; }
-    function onPointerMove(e) {
-      if (Math.abs(e.clientX - downX) > 10 || Math.abs(e.clientY - downY) > 10) moved = true;
-    }
-    function onPointerUp(e) {
-      if (moved) return;
-      setPointer(e);
-      var hit = pick();
-      if (hit) {
-        if (hit.staffId) selectZone(hit.zoneId, hit.staffId, { openDrawer: true, toast: true });
-        else selectZone(hit.zoneId, null, { toast: true, openDrawer: true });
-      }
-    }
-    renderer.domElement.addEventListener('pointerdown', onPointerDown);
-    renderer.domElement.addEventListener('pointermove', onPointerMove);
-    renderer.domElement.addEventListener('pointerup', onPointerUp);
-
-    function resize() {
-      var w = wrap.clientWidth || window.innerWidth;
-      var h = wrap.clientHeight || window.innerHeight;
-      camera.aspect = w / Math.max(h, 1);
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h, false);
-    }
-    function onOrient() { setTimeout(resize, 250); }
-    window.addEventListener('resize', resize);
-    window.addEventListener('orientationchange', onOrient);
-    resize();
-    requestAnimationFrame(resize);
-
-    var clock = new THREE.Clock();
-    var floating = [];
-    office.traverse(function (o) { if (o.userData && o.userData.float) floating.push(o); });
-
-    var alive = true;
-    var shadowBaked = false;
-    function animate() {
-      if (!alive) return;
-      runtime3d.raf = requestAnimationFrame(animate);
-      var dt = clock.getDelta();
-      if (dt > 0.05) dt = 0.05;
-      var t = clock.elapsedTime;
-      Object.keys(zoneRoots).forEach(function (id) {
-        var g = zoneRoots[id];
-        if (!g || g.userData.goalZ == null) return;
-        g.position.z += (g.userData.goalZ - g.position.z) * 0.14;
-        var gs = g.userData.goalScale == null ? 1 : g.userData.goalScale;
-        g.scale.setScalar(g.scale.x + (gs - g.scale.x) * 0.14);
-        if (g.userData.screenMat && g.userData.zoneId === selectedZone) {
-          g.userData.screenMat.emissiveIntensity = 0.12 + 0.015 * Math.sin(t * 0.7);
-        }
-      });
-      if (runtime3d.focusY != null && !runtime3d.frameLife && !runtime3d.wasLife) {
-        controls.target.y += (runtime3d.focusY - controls.target.y) * 0.1;
-      }
-      if (runtime3d.frameLife && !runtime3d.suspendFrame && zoneRoots.life) {
-        lifeTgtTmp.set(0.35, 0.85, 0.05);
-        zoneRoots.life.localToWorld(lifeTgtTmp);
-        lifeCamTmp.set(2.6, 2.15, 8.8);
-        zoneRoots.life.localToWorld(lifeCamTmp);
-        controls.target.lerp(lifeTgtTmp, 0.16);
-        camera.position.lerp(lifeCamTmp, 0.16);
-        runtime3d.wasLife = true;
-      } else if (runtime3d.wasLife && !runtime3d.suspendFrame && !runtime3d.frameLife && runtime3d.towerTarget) {
-        controls.target.lerp(runtime3d.towerTarget, 0.08);
-        camera.position.lerp(runtime3d.towerPos, 0.08);
-        if (controls.target.distanceTo(runtime3d.towerTarget) < 0.15) {
-          runtime3d.wasLife = false;
-          if (!runtime3d.userSteer) controls.autoRotate = true;
-        }
-      }
-      if (runtime3d.glide && !runtime3d.suspendFrame) {
-        controls.target.lerp(runtime3d.glide.target, 0.12);
-        camera.position.lerp(runtime3d.glide.pos, 0.12);
-        if (camera.position.distanceTo(runtime3d.glide.pos) < 0.4) {
-          runtime3d.glide = null;
-          if (!runtime3d.userSteer) controls.autoRotate = true;
-        }
-      }
-      controls.update();
-      if (director) {
-        director.step(dt);
-        director.poses().forEach(function (p) {
-          var bot = staffBots[p.staffId];
-          if (!bot) return;
-          var parent = p.riding ? scene : zoneRoots[p.floorId];
-          if (parent && bot.parent !== parent) parent.attach(bot);
-          applyLifePose(bot, { x: p.x, z: p.z, yaw: p.yaw || 0, anim: p.anim || 'idle' }, t);
-          if (p.riding) bot.position.set(p.x, p.y, p.z);
-        });
-        if (campusView && campusView.car) campusView.car.position.y = director.carY() - 0.1;
-        var openDoors = director.openFloors();
-        Object.keys(zoneRoots).forEach(function (id) {
-          var doors = zoneRoots[id].userData.liftDoors;
-          if (!doors || !doors.left) return;
-          var spread = openDoors[id] ? 0.38 : 0.14;
-          doors.left.position.z += ((-spread) - doors.left.position.z) * 0.2;
-          doors.right.position.z += (spread - doors.right.position.z) * 0.2;
-        });
-      } else if (lifeSim) {
-        lifeSim.step(dt);
-        lifeSim.agents.forEach(function (a) {
-          var bot = lifeBots[a.staffId];
-          if (bot) applyLifePose(bot, a, t);
-        });
-      }
-      botMeshes.forEach(function (b) {
-        if (b.userData.campusAgent || b.userData.lifeAgent) return;
-        if (b.userData.fashion && window.HQLook) {
-          window.HQLook.applyPose(b, null, t);
-          return;
-        }
-        b.position.y = (b.userData.baseY || 0) + Math.sin(t * 0.6 + b.userData.phase) * 0.008;
-        b.rotation.y = Math.sin(t * 0.2 + b.userData.phase) * 0.025;
-      });
-      if (campusView && campusView.water) {
-        campusView.water.position.y = -0.3 + Math.sin(t * 1.1) * 0.015;
-      }
-      floating.forEach(function (s) {
-        s.position.y = 1.55 + Math.sin(t * 0.5 + s.userData.phase) * 0.015;
-      });
-      for (var i = 0; i < screenMats.length; i++) {
-        var base = screenMats[i].userData.baseEmissive == null ? 0.06 : screenMats[i].userData.baseEmissive;
-        screenMats[i].emissiveIntensity = base;
-      }
-      if (particles) particles.rotation.y = t * 0.006;
-      renderer.render(scene, camera);
-      if (!isTouch && !shadowBaked && t > 0.6) {
-        shadowBaked = true;
-        renderer.shadowMap.needsUpdate = true;
-        renderer.shadowMap.autoUpdate = false;
-      }
-    }
-
-    runtime3d = {
-      scene: scene,
-      renderer: renderer,
-      controls: controls,
-      shared: shared,
-      raf: 0,
-      onResize: resize,
-      onOrient: onOrient,
-      kill: function () { alive = false; },
-      lifeSim: lifeSim,
-      lifeBots: lifeBots,
-      paintMeet: lifePaint,
-      meetingTitle: lifeTitle,
-      frameLife: false,
-      suspendFrame: false,
-      wasLife: false,
-      userSteer: false,
-      towerPos: camera.position.clone(),
-      towerTarget: controls.target.clone(),
-      director: director,
-      glide: null,
-      wash: 'day',
-      look: shared.look || null,
-      applyWash: wash ? wash.apply : null
-    };
-    if (wash && shared.look) setTowerWash('day');
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(function () {
-        if (runtime3d && runtime3d.paintMeet) runtime3d.paintMeet(runtime3d.meetingTitle || '');
-      });
-    }
-    animate();
-
-    selectZone(selectedZone || 'cmd');
-    return true;
+    if (runtime3d && runtime3d.town && window.HQTownView) window.HQTownView.sync(liveData || {});
+    if (mode === '2d') renderTown2D();
   }
 
   function enable3D() {
     try {
-      if (typeof THREE === 'undefined' || !THREE.OrbitControls) {
-        showBootError('找不到本地 3D 引擎。已保留平面總部。');
+      if (typeof THREE === 'undefined' || !THREE.OrbitControls || !window.HQTownView) {
+        showBootError('找不到本地 3D 引擎。已保留平面小鎮。');
         enable2D('缺少 Three.js');
         return false;
       }
       var c = document.createElement('canvas');
       var gl = c.getContext('webgl') || c.getContext('experimental-webgl');
       if (!gl) {
-        showBootError('此裝置／瀏覽器無法建立 WebGL。已保留平面總部。');
+        showBootError('此裝置／瀏覽器無法建立 WebGL。已保留平面小鎮。');
         enable2D('無 WebGL');
         return false;
       }
-      boot3D();
+      dispose3D();
+      runtime3d = window.HQTownView.boot({
+        THREE: THREE,
+        wrap: $('canvas-wrap'),
+        zones: ZONES,
+        isTouch: isTouch,
+        getLive: function () { return liveData; },
+        onPick: function (hit) {
+          if (!hit || !runtime3d) return;
+          if (hit.kind === 'hall') {
+            toast('會議廳');
+            return;
+          }
+          if (!hit.staffId) return;
+          var found = findStaffAnywhere(hit.staffId);
+          if (!found) return;
+          runtime3d.skipEnter = true;
+          selectZone(found.zone.id, found.staff.id, { toast: true, openDrawer: true });
+        }
+      });
       document.body.classList.remove('mode-2d');
       document.body.classList.add('mode-3d');
       var wrap = $('canvas-wrap');
       if (wrap) wrap.setAttribute('aria-hidden', 'false');
       $('bootError').hidden = true;
       var btn = $('btnTry3d');
-      if (btn) btn.textContent = '返回平面';
+      if (btn) btn.textContent = '平面地圖';
       var hint = $('hint');
-      if (hint) hint.textContent = '六層都在舞台 · 點樓層聚焦並開詳情';
+      if (hint) hint.textContent = '點小屋進入室內 · 全景返回小鎮';
       mode = '3d';
+      if (runtime3d && window.HQTownView) window.HQTownView.sync(liveData || {});
+      if (runtime3d) runtime3d.skipEnter = true;
+      renderDetail(selectedZone || 'cmd', selectedStaffId);
       setTimeout(function () {
         if (mode !== '3d') return;
         var canvas = wrap && wrap.querySelector('canvas');
@@ -2909,6 +1984,7 @@
       else if ($('changelogBackdrop') && !$('changelogBackdrop').hidden) closeChangelog();
       else if ($('reportsBackdrop') && !$('reportsBackdrop').hidden) closeReports();
       else if ($('dirBackdrop') && !$('dirBackdrop').hidden) closeDirectory();
+      else if (window.HQTownView && window.HQTownView.indoors && window.HQTownView.indoors()) window.HQTownView.frame();
       else closeTopDrawer();
     }
   });
@@ -2927,7 +2003,7 @@
   var tryBtn = $('btnTry3d');
   if (tryBtn) {
     tryBtn.addEventListener('click', function () {
-      if (mode === '3d') enable2D('手動返回平面');
+      if (mode === '3d') enable2D('手動返回平面地圖');
       else enable3D();
     });
   }
@@ -2936,11 +2012,11 @@
 
   Promise.all([loadDirectory(), loadLifeLayout()]).then(function () {
     var hosted = location.protocol === 'https:' || location.protocol === 'http:';
-    /* Tower fits the framed stage, including the short mobile stage. 返回平面 stays in the dock. */
+    /* Cartoon town is the primary stage. Flat town map is the WebGL fallback. */
     if (hosted) {
       if (!enable3D()) enable2D('平面後備');
     } else {
-      enable2D('本機檔案預設平面（可試 3D）');
+      enable2D('本機檔案預設平面小鎮（可轉立體）');
     }
   });
 })();

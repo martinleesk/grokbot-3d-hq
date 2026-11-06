@@ -9,8 +9,8 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'invest', level: 5, short: '投資', name: '投資樓層', en: 'Invest', color: '#8C7B68', shape: 'cylinder',
-      desc: '投資顧問與資產追蹤：股票、ETF、基金與人生財務大計。數據分析中心在此層，只報狀態。',
+      id: 'invest', level: 5, short: '投資', name: '投資區', en: 'Invest', color: '#8C7B68', shape: 'cylinder',
+      desc: '投資顧問與資產追蹤：股票、ETF、基金與人生財務大計。數據分析中心喺小鎮公所，只報狀態。',
       staff: [
         { id: 'advisor', name: '投資顧問', role: '組合分析與配置建議', status: '監察中' },
         { id: 'byd', name: '比亞迪', role: '個股追蹤 · BYD', status: '更新中' },
@@ -29,7 +29,7 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'life', level: 4, short: '生活', name: '生活樓層', en: 'Life', color: '#6F675E', shape: 'rounded',
+      id: 'life', level: 4, short: '生活', name: '生活區', en: 'Life', color: '#6F675E', shape: 'rounded',
       desc: '日常生活、財務、健康與工作支援自動化。',
       staff: [
         { id: 'life', name: '生活管家', role: '日常安排與提醒', status: '運作中' },
@@ -42,15 +42,15 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'travel', level: 3, short: '旅遊', name: '旅遊樓層', en: 'Travel', color: '#A89880', shape: 'cone',
+      id: 'travel', level: 3, short: '旅遊', name: '旅遊區', en: 'Travel', color: '#A89880', shape: 'cone',
       desc: '行程、機票、住宿與活動規劃。',
       staff: [
         { id: 'travel', name: '旅遊規劃師', role: '行程設計與預訂建議', status: '規劃中' }
       ]
     },
     {
-      id: 'content', level: 2, short: '內容', name: '內容樓層', en: 'Content', color: '#7A6E62', shape: 'pyramid',
-      desc: '新聞、社交、摘要、翻譯與研究資訊流。研創中心掛此翼（無獨立樓層）。',
+      id: 'content', level: 2, short: '內容', name: '內容區', en: 'Content', color: '#7A6E62', shape: 'pyramid',
+      desc: '新聞、社交、摘要、翻譯與研究資訊流。研創中心喺小鎮公所。',
       staff: [
         { id: 'news', name: '新聞小編', role: '頭條篩選與整理', status: '掃描中' },
         { id: 'social', name: '社交媒體小編', role: '貼文草稿與排程', status: '創作中' },
@@ -62,8 +62,8 @@ window.HQ_DATA = {
       ]
     },
     {
-      id: 'sys', level: 1, short: '系統', name: '系統樓層', en: 'Systems', color: '#5C564E', shape: 'cross',
-      desc: '基礎設施稽核、安全與穩定性監控。共用資料庫在此層。',
+      id: 'sys', level: 1, short: '系統', name: '系統區', en: 'Systems', color: '#5C564E', shape: 'cross',
+      desc: '基礎設施稽核、安全與穩定性監控。共用資料庫喺小鎮公所。',
       staff: [
         { id: 'auditor', name: 'System Auditor', role: '系統稽核與健康檢查', status: '稽核中' },
         { id: 'shared-db', name: '共用資料庫', mark: '資料庫', role: 'L1 系統 · martin_shared', status: 'Postgres 就緒', center: true }

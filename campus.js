@@ -1,4 +1,5 @@
-/* Campus motion: per-floor idle/walk, elevator rides, cross-floor meetings, skybridge.
+/* Not loaded by the town page. Kept for campus.test.js (old elevator / skybridge sim).
+   Campus motion: per-floor idle/walk, elevator rides, cross-floor meetings, skybridge.
    No THREE dependency. L4 keeps HQLifeSim intents; this layer only holds an agent while they travel. */
 (function (root, factory) {
   var api = factory();

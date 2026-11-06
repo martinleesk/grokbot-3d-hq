@@ -1,4 +1,5 @@
-/* L4 open-office meshes. Warm stone, brass line, one glass room. */
+/* UNUSED by index.html — town interiors replaced the L4 office.
+   L4 open-office meshes. Warm stone, brass line, one glass room. */
 (function (root) {
   function makeLifeDesk(THREE, mats, screenMat) {
     var g = new THREE.Group();

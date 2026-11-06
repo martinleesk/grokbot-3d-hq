@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet" />
-<title>Martin Lee · GrokBot 3D Model HQ</title>
+<title>Martin Lee · GrokBot 卡通小鎮</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="mode-2d">
@@ -18,8 +18,8 @@
     <div class="brand">
       <div class="logo">ML</div>
       <div class="brand-copy">
-        <div class="title">GrokBot 3D Model HQ</div>
-        <div class="sub">Martin Lee · Hong Kong · 模範總部</div>
+        <div class="title">GrokBot 卡通小鎮</div>
+        <div class="sub">Martin Lee · Hong Kong · 溫暖小鎮總部</div>
       </div>
     </div>
     <div class="ribbon-cluster">
@@ -67,26 +67,32 @@
 
   <div id="stage">
     <div id="canvas-wrap" aria-hidden="true"></div>
-    <nav class="floor-rail" id="floorRail" aria-label="樓層">
-      <button type="button" class="floor-btn" data-id="cmd"><span class="floor-code">L6</span><span class="floor-short">指揮</span></button>
-      <button type="button" class="floor-btn" data-id="invest"><span class="floor-code">L5</span><span class="floor-short">投資</span></button>
-      <button type="button" class="floor-btn" data-id="life"><span class="floor-code">L4</span><span class="floor-short">生活</span></button>
-      <button type="button" class="floor-btn" data-id="travel"><span class="floor-code">L3</span><span class="floor-short">旅遊</span></button>
-      <button type="button" class="floor-btn" data-id="content"><span class="floor-code">L2</span><span class="floor-short">內容</span></button>
-      <button type="button" class="floor-btn" data-id="sys"><span class="floor-code">L1</span><span class="floor-short">系統</span></button>
+    <nav class="floor-rail" id="floorRail" aria-label="小鎮">
+      <button type="button" class="floor-btn" data-place="boss" data-id="cmd"><span class="floor-code">屋</span><span class="floor-short">總管</span></button>
+      <button type="button" class="floor-btn" data-place="sec" data-id="life"><span class="floor-code">屋</span><span class="floor-short">秘書</span></button>
+      <button type="button" class="floor-btn" data-place="finance" data-id="life"><span class="floor-code">屋</span><span class="floor-short">財務</span></button>
+      <button type="button" class="floor-btn" data-place="advisor" data-id="invest"><span class="floor-code">屋</span><span class="floor-short">投資</span></button>
+      <button type="button" class="floor-btn" data-place="travel" data-id="travel"><span class="floor-code">屋</span><span class="floor-short">旅遊</span></button>
+      <button type="button" class="floor-btn" data-place="hall" data-id="hall"><span class="floor-code">堂</span><span class="floor-short">會堂</span></button>
     </nav>
-    <div id="fallback" aria-label="樓層總部">
-      <div class="fb-office" id="fbOffice">
-        <div class="fb-windows" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="fb-aisle" aria-hidden="true"></div>
-        <!-- zones injected by app.js; static placeholder so never blank before JS -->
-        <div class="fb-stack" id="fbGridPlaceholder">
-          <div class="fb-floor fb-zone" data-id="cmd"><span class="tag">L6</span><h3>指揮</h3></div>
-          <div class="fb-floor fb-zone" data-id="invest"><span class="tag">L5</span><h3>投資</h3><span class="fb-center">數據分析中心 · 分析板已交</span></div>
-          <div class="fb-floor fb-zone" data-id="life"><span class="tag">L4</span><h3>生活</h3></div>
-          <div class="fb-floor fb-zone" data-id="travel"><span class="tag">L3</span><h3>旅遊</h3></div>
-          <div class="fb-floor fb-zone" data-id="content"><span class="tag">L2</span><h3>內容</h3><span class="fb-center">研創中心 · 研創待原型題目</span></div>
-          <div class="fb-floor fb-zone" data-id="sys"><span class="tag">L1</span><h3>系統</h3><span class="fb-center">共用資料庫 · Postgres 就緒</span></div>
+    <div id="townHud" class="town-hud" hidden>
+      <button type="button" id="townBack">返回小鎮</button>
+      <div class="town-caption">
+        <div class="town-kicker" id="townKicker">室內</div>
+        <h2 id="townWho"></h2>
+        <p class="town-anim" id="townAnim"></p>
+        <p class="town-doing" id="townDoing"></p>
+        <p class="town-detail" id="townDetail"></p>
+        <p class="town-status" id="townStatus"></p>
+        <p class="town-source" id="townSource"></p>
+      </div>
+    </div>
+    <div id="fallback" aria-label="卡通小鎮">
+      <div class="fb-office is-town" id="fbOffice">
+        <div class="town-map" id="fbGridPlaceholder">
+          <div class="town-grass">
+            <p class="town-boot">小鎮載入中…</p>
+          </div>
         </div>
       </div>
     </div>
@@ -96,8 +102,8 @@
     <button type="button" class="dock-btn" data-drawer="leftPanel" aria-expanded="false" aria-controls="leftPanel">職能</button>
     <button type="button" class="dock-btn" data-drawer="detailPanel" aria-expanded="false" aria-controls="detailPanel">詳情</button>
     <button type="button" class="dock-btn" data-drawer="feedPanel" aria-expanded="false" aria-controls="feedPanel">動態 <span class="badge-dot" id="feedBadge" hidden></span></button>
-    <span class="dock-hint" id="hint">點樓層聚焦並開詳情 · 底欄開啟職能／動態</span>
-    <button type="button" class="mode-toggle" id="btnTry3d">試 3D（進階）</button>
+    <span class="dock-hint" id="hint">點小屋進入室內 · 全景返回小鎮</span>
+    <button type="button" class="mode-toggle" id="btnTry3d">平面地圖</button>
   </nav>
 
   <div class="disclaimer-ticker" id="disclaimerTicker" hidden role="note">
@@ -123,7 +129,7 @@
         <button type="button" class="collapse-btn" data-drawer="detailPanel" aria-label="關閉詳情">×</button>
       </div>
       <div class="panel-body" id="detailPanelBody">
-        <div class="invest-slot" id="investSlot" hidden aria-live="polite" aria-label="投資樓層狀態"></div>
+        <div class="invest-slot" id="investSlot" hidden aria-live="polite" aria-label="投資狀態"></div>
         <div class="detail-head">
           <div class="bot-chip" id="detailAvatar">B</div>
           <div>
@@ -136,7 +142,7 @@
         <div class="metrics" id="detailMetrics"></div>
         <div class="follow-block" id="detailFollow"></div>
         <button type="button" class="link-btn" id="btnOpenModal">開啟完整資料</button>
-        <div class="roster-label">同層團隊</div>
+        <div class="roster-label">同區夥伴</div>
         <div class="roster" id="roster"></div>
       </div>
     </aside>
@@ -281,20 +287,16 @@
   </div>
 
   <div class="boot-error" id="bootError" hidden>
-    <h2>無法啟動 3D</h2>
-    <p id="bootMsg">已保留平面總部地圖，可繼續使用。</p>
-    <button type="button" id="btn2d">返回平面模式</button>
+    <h2>無法啟動立體小鎮</h2>
+    <p id="bootMsg">已保留平面小鎮地圖，可繼續使用。</p>
+    <button type="button" id="btn2d">返回平面地圖</button>
   </div>
 
 <script src="vendor/three.min.js"></script>
 <script src="vendor/OrbitControls.js"></script>
 <script src="data.js"></script>
-<script src="tower-look.js"></script>
-<script src="life-sim.js"></script>
-<script src="life-scene.js"></script>
-<script src="campus.js"></script>
-<script src="office-floor.js"></script>
-<script src="campus-scene.js"></script>
+<script src="town.js"></script>
+<script src="town-scene.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

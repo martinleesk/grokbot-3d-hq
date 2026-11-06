@@ -1,4 +1,5 @@
-/* Shared office fit-out: desks, glass room, lamps, plants, art, lift door.
+/* UNUSED by index.html — town houses replaced the stacked office floors.
+   Shared office fit-out: desks, glass room, lamps, plants, art, lift door.
    Geometries are created once per page. */
 (function (root) {
   var LIFT = { x: -4.12, z: 0.02 };

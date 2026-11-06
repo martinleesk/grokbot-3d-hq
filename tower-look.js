@@ -1,4 +1,5 @@
-/* Shell A curtain wall + cute mascot figures.
+/* UNUSED by index.html — the cartoon town replaced the tower stage. Kept so older notes still match the file.
+   Shell A curtain wall + cute mascot figures.
    Thin gold frames, full-height bright glass, daylight or golden hour.
    Day colors are a small chroma step: richer gold and glass, clearer cloth.
    The horizon is cooler and quieter than the stone so the tower wins.
