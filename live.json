@@ -190,8 +190,8 @@
   "invest": {
     "mode": "PAPER",
     "halt": false,
-    "dashboardUrl": "https://cursor.com/canvas/store-cfbe74cb-3f1b-4f2f-b2de-5dd12c81d557/24a6c6b7-3134-40e5-ae4d-81bea5c123cb",
-    "dashboardTitle": "個人投資台 · 監控板",
+    "dashboardUrl": "https://martinleesk.github.io/grokbot-3d-hq/invest/",
+    "dashboardTitle": "個人投資台 · 投資平台",
     "paper": {
       "label": "SIMULATED",
       "note": "模擬帳，未接真倉"

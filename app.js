@@ -52,11 +52,17 @@
   }
 
   function centerStaff(zone) {
-    if (!zone || !zone.staff) return null;
-    for (var i = 0; i < zone.staff.length; i++) {
-      if (zone.staff[i] && zone.staff[i].center) return zone.staff[i];
-    }
-    return null;
+    var list = centersOf(zone);
+    return list.length ? list[0] : null;
+  }
+
+  function centersOf(zone) {
+    var out = [];
+    if (!zone || !zone.staff) return out;
+    zone.staff.forEach(function (s) {
+      if (s && s.center) out.push(s);
+    });
+    return out;
   }
 
   function centerStatus(staff) {
@@ -76,17 +82,23 @@
 
   function centerRows() {
     var rows = [];
+    var pref = { 'shared-db': 0, 'invest-platform': 1, analytics: 2, lab: 3 };
     ZONES.forEach(function (z) {
-      var staff = centerStaff(z);
-      if (!staff) return;
-      rows.push({ zone: z, staff: staff, status: centerStatus(staff) });
+      centersOf(z).forEach(function (staff) {
+        rows.push({ zone: z, staff: staff, status: centerStatus(staff) });
+      });
     });
     rows.sort(function (a, b) {
-      var oa = CENTER_ZONE_ORDER[a.zone.id];
-      var ob = CENTER_ZONE_ORDER[b.zone.id];
+      var oa = pref[a.staff.id];
+      var ob = pref[b.staff.id];
       if (oa == null) oa = 9;
       if (ob == null) ob = 9;
-      return oa - ob;
+      if (oa !== ob) return oa - ob;
+      var za = CENTER_ZONE_ORDER[a.zone.id];
+      var zb = CENTER_ZONE_ORDER[b.zone.id];
+      if (za == null) za = 9;
+      if (zb == null) zb = 9;
+      return za - zb;
     });
     return rows;
   }
@@ -98,7 +110,7 @@
     el.innerHTML = '';
     var kicker = document.createElement('div');
     kicker.className = 'center-kicker';
-    kicker.textContent = '共用基建';
+    kicker.textContent = '社區設施';
     el.appendChild(kicker);
     rows.forEach(function (row) {
       var btn = document.createElement('button');
@@ -190,8 +202,8 @@
   }
   function cameraHint(threeD) {
     if (!threeD) return '而家做緊同今日焦點可以收合 · 可轉立體小鎮';
-    if (isTouch) return '單指旋轉 · 雙指拖曳平移同縮放 · 點人入屋';
-    return '左拖旋轉 · Shift+左拖或右拖平移 · 滾輪縮放 · 點人入屋';
+    if (isTouch) return '單指旋轉 · 雙指拖曳平移同縮放 · 點人入內';
+    return '左拖旋轉 · Shift+左拖或右拖平移 · 滾輪縮放 · 點人入內';
   }
 
   function toast(msg) {
@@ -216,10 +228,10 @@
       btn.type = 'button';
       btn.className = 'zone-btn' + (z.id === selectedZone ? ' active' : '');
       btn.dataset.id = z.id;
-      var center = centerStaff(z);
+      var facilities = centersOf(z).map(function (s) { return s.name; });
       btn.innerHTML = '<span class="swatch" style="background:' + z.color + ';color:' + z.color + '"></span>' +
         '<span><div class="name">' + z.name + '</div><div class="meta">' + z.staff.length + ' 代理人 · ' + z.en +
-        (center ? ' · ' + center.name : '') + '</div></span>';
+        (facilities.length ? ' · ' + facilities.join('／') : '') + '</div></span>';
       btn.addEventListener('click', function () {
         if (runtime3d && runtime3d.town && window.HQTownView) {
           runtime3d.skipEnter = true;
@@ -1727,7 +1739,10 @@
   function townPlot(staffId, label, kind, inferred) {
     var btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'town-plot kind-' + kind + (staffId === 'boss' ? ' is-boss' : '');
+    btn.className = 'town-plot kind-' + kind +
+      (staffId === 'boss' ? ' is-boss' : '') +
+      (kind === 'center' || kind === 'hall' ? ' is-facility' : '') +
+      (staffId === 'invest-platform' ? ' is-platform' : '');
     btn.dataset.staff = kind === 'hall' ? '' : staffId;
     btn.dataset.place = kind === 'hall' ? 'hall' : kind;
     var act = null;
@@ -1838,6 +1853,7 @@
         townPlot(id, spec.label, kind, inferred),
         kind === 'center' ? crews[spec.staffId] : null
       );
+      if (kind === 'center') appendInvestBoardChip(cell, spec.staffId);
       civic.appendChild(cell);
     });
     grass.appendChild(civic);
@@ -1910,7 +1926,8 @@
           return;
         }
         var house = window.HQTown && window.HQTown.houseByStaff(place);
-        selectZone((house && house.zoneId) || btn.dataset.id, place, { toast: true, openDrawer: true });
+        var pub = window.HQTown && window.HQTown.publicById(place);
+        selectZone((house && house.zoneId) || (pub && pub.zoneId) || btn.dataset.id, place, { toast: true, openDrawer: true });
       });
     });
     highlight2D(selectedZone);

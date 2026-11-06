@@ -1,0 +1,27 @@
+{
+  "kind": "PAPER_PORTFOLIO_STUB",
+  "is_demo": true,
+  "label": "DEMO / paper",
+  "as_of": "2026-11-06T08:04:00+08:00",
+  "currency": "USD",
+  "equity": 100000,
+  "peak_equity": 101800,
+  "day_pnl_pct": -0.6,
+  "drawdown_pct": -1.8,
+  "order_risk_pct": 0.4,
+  "leverage_on": false,
+  "holdings_refs": [
+    "fixtures/futu_demo_holding_snap.json",
+    "DB holdings WHERE instrument_code LIKE 'DEMO.%'"
+  ],
+  "demo_pnl_series": [
+    {"label": "10/31", "value": 0.0},
+    {"label": "11/01", "value": 0.4},
+    {"label": "11/02", "value": 0.1},
+    {"label": "11/03", "value": -0.3},
+    {"label": "11/04", "value": 0.2},
+    {"label": "11/05", "value": -0.1},
+    {"label": "11/06", "value": -0.6}
+  ],
+  "notes": "paper stub only · 模擬 ≠ 實盤 · 真倉數字仍經 System Auditor → write_requests；唔接 order API"
+}

@@ -60,12 +60,12 @@
     },
     {
       "category": "財務",
-      "title": "個人投資台 · 監控板",
+      "title": "個人投資台 · 投資平台",
       "canvas_id": "24a6c6b7-3134-40e5-ae4d-81bea5c123cb",
       "updated": "2026-11-06",
-      "staffIds": ["advisor", "analytics"],
+      "staffIds": ["advisor", "analytics", "invest-platform"],
       "zoneIds": ["invest"],
-      "url": "https://cursor.com/canvas/store-cfbe74cb-3f1b-4f2f-b2de-5dd12c81d557/24a6c6b7-3134-40e5-ae4d-81bea5c123cb"
+      "url": "https://martinleesk.github.io/grokbot-3d-hq/invest/"
     },
     {
       "category": "旅遊",
