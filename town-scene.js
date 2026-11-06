@@ -548,14 +548,30 @@
     controls.maxDistance = 46;
     controls.minPolarAngle = 0.42;
     controls.maxPolarAngle = Math.PI * 0.49;
-    controls.enablePan = !isTouch;
+    /* Left-drag / one finger rotates. Pan stays on for mouse and touch:
+       Shift+left-drag, right-drag, and two-finger drag. Wheel / pinch still zoom. */
+    controls.enableRotate = true;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
+    controls.panSpeed = 1;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.18;
     controls.zoomSpeed = 0.9;
-    if (THREE.TOUCH) controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+    if (THREE.MOUSE) {
+      controls.mouseButtons = {
+        LEFT: THREE.MOUSE.ROTATE,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.PAN
+      };
+    }
+    if (THREE.TOUCH) {
+      controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+    }
     controls.addEventListener('start', function () {
       controls.autoRotate = false;
       api.userSteer = true;
+      glide = null;
     });
 
     var hemi = new THREE.HemisphereLight(0xD7EEFF, 0xB7D98A, 0.55);
@@ -1104,6 +1120,24 @@
     resize();
 
     var clock = new THREE.Clock();
+    function clampPan() {
+      var outdoor = view.mode === 'outdoor';
+      var box = outdoor
+        ? { minX: -20, maxX: 20, minY: 0, maxY: 4, minZ: -20, maxZ: 20 }
+        : { minX: -1.8, maxX: 1.8, minY: 0.2, maxY: 2.4, minZ: -1.8, maxZ: 1.8 };
+      var t = controls.target;
+      var nx = Math.max(box.minX, Math.min(box.maxX, t.x));
+      var ny = Math.max(box.minY, Math.min(box.maxY, t.y));
+      var nz = Math.max(box.minZ, Math.min(box.maxZ, t.z));
+      var dx = nx - t.x;
+      var dy = ny - t.y;
+      var dz = nz - t.z;
+      if (!dx && !dy && !dz) return;
+      t.set(nx, ny, nz);
+      camera.position.x += dx;
+      camera.position.y += dy;
+      camera.position.z += dz;
+    }
     function animate() {
       if (!alive) return;
       api.raf = requestAnimationFrame(animate);
@@ -1134,6 +1168,7 @@
         if (camera.position.distanceTo(glide.pos) < 0.12) glide = null;
       }
       controls.update();
+      clampPan();
       renderer.render(scene, camera);
       if (dt > 1) clock.getDelta();
     }
@@ -1328,6 +1363,7 @@
     frame: function () { if (active) active.frame(); },
     frameZone: function (zoneId) { if (active) active.frameZone(zoneId); },
     setWash: function (mode) { return active ? active.setWash(mode) : 'day'; },
-    indoors: function () { return !!(active && active.isIndoor()); }
+    indoors: function () { return !!(active && active.isIndoor()); },
+    controls: function () { return active ? active.controls : null; }
   };
 })(typeof window !== 'undefined' ? window : globalThis);
