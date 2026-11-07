@@ -51,11 +51,6 @@
     return zone.staff[0];
   }
 
-  function centerStaff(zone) {
-    var list = centersOf(zone);
-    return list.length ? list[0] : null;
-  }
-
   function centersOf(zone) {
     var out = [];
     if (!zone || !zone.staff) return out;
@@ -136,26 +131,6 @@
     });
   }
 
-  function paintFloorRailCenters() {
-    var rail = $('floorRail');
-    if (rail && rail.querySelector('[data-place]')) return;
-    document.querySelectorAll('.floor-btn').forEach(function (btn) {
-      var zone = findZone(btn.dataset.id);
-      var center = centerStaff(zone);
-      var old = btn.querySelector('.floor-center');
-      if (old && old.parentNode) old.parentNode.removeChild(old);
-      if (!center) {
-        if (btn.title && btn.title.indexOf(' · ') >= 0) btn.removeAttribute('title');
-        return;
-      }
-      var span = document.createElement('span');
-      span.className = 'floor-center';
-      span.textContent = center.mark || center.name;
-      btn.appendChild(span);
-      btn.title = center.name + ' · ' + centerStatus(center);
-    });
-  }
-
   function findStaffAnywhere(staffId) {
     for (var i = 0; i < ZONES.length; i++) {
       for (var j = 0; j < ZONES[i].staff.length; j++) {
@@ -196,6 +171,40 @@
   }
   function savePanelState(key, open) {
     try { localStorage.setItem('hq3d_drawer_' + key, open ? '1' : '0'); } catch (e) {}
+  }
+
+  function loadPlace() {
+    try { return localStorage.getItem('hq3d_place') || ''; }
+    catch (e) { return ''; }
+  }
+  function savePlace(id) {
+    try {
+      if (id) localStorage.setItem('hq3d_place', id);
+      else localStorage.removeItem('hq3d_place');
+    } catch (e) {}
+  }
+  function placeKnown(id) {
+    if (!id || !window.HQTown || !window.HQTown.placeMenu) return false;
+    var menu = window.HQTown.placeMenu();
+    var i;
+    for (i = 0; i < menu.houses.length; i++) if (menu.houses[i].id === id) return true;
+    for (i = 0; i < menu.facilities.length; i++) if (menu.facilities[i].id === id) return true;
+    return false;
+  }
+  function syncPlaceSelect(id) {
+    var sel = $('placeSelect');
+    if (!sel) return;
+    var next = placeKnown(id) ? id : '';
+    if (sel.value !== next) sel.value = next;
+  }
+  function notePlace(id) {
+    if (!placeKnown(id)) return;
+    savePlace(id);
+    syncPlaceSelect(id);
+  }
+  function clearPlace() {
+    savePlace('');
+    syncPlaceSelect('');
   }
 
   /* ---------- Toast ---------- */
@@ -423,6 +432,7 @@
       applyCollapse('detailPanel', true);
     }
     if (opts.openModal && staffId) openModal(zoneId, staffId);
+    if (placeKnown(staffId)) notePlace(staffId);
     if (opts.toast) {
       if (staffId && staffId !== prevStaff) {
         var hit = findStaffAnywhere(staffId);
@@ -1302,7 +1312,6 @@
     renderInvestSlot();
     syncLifeFromLive();
     renderCenterStrip();
-    paintFloorRailCenters();
     renderFocusBoard(data.focus || []);
     renderCalendarStrip(data.calendar || []);
     renderDeadlineList();
@@ -1790,10 +1799,12 @@
       escHtml(doing) + '</small></span>';
     btn.addEventListener('click', function () {
       if (staffId === 'wealth') {
+        notePlace('wealth');
         openWealthBoard();
         return;
       }
       if (kind === 'hall') {
+        notePlace('hall');
         showTownCard('hall');
         toast('會議廳');
         return;
@@ -1934,7 +1945,10 @@
     map.appendChild(indoor);
     root.appendChild(map);
     var back = $('townBack2d');
-    if (back) back.addEventListener('click', closeTownCard);
+    if (back) back.addEventListener('click', function () {
+      closeTownCard();
+      clearPlace();
+    });
     applyCollapse('townIndoor', loadPanelState('townIndoor', true), false);
     if (keep) showTownCard(keep);
   }
@@ -1942,41 +1956,82 @@
   function build2D() { renderTown2D(); }
 
   function highlight2D(zoneId) {
-    document.querySelectorAll('.floor-btn').forEach(function (el) {
-      var on = el.dataset.place === selectedStaffId;
-      el.classList.toggle('active', on);
-      el.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
     document.querySelectorAll('.town-plot').forEach(function (el) {
       el.classList.toggle('active', el.dataset.staff === selectedStaffId || (el.dataset.place === 'hall' && false));
     });
-    }
+  }
 
-  function buildFloorRail() {
-    var rail = $('floorRail');
-    if (!rail) return;
-    rail.querySelectorAll('.floor-btn').forEach(function (btn) {
-      if (btn.dataset.bound) return;
-      btn.dataset.bound = '1';
-      btn.addEventListener('click', function () {
-        var place = btn.dataset.place || btn.dataset.id;
-        if (place === 'hall') {
-          if (runtime3d && runtime3d.town && window.HQTownView) window.HQTownView.openHall();
-          else showTownCard('hall');
-          toast('會議廳');
-          return;
-        }
-        if (place === 'wealth') {
-          openWealthBoard();
-          return;
-        }
-        var house = window.HQTown && window.HQTown.houseByStaff(place);
-        var pub = window.HQTown && window.HQTown.publicById(place);
-        selectZone((house && house.zoneId) || (pub && pub.zoneId) || btn.dataset.id, place, { toast: true, openDrawer: true });
-      });
+  /* 地點選單：屋同社區設施用現有入內／鏡頭。
+     財富狀況對準金頂設施並開 /wealth/（同點擊）。下次載入只記住，唔再自動開新分頁。
+     投資平台同其他設施入室內，板上嘅連結留喺入面，唔會自動開 /invest/。 */
+  function visitPlace(place, opts) {
+    opts = opts || {};
+    if (!place) {
+      clearPlace();
+      if (mode === '3d' && runtime3d && runtime3d.town && window.HQTownView) window.HQTownView.frame();
+      else closeTownCard();
+      if (opts.toast) toast('全景');
+      return;
+    }
+    if (!placeKnown(place)) return;
+    notePlace(place);
+    if (place === 'hall') {
+      if (mode === '3d' && runtime3d && runtime3d.town && window.HQTownView) window.HQTownView.openHall();
+      else showTownCard('hall');
+      if (opts.toast) toast('會議廳');
+      return;
+    }
+    if (place === 'wealth') {
+      if (mode === '3d' && runtime3d && runtime3d.town && window.HQTownView && window.HQTownView.frameZone) {
+        window.HQTownView.frameZone('wealth');
+      }
+      if (opts.openBoard === false) {
+        if (runtime3d) runtime3d.skipEnter = true;
+        selectZone('invest', 'wealth', { toast: false, openDrawer: false });
+        return;
+      }
+      openWealthBoard();
+      return;
+    }
+    var house = window.HQTown && window.HQTown.houseByStaff(place);
+    var pub = window.HQTown && window.HQTown.publicById(place);
+    var zoneId = (house && house.zoneId) || (pub && pub.zoneId) || 'cmd';
+    selectZone(zoneId, place, {
+      toast: !!opts.toast,
+      openDrawer: !!opts.toast && opts.openDrawer !== false
     });
-    highlight2D(selectedZone);
-    paintFloorRailCenters();
+    if (mode === '2d' && !opts.toast) showTownCard(place);
+  }
+
+  function buildPlaceSelect() {
+    var sel = $('placeSelect');
+    if (!sel || sel.dataset.ready || !window.HQTown || !window.HQTown.placeMenu) return;
+    sel.dataset.ready = '1';
+    var menu = window.HQTown.placeMenu();
+    function addGroup(label, rows) {
+      var group = document.createElement('optgroup');
+      group.label = label;
+      rows.forEach(function (row) {
+        var opt = document.createElement('option');
+        opt.value = row.id;
+        opt.textContent = row.label;
+        group.appendChild(opt);
+      });
+      sel.appendChild(group);
+    }
+    addGroup('代理人屋', menu.houses);
+    addGroup('社區設施', menu.facilities);
+    var saved = loadPlace();
+    if (placeKnown(saved)) sel.value = saved;
+    sel.addEventListener('change', function () {
+      visitPlace(sel.value, { toast: true, openBoard: true });
+    });
+  }
+
+  function restorePlace() {
+    var place = loadPlace();
+    if (!placeKnown(place)) return;
+    visitPlace(place, { toast: false, openBoard: false, openDrawer: false });
   }
 
   function dispose3D() {
@@ -2040,6 +2095,7 @@
     build2D();
     renderTownDuty();
     renderDetail(selectedZone, selectedStaffId);
+    restorePlace();
   }
 
   function showBootError(msg) {
@@ -2107,13 +2163,16 @@
         zones: ZONES,
         isTouch: isTouch,
         getLive: function () { return liveData; },
+        onFrame: function () { clearPlace(); },
         onPick: function (hit) {
           if (!hit || !runtime3d) return;
           if (hit.kind === 'hall') {
+            notePlace('hall');
             toast('會議廳');
             return;
           }
           if (hit.staffId === 'wealth' || hit.place === 'wealth') {
+            notePlace('wealth');
             openWealthBoard();
             return;
           }
@@ -2232,7 +2291,7 @@
     });
   }
 
-  buildFloorRail();
+  buildPlaceSelect();
   renderTownDuty();
 
   Promise.all([loadDirectory(), loadLifeLayout()]).then(function () {
@@ -2243,5 +2302,6 @@
     } else {
       enable2D('本機檔案預設平面小鎮（可轉立體）');
     }
+    restorePlace();
   });
 })();
