@@ -12,13 +12,14 @@ The live HQ is a warm cartoon town. The stacked tower is no longer the primary v
 - 其餘同事企喺相關屋前或設施崗位（分析台、投資後院、生活屋前、新聞後院、研創前地），唔再預設泊喺巷口。投資街／生活巷／內容巷只係偶爾行過去對一對。
 - 右上角 **而家做緊** 列出每人而家做緊咩（跟 live.json 焦點或狀態）。拉近啲會見到頭上短標同對話泡。
 - 大約每半分鐘會見到一對鄰位同事行埋一齊講兩句，另有人巡屋或者交低進度。開會嗰陣相關同事會聚喺會議廳門口。
-- **點一個人**（或左側名單）進入室內。牆上手牌同底下說明寫明姿勢同依據。室內姿勢仍然只跟 live.json：坐、待命、短走、開會。
+- 舞台左上角（窄屏喺下方）有 **地點** 下拉選單，揀屋或者社區設施就去睇嗰度。八間屋同社區設施都喺入面。上次揀過嘅地點會記住；財富頁唔會喺下次打開小鎮時自動彈出。
+- **點一個人**（或地點選單）進入室內。牆上手牌同底下說明寫明姿勢同依據。室內姿勢仍然只跟 live.json：坐、待命、短走、開會。
 - **投資平台**、數據分析中心、投資顧問室內，同投資區詳情，有 **進入投資平台**。開獨立奶油頁 [`/invest/`](https://martinleesk.github.io/grokbot-3d-hq/invest/)（新分頁），唔會去 Cursor Canvas。
 - **返回小鎮** 或頂欄 **全景** 走返出地圖。拖曳旋轉，滾輪拉近。
 - **晝 / 金** 係日間同黃金時刻。
 - 如果部機冇 WebGL，會留喺同一張平面小鎮，點屋一樣開室內卡。
 
-Open the static site (GitHub Pages serves this folder; there is no build). The north green is the civic block: the investment platform, the wealth hall, database, analytics, lab, and the meeting hall. Those facilities are larger flat-roofed buildings, not houses. The gold **財富狀況** hall sits on the lawn between the lab and the north path, larger than the houses, and opens [`/wealth/`](wealth/). Eight houses remain, one per core agent, including the advisor's own house. Everyone else stands at a related porch or facility desk, not in the side lanes. The **而家做緊** list (top right) shows each person's current work from `live.json`. Click a person to step inside. The wall card states the pose and which `live.json` field it came from. **全景** or **返回小鎮** steps back outside. **晝 / 金** switches daylight and golden hour.
+Open the static site (GitHub Pages serves this folder; there is no build). The north green is the civic block: the investment platform, the wealth hall, database, analytics, lab, and the meeting hall. Those facilities are larger flat-roofed buildings, not houses. The gold **財富狀況** hall sits on the lawn between the lab and the north path, larger than the houses, and opens [`/wealth/`](wealth/). Eight houses remain, one per core agent, including the advisor's own house. Everyone else stands at a related porch or facility desk, not in the side lanes. The **而家做緊** list (top right) shows each person's current work from `live.json`. A **地點** dropdown (top left, or along the bottom on a narrow screen) jumps to any house or civic building; the last choice is remembered and does not reopen the wealth tab on the next visit. Click a person or pick a place to step inside. The wall card states the pose and which `live.json` field it came from. **全景** or **返回小鎮** steps back outside. **晝 / 金** switches daylight and golden hour.
 
 The monitor board is a standalone cream page at [https://martinleesk.github.io/grokbot-3d-hq/invest/](https://martinleesk.github.io/grokbot-3d-hq/invest/). **投資平台** on the town opens that page. The wealth board is [https://martinleesk.github.io/grokbot-3d-hq/wealth/](https://martinleesk.github.io/grokbot-3d-hq/wealth/). **財富狀況** opens that page.
 

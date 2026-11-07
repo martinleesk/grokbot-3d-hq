@@ -297,6 +297,34 @@ assert(appSrc.indexOf("data-collapse=\"townIndoor\"") >= 0, 'flat indoor card co
 assert(appSrc.indexOf('aria-expanded') >= 0, 'collapse buttons expose aria-expanded');
 assert(appSrc.indexOf('hudDefaultOpen') >= 0, 'hud panels use the shared collapse helper');
 assert(htmlSrc.indexOf('id="townBoardLink"') >= 0, 'invest monitor link stays on the indoor hud');
+var menu = Town.placeMenu();
+var houseLabels = menu.houses.map(function (h) { return h.label; });
+['總管屋', '秘書屋', '財務屋', '生活屋', '顧問屋', '旅遊屋', '新聞屋', '稽核屋'].forEach(function (label) {
+  assert(houseLabels.indexOf(label) >= 0, 'place menu house ' + label);
+});
+assert(menu.houses.length === Town.HOUSES.length, 'place menu lists every house');
+menu.houses.forEach(function (h) {
+  assert(h.kind === 'house' && /屋$/.test(h.label), 'house option is a house: ' + h.label);
+});
+assert(menu.facilities[0].id === 'invest-platform' && menu.facilities[0].label === '投資平台' && menu.facilities[0].kind !== 'house', 'platform stays a facility');
+assert(menu.facilities[1].id === 'wealth' && menu.facilities[1].label === '財富狀況' && menu.facilities[1].label.indexOf('屋') < 0, 'wealth stays a facility');
+['shared-db', 'analytics', 'lab', 'hall'].forEach(function (id) {
+  assert(menu.facilities.some(function (f) { return f.id === id; }), 'facility option ' + id);
+});
+menu.facilities.forEach(function (f) {
+  assert(f.kind !== 'house' && f.label.indexOf('屋') < 0, 'facility option is not a house: ' + f.label);
+});
+assert(htmlSrc.indexOf('id="placeSelect"') >= 0, 'place dropdown is on the town');
+assert(htmlSrc.indexOf('class="floor-btn"') < 0 && htmlSrc.indexOf('floor-rail') < 0, 'location boxes are gone');
+assert(cssSrc.indexOf('.place-pick') >= 0 && cssSrc.indexOf('.floor-rail') < 0, 'picker replaces the rail');
+assert(cssSrc.split('.place-pick')[1].split('}')[0].indexOf('100vw') < 0, 'picker avoids viewport-width glow');
+assert(appSrc.indexOf('placeMenu') >= 0 && appSrc.indexOf('hq3d_place') >= 0, 'dropdown reads the menu and remembers the last place');
+var visit = appSrc.split('function visitPlace')[1].split('function buildPlaceSelect')[0];
+assert(visit.indexOf('openHall') >= 0, 'hall option opens the hall');
+assert(visit.indexOf('frameZone') >= 0 && visit.indexOf('openWealthBoard') >= 0, 'wealth option frames the hall and opens the board');
+assert(visit.indexOf('openBoard === false') >= 0, 'a remembered wealth place does not auto-open a tab');
+assert(visit.indexOf('selectZone') >= 0, 'other places reuse selectZone');
+assert(appSrc.indexOf("onFrame") >= 0, 'overview clears the remembered place');
 
 var board = Town.investBoard(live);
 assert(board && board.url === 'https://martinleesk.github.io/grokbot-3d-hq/invest/', 'live invest board url');
@@ -351,12 +379,6 @@ assert(investJs.indexOf('hqInvestPaperFills') >= 0 && investJs.indexOf("live_aut
 assert(investCss.indexOf('100vw') < 0 && investCss.indexOf('100vmax') < 0, 'no viewport-width glow hack');
 assert(/width:\s*100%/.test(investCss) && investCss.indexOf('prefers-reduced-motion') >= 0, 'full-width shell can calm motion');
 assert(!/cursor\.com\/canvas|grok\/canvas/.test(investHtml + investCss + investJs), 'invest page does not load canvas');
-assert(htmlSrc.indexOf('data-place="invest-platform"') >= 0, 'rail opens the platform');
-var rail = htmlSrc.split('id="floorRail"')[1].split('</nav>')[0];
-assert(rail.split('invest-platform')[1].split('</button>')[0].indexOf('屋') < 0, 'platform rail button is not a house');
-assert(rail.indexOf('data-place="wealth"') >= 0, 'rail opens wealth');
-assert(rail.split('data-place="wealth"')[1].split('</button>')[0].indexOf('屋') < 0, 'wealth rail button is not a house');
-assert(rail.split('data-place="wealth"')[1].split('</button>')[0].indexOf('財富') >= 0, 'wealth rail says 財富');
 assert(appSrc.indexOf('openWealthBoard') >= 0, 'town click opens the wealth board');
 assert(sceneSrc.indexOf("opensWealth") >= 0, '3d wealth click does not enter the house');
 assert(cssSrc.indexOf('clip-path: none') >= 0, 'facility roofs on the flat map are not house gables');

@@ -1044,6 +1044,7 @@
         new THREE.Vector3(OVERVIEW_POS.x, OVERVIEW_POS.y, OVERVIEW_POS.z),
         new THREE.Vector3(OVERVIEW_TGT.x, OVERVIEW_TGT.y, OVERVIEW_TGT.z)
       );
+      if (opts.onFrame) opts.onFrame();
     }
     function frameZone(zoneId) {
       showOutdoor();

@@ -72,15 +72,12 @@
 
   <div id="stage">
     <div id="canvas-wrap" aria-hidden="true"></div>
-    <nav class="floor-rail" id="floorRail" aria-label="小鎮">
-      <button type="button" class="floor-btn" data-place="boss" data-id="cmd"><span class="floor-code">屋</span><span class="floor-short">總管</span></button>
-      <button type="button" class="floor-btn" data-place="sec" data-id="life"><span class="floor-code">屋</span><span class="floor-short">秘書</span></button>
-      <button type="button" class="floor-btn" data-place="finance" data-id="life"><span class="floor-code">屋</span><span class="floor-short">財務</span></button>
-      <button type="button" class="floor-btn" data-place="invest-platform" data-id="invest" title="投資平台"><span class="floor-code">設施</span><span class="floor-short">平台</span></button>
-      <button type="button" class="floor-btn" data-place="wealth" data-id="invest" title="財富狀況"><span class="floor-code">設施</span><span class="floor-short">財富</span></button>
-      <button type="button" class="floor-btn" data-place="travel" data-id="travel"><span class="floor-code">屋</span><span class="floor-short">旅遊</span></button>
-      <button type="button" class="floor-btn" data-place="hall" data-id="hall"><span class="floor-code">堂</span><span class="floor-short">會堂</span></button>
-    </nav>
+    <div class="place-pick" id="placePick">
+      <label class="place-pick-label" for="placeSelect">地點</label>
+      <select id="placeSelect" aria-label="選擇地點">
+        <option value="">全景</option>
+      </select>
+    </div>
     <aside id="townDuty" class="town-duty collapsed" hidden aria-label="而家做緊">
       <div class="panel-toolbar">
         <button type="button" class="panel-toggle" data-collapse="townDuty" aria-expanded="false" aria-controls="townDutyBody">

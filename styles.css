@@ -1773,68 +1773,55 @@ body.has-risk-board .toast-stack { top: calc(var(--ribbon-h) + 8px); }
   .focus-card .fc-detail { display: block; }
 }
 
-/* Phase B D1: six floors stay on the framed stage. Rail is not a drawer. */
-.floor-rail {
+/* Place picker. One cream select, not a row of location boxes. */
+.place-pick {
   position: absolute;
-  z-index: 6;
-  left: 8px;
+  z-index: 8;
+  left: 10px;
   top: 10px;
-  bottom: 10px;
-  width: 72px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 6px;
+  max-width: min(280px, calc(100% - 20px));
+  padding: 2px 8px 2px 12px;
+  border-radius: 999px;
+  border: 1px solid #E4D3BC;
+  background: rgba(255, 251, 246, 0.96);
+  color: #3A322C;
+  box-shadow: 0 8px 18px rgba(90, 50, 20, 0.12);
   pointer-events: auto;
 }
-.floor-btn {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 1px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(63, 56, 48, 0.2);
-  border-left: 3px solid var(--floor, var(--accent));
-  background: rgba(247, 241, 232, 0.78);
+.place-pick-label {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #6F675E;
+  white-space: nowrap;
+}
+.place-pick select {
+  min-width: 0;
+  width: 168px;
+  max-width: 100%;
+  min-height: 40px;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
   color: #3A322C;
   font: inherit;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
+  color-scheme: only light;
 }
-.floor-btn .floor-code {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.04em;
-}
-.floor-btn .floor-short {
-  font-size: 14px;
-  font-weight: 750;
-}
-.floor-btn .floor-center {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 9px;
-  font-weight: 650;
-  line-height: 1.2;
-  color: var(--muted);
-}
-.floor-btn.active {
-  color: #3A322C;
-  background: rgba(243, 230, 212, 0.94);
-  box-shadow: inset 0 0 0 1px var(--floor, var(--accent));
-}
-.floor-btn.active .floor-short { color: var(--floor, #fff); }
 
 #fallback,
 body.has-usage #fallback,
 body.has-risk-board #fallback,
 body.has-disclaimer #fallback {
-  padding: 10px 10px 10px 88px;
+  padding: 56px 8px 8px;
 }
 .fb-office::before,
 .fb-windows,
@@ -1896,32 +1883,19 @@ body.has-disclaimer #fallback {
 }
 
 @media (max-width: 820px) {
-  .floor-rail {
-    left: 6px;
-    right: 6px;
+  .place-pick {
+    left: 8px;
+    right: auto;
     top: auto;
-    bottom: 6px;
-    width: auto;
-    height: 46px;
-    flex-direction: row;
-    gap: 4px;
+    bottom: 8px;
+    width: min(280px, calc(100% - 16px));
+    max-width: calc(100% - 16px);
   }
-  .floor-btn {
-    align-items: center;
-    padding: 2px 0;
-    border-radius: 10px;
-    border-left-width: 1px;
-    border-bottom: 3px solid var(--floor, var(--accent));
-  }
-  .floor-btn .floor-short { font-size: 12px; }
-  .floor-btn .floor-code { font-size: 9px; }
-  .floor-btn .floor-center { display: none; }
-  body.mode-3d #canvas-wrap { top: 0; bottom: 54px; }
   #fallback,
   body.has-usage #fallback,
   body.has-risk-board #fallback,
   body.has-disclaimer #fallback {
-    padding: 6px 6px 56px;
+    padding: 8px 8px 64px;
   }
   .fb-stack { transform: perspective(700px) rotateX(10deg) rotateY(12deg); gap: 4px; }
   .fb-stack .fb-floor { padding: 4px 6px; }
@@ -1940,7 +1914,7 @@ body.mode-2d #townHud { display: none !important; }
 .town-hud {
   position: absolute;
   z-index: 7;
-  left: 88px;
+  left: 12px;
   right: 12px;
   bottom: 12px;
   display: flex;
@@ -2065,7 +2039,7 @@ body.mode-2d #townHud { display: none !important; }
   z-index: 6;
   top: 10px;
   right: 12px;
-  width: min(268px, calc(100% - 108px));
+  width: min(268px, calc(100% - 250px));
   max-height: min(64vh, 620px);
   overflow: auto;
   background: rgba(255, 251, 246, 0.94);
@@ -2091,7 +2065,7 @@ body.mode-2d #townHud { display: none !important; }
 .town-caption.collapsed .panel-toolbar { margin-bottom: 0; }
 .town-duty.collapsed {
   width: max-content;
-  max-width: calc(100% - 108px);
+  max-width: calc(100% - 250px);
   max-height: none;
   overflow: hidden;
 }
@@ -2165,7 +2139,7 @@ body.mode-2d #townHud { display: none !important; }
 .town-avatar.pose-meeting { box-shadow: inset 0 -16px 0 #E36B5C; }
 .town-avatar.away::after { content: "外出"; position: absolute; right: -8px; top: -6px; font-size: 10px; background: #fff; border-radius: 8px; padding: 1px 4px; }
 @media (max-width: 820px) {
-  .town-hud { left: 8px; right: 8px; bottom: 58px; }
+  .town-hud { left: 8px; right: 8px; bottom: 64px; }
   .town-caption h2 { font-size: 17px; }
   .town-duty {
     top: 8px;
@@ -2220,7 +2194,6 @@ body.mode-3d #canvas-wrap canvas {
 .detail-head h2,
 .dir-head h2,
 .modal-head h2,
-.floor-btn .floor-short,
 .fb-stack .fb-floor h3,
 .focus-card .fc-title {
   font-family: var(--serif);
@@ -2230,7 +2203,6 @@ body.mode-3d #canvas-wrap canvas {
 }
 .panel-label,
 .eyebrow,
-.floor-code,
 .usage-kicker,
 .risk-kicker,
 .invest-kicker,
@@ -2326,7 +2298,6 @@ body.mode-3d #canvas-wrap canvas {
 .ribbon-counts b,
 .metric .v,
 .cal-chip .when,
-.floor-btn .floor-code,
 .fb-stack .tag,
 .changelog-list .cl-at,
 .invest-kicker {
@@ -2356,22 +2327,6 @@ body.mode-3d #canvas-wrap canvas {
 .invest-mode.mode-paper { border-color: #B79F80; color: #B79F80; }
 .invest-pnl { color: #3A322C; }
 .invest-sim { color: #C6A36A; }
-.floor-rail .floor-btn {
-  opacity: 0.55;
-  background: #F7F1E8;
-  color: #6F675E;
-  border: 1px solid #E4D3BC;
-  border-left: 1px solid #E4D3BC;
-  box-shadow: none;
-}
-.floor-rail .floor-btn.active {
-  opacity: 1;
-  background: #F3E6D4;
-  color: #3A322C;
-  border-color: #B79F80;
-  box-shadow: inset 0 0 0 1px #B79F80;
-}
-.floor-rail .floor-btn.active .floor-short { color: #3A322C; }
 .fb-office {
   background: #FFFBF6;
   border: 1px solid #E4D3BC;
@@ -2438,10 +2393,5 @@ body.mode-3d #canvas-wrap canvas {
 .reports-backdrop { background: rgba(247, 241, 232, 0.72); }
 @keyframes pulse { 50% { opacity: 0.45; transform: none; } }
 @media (max-width: 820px) {
-  .floor-rail .floor-btn {
-    border-left-width: 1px;
-    border-bottom: 1px solid #E4D3BC;
-  }
-  .floor-rail .floor-btn.active { border-bottom-color: #B79F80; }
   .fb-stack { transform: perspective(1200px) rotateX(5deg); }
 }
