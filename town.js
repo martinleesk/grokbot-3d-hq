@@ -1304,6 +1304,31 @@ function pickCalendar(cals, context, title) {
     };
   }
 
+  /* Houses first, then civic facilities. Facility labels stay the building names, never 屋. */
+  function placeMenu() {
+    var houses = HOUSES.map(function (h) {
+      return {
+        id: h.staffId,
+        label: HOME_LABEL[h.staffId] || homeTitle(h.staffId),
+        kind: 'house',
+        zoneId: h.zoneId
+      };
+    });
+    var facilityOrder = ['invest-platform', 'wealth', 'shared-db', 'analytics', 'lab', 'hall'];
+    var facilities = [];
+    facilityOrder.forEach(function (id) {
+      var pub = publicById(id);
+      if (!pub) return;
+      facilities.push({
+        id: pub.id,
+        label: pub.label,
+        kind: pub.kind === 'hall' ? 'hall' : 'center',
+        zoneId: pub.zoneId
+      });
+    });
+    return { houses: houses, facilities: facilities };
+  }
+
   function focusPoint(placeId) {
     var house = houseByStaff(placeId);
     if (house) return { x: house.x, z: house.z };
@@ -1346,6 +1371,7 @@ function pickCalendar(cals, context, title) {
     frameAt: frameAt,
     buildingBoxes: buildingBoxes,
     homeTitle: homeTitle,
+    placeMenu: placeMenu,
     clipText: clipText,
     speak: speak,
     investBoard: investBoard,
