@@ -218,8 +218,8 @@ h1 {
   text-align: center;
 }
 .empty-cell { display: table-cell; }
-.gaps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.gaps li { font-size: 12px; color: #6A5330; background: #F8E7C4; border-radius: 8px; padding: 5px 8px; }
+.gaps { list-style: none; margin: 0; padding: 0; display: flex; flex-flow: row wrap; gap: 4px; }
+.gaps li { font-size: 12px; color: #6A5330; background: #F8E7C4; border-radius: 8px; padding: 4px 8px; }
 .cashflow > .gaps { flex: 0 0 auto; }
 .acct { margin-top: 8px; }
 .track-second { margin-top: 3px; }
@@ -325,7 +325,9 @@ th { color: #7A7066; font-weight: 650; font-size: 11px; }
 html.reduce-motion .card,
 html.reduce-motion .fill { animation: none; }
 @media (min-width: 901px) {
-  .shell { height: 100dvh; }
+  .shell { height: 100dvh; overflow: auto; }
+  .main { flex: 1 0 320px; min-height: 320px; }
+  .cashflow { flex: 1.15 0 420px; min-height: 420px; }
   .card { overflow: auto; }
 }
 @media (max-width: 1100px) {

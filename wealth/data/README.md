@@ -2,9 +2,9 @@
 
 財富看板嘅**收支**只讀呢份檔。投資持倉仍然係 Sheet DEMO（`sheet-holdings.json` 或 `invest/data/snapshot.json`），紙上 DEMO 仍然喺投資平台。三樣唔好混。
 
-財務管家由「個人收入與支出統計分析儀表板」匯出之後，原樣覆蓋 `wealth/data/cashflow.json`。頁面位址係 [https://martinleesk.github.io/grokbot-3d-hq/wealth/](https://martinleesk.github.io/grokbot-3d-hq/wealth/)，檔案係 [https://martinleesk.github.io/grokbot-3d-hq/wealth/data/cashflow.json](https://martinleesk.github.io/grokbot-3d-hq/wealth/data/cashflow.json)。
+財務管家由「個人收入與支出統計分析儀表板」匯出之後，原樣覆蓋 `wealth/data/cashflow.json`。頁面只讀呢份 JSON。`cashflow.csv` 係同一份匯出嘅人讀副本，唔係看板數據源。頁面位址係 [https://martinleesk.github.io/grokbot-3d-hq/wealth/](https://martinleesk.github.io/grokbot-3d-hq/wealth/)，檔案係 [https://martinleesk.github.io/grokbot-3d-hq/wealth/data/cashflow.json](https://martinleesk.github.io/grokbot-3d-hq/wealth/data/cashflow.json)。
 
-未有匯出之前，`transactions` 同 `accounts` 保持空陣列。唔好寫示範金額。
+而家呢份係 2026-11-07 嘅匯出。之後要改數，用新匯出覆蓋，唔好喺檔入面手改金額。如果 `transactions` 係空陣列，看板顯示「未有真實流水」。
 
 ## 欄位
 

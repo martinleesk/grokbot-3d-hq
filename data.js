@@ -98,7 +98,7 @@ window.HQ_DATA = {
     ],
     wealth: [
       { id: 'wealth-sheet', text: '財富看板讀 Sheet DEMO 持倉，未列餘額唔顯示金額' },
-      { id: 'wealth-cash', text: '收支等財務管家真實流水；未匯出就顯示未有真實流水' }
+      { id: 'wealth-cash', text: '收支讀財務管家 cashflow.json；空白先顯示未有真實流水' }
     ],
     social: [
       { id: 'social-cal', text: '11 月旅遊攻略內容日曆排程確認' }

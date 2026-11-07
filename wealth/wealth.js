@@ -123,6 +123,11 @@
           if (sum.source) bits.push(sum.source);
           if (sum.asOf) bits.push(fmtTs(sum.asOf));
           bits.push(sum.empty ? '未有真實流水' : (sum.viewCount + ' 筆'));
+          if (!sum.empty && sum.months && sum.months.length) {
+            bits.push(sum.period === 'all'
+              ? (sum.months[0] + ' 至 ' + sum.months[sum.months.length - 1])
+              : sum.period);
+          }
           bits.push('唔計入 Sheet NAV');
           meta.textContent = bits.join(' · ');
         }
@@ -311,7 +316,7 @@
         $('sourceNote').textContent = '投資 · 快照載入失敗。唔顯示估計餘額。';
       }
       cashBook = rows[3];
-      paintCash();
+      paintCash('all');
     }).catch(function () {
       $('sourceNote').textContent = '投資 · 快照載入失敗。唔顯示估計餘額。';
       cashBook = null;

@@ -404,18 +404,33 @@ var flow = JSON.parse(fs.readFileSync(path.join(__dirname, 'wealth/data/cashflow
 assert(Object.keys(flow).sort().join(',') === ['accounts', 'asOf', 'currency', 'gaps', 'sheetId', 'source', 'transactions'].sort().join(','), 'cashflow keys match the steward schema');
 assert(flow.currency === 'HKD' && flow.source === '個人收入與支出統計分析儀表板', 'cashflow source is the steward dashboard');
 assert(flow.sheetId === '1zmO2KrjESXCkyVW2cNHiyMtIQHZe4-KVVlKO8ugT9xY', 'cashflow keeps the steward sheet id');
-assert(Array.isArray(flow.accounts) && flow.accounts.length === 0, 'no invented cashflow accounts');
-assert(Array.isArray(flow.transactions) && flow.transactions.length === 0, 'no invented cashflow transactions');
-assert(Array.isArray(flow.gaps) && flow.gaps.length > 0 && flow.gaps.every(function (g) { return typeof g === 'string' && g.length > 0; }), 'gaps explain the empty book');
-assert(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/.test(flow.asOf), 'cashflow asOf is HKT');
-function cashHasNumber(v) {
-  if (typeof v === 'number') return true;
-  if (Array.isArray(v)) return v.some(cashHasNumber);
-  if (v && typeof v === 'object') return Object.keys(v).some(function (k) { return cashHasNumber(v[k]); });
-  return false;
-}
-assert(!cashHasNumber(flow), 'cashflow skeleton has no numeric amounts');
-var emptyFlow = Wealth.summarizeCashflow(flow);
+assert(flow.asOf === '2026-11-07T09:57:02+08:00', 'cashflow asOf is the steward export');
+assert(Array.isArray(flow.accounts) && flow.accounts.length === 10, 'steward export lists 10 accounts');
+assert(Array.isArray(flow.transactions) && flow.transactions.length === 330, 'steward export lists 330 transactions');
+assert(flow.transactions.every(function (t) {
+  return t && (t.type === 'income' || t.type === 'expense' || t.type === 'transfer') &&
+    typeof t.amountHkd === 'number' && t.amountHkd > 0 && /^\d{4}-\d{2}-\d{2}$/.test(t.date);
+}), 'every shipped row is a positive dated income, expense, or transfer');
+var dates = flow.transactions.map(function (t) { return t.date; }).sort();
+assert(dates[0] === '2026-08-01' && dates[dates.length - 1] === '2026-11-01', 'shipped rows span the export dates');
+assert(Array.isArray(flow.gaps) && flow.gaps.length > 0 && flow.gaps.every(function (g) { return typeof g === 'string' && g.length > 0; }), 'gaps stay on the export');
+var shipped = Wealth.summarizeCashflow(flow, 'all');
+assert(shipped.viewCount === 330 && shipped.skipped === 0 && shipped.accounts.length === 10, 'all shipped rows are counted');
+assert(Math.abs((shipped.income - shipped.expense) - shipped.net) < 0.001, 'shipped net is income minus expense');
+var cin = 0, cout = 0, cx = 0;
+flow.transactions.forEach(function (t) {
+  var c = Math.round(t.amountHkd * 100);
+  if (t.type === 'income') cin += c;
+  else if (t.type === 'expense') cout += c;
+  else cx += c;
+});
+assert(Math.round(shipped.income * 100) === cin && Math.round(shipped.expense * 100) === cout && Math.round(shipped.transfer * 100) === cx, 'shipped totals match the export to the cent');
+assert(shipped.transfer > 0 && shipped.categories.every(function (c) { return c.type !== 'transfer'; }), 'shipped transfers stay out of category net');
+assert(shipped.months.join(',') === '2026-08,2026-09,2026-10,2026-11', 'shipped months');
+var shippedHtml = Wealth.cashflowMarkup(shipped);
+assert(shippedHtml.indexOf('未有真實流水') < 0 && shippedHtml.indexOf('HK$') >= 0 && shippedHtml.indexOf('NAV') < 0, 'shipped cashflow renders amounts and not NAV');
+var emptyBook = { currency: 'HKD', accounts: [], transactions: [], gaps: [] };
+var emptyFlow = Wealth.summarizeCashflow(emptyBook);
 assert(emptyFlow.empty && emptyFlow.income == null && emptyFlow.net == null && emptyFlow.transfer == null, 'empty book does not become zero dollars');
 var emptyHtml = Wealth.cashflowMarkup(emptyFlow);
 assert(emptyHtml.indexOf('未有真實流水') >= 0 && emptyHtml.indexOf('HK$') < 0, 'empty cashflow markup has no dollar figures');
