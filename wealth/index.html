@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="light" />
 <meta name="theme-color" content="#F7F1E8" />
 <title>個人財富狀況 · 財富看板</title>
+<link rel="canonical" href="https://martinleesk.github.io/grokbot-3d-hq/wealth/" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600&display=swap" rel="stylesheet" />
@@ -21,26 +22,45 @@
       <div class="brand">
         <span class="coin" aria-hidden="true"></span>
         <div>
-          <p class="eyebrow">財富看板 · 實倉／Sheet DEMO</p>
+          <p class="eyebrow">財富看板 · 投資 Sheet DEMO · 收支真實記帳</p>
           <h1>個人財富狀況</h1>
         </div>
       </div>
       <div class="bar-actions">
-        <span class="pill">Sheet 持倉</span>
+        <span class="pill">投資 · Sheet DEMO</span>
+        <span class="pill pill-live">收支 · 真實記帳</span>
         <span class="pill pill-quiet">紙上 DEMO 另計</span>
         <span class="when" id="when">載入快照…</span>
         <a class="back" href="../invest/">投資平台</a>
         <a class="back" href="../">返回小鎮</a>
       </div>
     </header>
-    <p class="source" id="sourceNote">讀取已發布持倉…</p>
-    <section class="kpis" id="kpis" aria-label="財富指標"></section>
-    <main class="main">
-      <section class="card" id="cardBrokers" aria-label="券商配置"></section>
-      <section class="card" id="cardHolds" aria-label="持倉組成"></section>
-      <section class="card" id="cardSide" aria-label="資產類別同快照"></section>
-    </main>
-    <footer class="foot" id="foot">Sheet DEMO · 真倉自動 OFF · 唔構成投資建議</footer>
+    <div class="board">
+      <p class="source" id="sourceNote">讀取已發布持倉…</p>
+      <section class="kpis" id="kpis" aria-label="投資指標"></section>
+      <main class="main">
+        <section class="card" id="cardBrokers" aria-label="券商配置"></section>
+        <section class="card" id="cardHolds" aria-label="持倉組成"></section>
+        <section class="card" id="cardSide" aria-label="資產類別同快照"></section>
+      </main>
+      <section class="cashflow" id="cashflow" aria-label="真實收支">
+        <div class="band-head">
+          <div>
+            <p class="eyebrow">收支 · 真實記帳（財務管家）</p>
+            <h2>收支</h2>
+          </div>
+          <p class="note" id="cashMeta">讀取記帳…</p>
+          <label class="period" for="cashPeriod">期間
+            <select id="cashPeriod" aria-label="收支期間">
+              <option value="">未有期間</option>
+            </select>
+          </label>
+        </div>
+        <ul class="gaps" id="cashGaps" hidden></ul>
+        <div class="cash-body" id="cashBody"></div>
+      </section>
+    </div>
+    <footer class="foot" id="foot">投資 Sheet DEMO · 收支真實記帳（財務管家）· 紙上 DEMO 另計 · 真倉自動 OFF · 唔構成投資建議</footer>
   </div>
   <script src="wealth.js"></script>
 </body>
