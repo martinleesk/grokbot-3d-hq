@@ -314,14 +314,15 @@ assert(Town.investBoard({ invest: { dashboardUrl: 'http://example.com/x' } }) ==
 assert(Town.investBoard({ invest: { dashboardUrl: 'javascript:alert(1)' } }) === null, 'javascript urls are dropped');
 assert(Town.investBoard({ invest: { dashboardUrl: 'invest/' } }).url === 'invest/', 'relative invest path is accepted');
 var wealthBoard = Town.wealthBoard(live);
-assert(wealthBoard && wealthBoard.url === 'wealth/', 'live wealth board url');
+assert(wealthBoard && wealthBoard.url === 'https://martinleesk.github.io/grokbot-3d-hq/wealth/', 'live wealth board url');
 assert(wealthBoard.title === '個人財富狀況', 'wealth title');
 assert(wealthBoard.label === '進入財富看板', 'wealth label');
 assert(Town.showsWealthBoard('wealth') && !Town.showsWealthBoard('advisor') && !Town.showsWealthBoard('invest-platform'), 'only the wealth hall shows the wealth board');
-assert(Town.wealthBoard({}).url === 'wealth/', 'wealth board defaults without live.wealth');
-assert(Town.wealthBoard({ wealth: { dashboardUrl: 'javascript:alert(1)' } }).url === 'wealth/', 'bad wealth urls fall back');
-assert(Town.wealthBoard({ wealth: { dashboardUrl: 'https://cursor.com/canvas/x' } }).url === 'wealth/', 'canvas wealth urls fall back to the pages board');
-assert(Town.wealthBoard({ wealth: { dashboardUrl: 'https://martinleesk.github.io/grokbot-3d-hq/wealth/' } }).url.indexOf('/wealth/') >= 0, 'https wealth path is accepted');
+assert(Town.wealthBoard({}).url === 'https://martinleesk.github.io/grokbot-3d-hq/wealth/', 'wealth board defaults to the pages absolute url');
+assert(Town.wealthBoard({ wealth: { dashboardUrl: 'javascript:alert(1)' } }).url === 'https://martinleesk.github.io/grokbot-3d-hq/wealth/', 'bad wealth urls fall back');
+assert(Town.wealthBoard({ wealth: { dashboardUrl: 'https://cursor.com/canvas/x' } }).url === 'https://martinleesk.github.io/grokbot-3d-hq/wealth/', 'canvas wealth urls fall back to the pages board');
+assert(Town.wealthBoard({ wealth: { dashboardUrl: 'https://martinleesk.github.io/grokbot-3d-hq/wealth/' } }).url === 'https://martinleesk.github.io/grokbot-3d-hq/wealth/', 'https wealth path is accepted');
+assert(Town.wealthBoard({ wealth: { dashboardUrl: 'wealth/' } }).url === 'wealth/', 'relative wealth path is accepted');
 var canvasBoard = Town.investBoard({ invest: { dashboard: { url: 'https://cursor.com/canvas/x', title: '板' } } });
 assert(canvasBoard.title === '板' && canvasBoard.url === 'https://martinleesk.github.io/grokbot-3d-hq/invest/', 'canvas urls fall back to the pages board');
 var investHtml = fs.readFileSync(path.join(__dirname, 'invest/index.html'), 'utf8');
@@ -393,6 +394,79 @@ assert(wealthHtml.indexOf('個人財富狀況') >= 0 && wealthHtml.indexOf('投�
 assert(wealthHtml.indexOf('100vw') < 0 && wealthCss.indexOf('100vw') < 0 && wealthCss.indexOf('100vmax') < 0, 'wealth layout avoids viewport hacks');
 assert(/prefers-reduced-motion/.test(wealthCss), 'wealth page respects reduced motion');
 assert(wealthJs.indexOf('快照未列') >= 0 && wealthJs.indexOf('紙上 DEMO') >= 0, 'wealth copy separates sheet and paper');
+assert(wealthHtml.indexOf('真實記帳（財務管家）') >= 0, 'cashflow is labeled as the steward book');
+assert(wealthHtml.indexOf('https://martinleesk.github.io/grokbot-3d-hq/wealth/') >= 0, 'wealth page names the absolute board url');
+assert(wealthHtml.indexOf('href="../invest/"') >= 0, 'wealth page still links to the invest platform');
+assert(wealthJs.indexOf('未有真實流水') >= 0 && wealthJs.indexOf('data/cashflow.json') >= 0, 'cashflow empty state reads the steward file');
+assert(wealthHtml.indexOf('id="cashGaps"') >= 0 && wealthJs.indexOf('cashGaps') >= 0, 'known gaps stay on the cashflow band');
+assert(wealthJs.indexOf('轉帳唔計入淨額') >= 0, 'transfers stay out of net cashflow');
+var flow = JSON.parse(fs.readFileSync(path.join(__dirname, 'wealth/data/cashflow.json'), 'utf8'));
+assert(Object.keys(flow).sort().join(',') === ['accounts', 'asOf', 'currency', 'gaps', 'sheetId', 'source', 'transactions'].sort().join(','), 'cashflow keys match the steward schema');
+assert(flow.currency === 'HKD' && flow.source === '個人收入與支出統計分析儀表板', 'cashflow source is the steward dashboard');
+assert(flow.sheetId === '1zmO2KrjESXCkyVW2cNHiyMtIQHZe4-KVVlKO8ugT9xY', 'cashflow keeps the steward sheet id');
+assert(Array.isArray(flow.accounts) && flow.accounts.length === 0, 'no invented cashflow accounts');
+assert(Array.isArray(flow.transactions) && flow.transactions.length === 0, 'no invented cashflow transactions');
+assert(Array.isArray(flow.gaps) && flow.gaps.length > 0 && flow.gaps.every(function (g) { return typeof g === 'string' && g.length > 0; }), 'gaps explain the empty book');
+assert(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/.test(flow.asOf), 'cashflow asOf is HKT');
+function cashHasNumber(v) {
+  if (typeof v === 'number') return true;
+  if (Array.isArray(v)) return v.some(cashHasNumber);
+  if (v && typeof v === 'object') return Object.keys(v).some(function (k) { return cashHasNumber(v[k]); });
+  return false;
+}
+assert(!cashHasNumber(flow), 'cashflow skeleton has no numeric amounts');
+var emptyFlow = Wealth.summarizeCashflow(flow);
+assert(emptyFlow.empty && emptyFlow.income == null && emptyFlow.net == null && emptyFlow.transfer == null, 'empty book does not become zero dollars');
+var emptyHtml = Wealth.cashflowMarkup(emptyFlow);
+assert(emptyHtml.indexOf('未有真實流水') >= 0 && emptyHtml.indexOf('HK$') < 0, 'empty cashflow markup has no dollar figures');
+assert(emptyHtml.indexOf('NAV') < 0, 'cashflow markup is not a NAV');
+var probe = {
+  currency: 'HKD',
+  source: '測試',
+  accounts: [{ id: 'hsbc-test', label: '測試戶口', kind: 'bank' }],
+  transactions: [
+    { id: 'in', date: '2026-11-01', type: 'income', category: '薪金', description: '測試收入', accountId: 'hsbc-test', account: '測試戶口', amountHkd: 100, note: '只係測試' },
+    { id: 'out', date: '2026-11-02', type: 'expense', category: '飲食', description: '測試支出', accountId: 'hsbc-test', account: '測試戶口', amountHkd: 40 },
+    { id: 'move', date: '2026-11-03', type: 'transfer', category: '內部', description: '測試轉帳', accountId: 'hsbc-test', account: '測試戶口', amountHkd: 25 },
+    { id: 'old', date: '2026-10-15', type: 'expense', category: '交通', description: '測試上月', accountId: 'hsbc-test', account: '測試戶口', amountHkd: 10 },
+    { id: 'neg', date: '2026-11-04', type: 'expense', category: '壞', description: '負數', accountId: 'hsbc-test', account: '測試戶口', amountHkd: -5 },
+    { id: 'fee', date: '2026-11-04', type: 'fee', category: '壞', description: '錯類型', accountId: 'hsbc-test', account: '測試戶口', amountHkd: 9 }
+  ],
+  gaps: ['缺結單']
+};
+var monthFlow = Wealth.summarizeCashflow(probe);
+assert(monthFlow.period === '2026-11' && monthFlow.income === 100 && monthFlow.expense === 40 && monthFlow.transfer === 25 && monthFlow.net === 60, 'month net ignores transfers');
+assert(monthFlow.skipped === 2, 'negative amounts and unknown types are dropped');
+assert(monthFlow.categories.length === 2 && monthFlow.categories.every(function (c) { return c.type !== 'transfer'; }), 'categories skip transfers');
+assert(monthFlow.accounts.length === 1 && monthFlow.accounts[0].net === 60 && monthFlow.accounts[0].transfer === 25, 'account net ignores transfers');
+assert(monthFlow.recent[0].description === '測試轉帳', 'recent rows are newest first');
+var allFlow = Wealth.summarizeCashflow(probe, 'all');
+assert(allFlow.income === 100 && allFlow.expense === 50 && allFlow.net === 50 && allFlow.transfer === 25, 'all-period net still ignores transfers');
+var probeHtml = Wealth.cashflowMarkup(monthFlow);
+assert(probeHtml.indexOf('測試收入') >= 0 && probeHtml.indexOf('測試支出') >= 0 && probeHtml.indexOf('測試轉帳') >= 0, 'real rows render');
+assert(probeHtml.indexOf('淨額 HK$60') >= 0 && probeHtml.indexOf('HK$25') >= 0, 'net and transfer are both visible');
+assert(probeHtml.indexOf('HK$165') < 0 && probeHtml.indexOf('HK$125') < 0 && probeHtml.indexOf('HK$65') < 0, 'transfer is not folded into income, expense, or net');
+assert(probeHtml.indexOf('只係測試') >= 0 && probeHtml.indexOf('銀行') >= 0, 'note and account kind render');
+var nasty = Wealth.summarizeCashflow({
+  currency: 'HKD',
+  transactions: [{ id: 'n', date: '2026-11-01', type: 'income', category: '<b>', description: '<script>', accountId: 'a', account: 'A&B', amountHkd: 1 }]
+});
+var nastyHtml = Wealth.cashflowMarkup(nasty);
+assert(nastyHtml.indexOf('<script>') < 0 && nastyHtml.indexOf('&lt;script&gt;') >= 0 && nastyHtml.indexOf('A&amp;B') >= 0, 'cashflow text is escaped');
+var fxFlow = Wealth.summarizeCashflow({
+  currency: 'USD',
+  transactions: [{ id: 'z', date: '2026-11-01', type: 'income', category: 'x', description: 'hidden-usd', accountId: 'a', account: 'A', amountHkd: 5 }]
+});
+var fxHtml = Wealth.cashflowMarkup(fxFlow);
+assert(fxFlow.blocked && fxFlow.income == null && fxHtml.indexOf('HK$') < 0 && fxHtml.indexOf('hidden-usd') < 0, 'non-HKD books are not summed');
+var moveOnly = Wealth.summarizeCashflow({
+  currency: 'HKD',
+  transactions: [{ id: 't', date: '2026-11-01', type: 'transfer', category: '內部', description: '自己轉帳', accountId: 'a', account: '甲', amountHkd: 80 }]
+});
+assert(moveOnly.income === 0 && moveOnly.expense === 0 && moveOnly.net === 0 && moveOnly.transfer === 80 && moveOnly.categories.length === 0, 'transfer-only book has a zero net');
+var directory = JSON.parse(fs.readFileSync(path.join(__dirname, 'directory.json'), 'utf8'));
+var wealthPage = directory.pages.filter(function (p) { return p.canvas_id === 'wealth-board'; })[0];
+assert(wealthPage && wealthPage.url === 'https://martinleesk.github.io/grokbot-3d-hq/wealth/', 'directory uses the absolute wealth board url');
 
 require('./town-scene.js');
 assert(typeof global.HQTownView.boot === 'function', 'town scene still boots');

@@ -71,6 +71,7 @@ h1 {
   font-weight: 700;
 }
 .pill { background: #F8E7C4; border-color: #E2A31A; }
+.pill-live { background: #E5F6F1; border-color: #2EAA96; }
 .pill-quiet { background: #F3EBE1; font-weight: 600; }
 .back:hover, .go:hover { border-color: #B79F80; }
 .when { color: #7A7066; font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -118,13 +119,124 @@ h1 {
 }
 .down { color: #A56B62; }
 .ok { color: #5F7D45; }
+.board {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .main {
+  flex: 1.15 1 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.92fr) minmax(280px, 1.25fr) minmax(230px, 0.98fr);
+  gap: 8px;
+}
+.cashflow {
+  flex: 0.95 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: #FFFBF6;
+  border: 1px solid #E4D3BC;
+  border-radius: 16px;
+  box-shadow: 0 8px 18px rgba(90, 60, 30, 0.05);
+}
+.band-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.band-head h2 {
+  margin: 0;
+  font-family: "Noto Serif TC", "Songti TC", serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+.band-head .note { margin: 0; max-width: 42em; }
+.period {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  color: #7A7066;
+  font-size: 12px;
+  font-weight: 700;
+}
+.period select {
+  font: inherit;
+  color: #3A322C;
+  background: #FFF6E4;
+  border: 1px solid #E4D3BC;
+  border-radius: 999px;
+  min-height: 32px;
+  padding: 0 12px;
+}
+.cash-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cash-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.kpi-transfer { box-shadow: inset 3px 0 0 #3E92D0, 0 8px 18px rgba(90, 60, 30, 0.05); }
+.cash-grid {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(240px, 0.92fr) minmax(300px, 1.25fr) minmax(250px, 0.98fr);
+  grid-template-columns: minmax(180px, 0.9fr) minmax(180px, 0.95fr) minmax(180px, 0.95fr) minmax(240px, 1.2fr);
   gap: 8px;
 }
+.cash-grid .card { overflow: auto; }
+.vs-row {
+  display: grid;
+  grid-template-columns: 5.2em minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  margin-top: 7px;
+  font-size: 12px;
+}
+.vs-row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.net-line { margin: 8px 0 0; font-size: 13px; font-weight: 750; }
+.empty-stamp, .empty-cell {
+  margin: 8px 0 0;
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 1px dashed #E2A31A;
+  background: #FFF6E4;
+  color: #6A5330;
+  font-weight: 750;
+  text-align: center;
+}
+.empty-cell { display: table-cell; }
+.gaps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.gaps li { font-size: 12px; color: #6A5330; background: #F8E7C4; border-radius: 8px; padding: 5px 8px; }
+.cashflow > .gaps { flex: 0 0 auto; }
+.acct { margin-top: 8px; }
+.track-second { margin-top: 3px; }
+.tx-scroll { min-height: 0; overflow: auto; }
+.tx-scroll small { display: block; color: #7A7066; font-weight: 500; }
+.tag {
+  display: inline-block;
+  min-width: 3em;
+  padding: 0 6px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 750;
+  text-align: center;
+}
+.tag-in { background: #E5F6F1; color: #1F7A68; }
+.tag-out { background: #FBE8E0; color: #A14B32; }
+.tag-move { background: #E5F1FA; color: #2C6F9E; }
 .card {
   min-height: 0;
   padding: 10px 12px 12px;
@@ -216,11 +328,17 @@ html.reduce-motion .fill { animation: none; }
   .shell { height: 100dvh; }
   .card { overflow: auto; }
 }
+@media (max-width: 1100px) {
+  .cash-grid { grid-template-columns: 1fr 1fr; }
+  .band-head { align-items: flex-start; flex-wrap: wrap; }
+}
 @media (max-width: 900px) {
   .shell { height: auto; }
-  .main, .kpis, .chart-split, .chart-split-side { grid-template-columns: 1fr; }
-  .kpis { grid-template-columns: 1fr 1fr; }
-  .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .board, .main, .cashflow, .cash-body, .cash-grid { flex: none; height: auto; min-height: auto; }
+  .main, .kpis, .cash-kpis, .cash-grid, .chart-split, .chart-split-side { grid-template-columns: 1fr; }
+  .kpis, .cash-kpis { grid-template-columns: 1fr 1fr; }
+  .kpis > .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .cashflow, .cash-body, .cash-grid, .cash-grid .card { overflow: visible; }
   .card { overflow: visible; }
   .hold-scroll { overflow: visible; }
   .donut { max-width: 220px; margin: 0 auto; }

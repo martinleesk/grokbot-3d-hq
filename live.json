@@ -190,5 +190,25 @@
         "owner": "auditor"
       }
     ]
+  },
+  "invest": {
+    "mode": "PAPER",
+    "halt": false,
+    "dashboardUrl": "https://martinleesk.github.io/grokbot-3d-hq/invest/",
+    "dashboardTitle": "個人投資台 · 投資平台",
+    "paper": {
+      "label": "SIMULATED",
+      "note": "模擬帳，未接真倉"
+    },
+    "morning": {
+      "handover": "監控板已交 · 真倉未入",
+      "opportunities": "模擬帳",
+      "alerts": "未接真倉"
+    }
+  },
+  "wealth": {
+    "dashboardUrl": "https://martinleesk.github.io/grokbot-3d-hq/wealth/",
+    "dashboardTitle": "個人財富狀況",
+    "note": "投資係 Sheet DEMO 持倉；收支讀財務管家真實記帳。紙上 DEMO 另計。"
   }
 }

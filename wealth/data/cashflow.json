@@ -1,0 +1,12 @@
+{
+  "asOf": "2026-11-07T09:55:00+08:00",
+  "currency": "HKD",
+  "source": "個人收入與支出統計分析儀表板",
+  "sheetId": "1zmO2KrjESXCkyVW2cNHiyMtIQHZe4-KVVlKO8ugT9xY",
+  "accounts": [],
+  "transactions": [],
+  "gaps": [
+    "財務管家尚未匯出真實流水，transactions 保持空白。",
+    "未齊月結單在財務管家對數清單，呢度唔填金額。"
+  ]
+}

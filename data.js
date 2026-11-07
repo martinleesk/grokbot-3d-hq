@@ -97,7 +97,8 @@ window.HQ_DATA = {
       { id: 'platform-demo', text: '監控板係 DEMO，真倉自動保持 OFF' }
     ],
     wealth: [
-      { id: 'wealth-sheet', text: '財富看板讀 Sheet DEMO 持倉，未列餘額唔顯示金額' }
+      { id: 'wealth-sheet', text: '財富看板讀 Sheet DEMO 持倉，未列餘額唔顯示金額' },
+      { id: 'wealth-cash', text: '收支等財務管家真實流水；未匯出就顯示未有真實流水' }
     ],
     social: [
       { id: 'social-cal', text: '11 月旅遊攻略內容日曆排程確認' }
